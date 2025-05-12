@@ -31,6 +31,7 @@ kotlin {
     sourceSets {
         
         androidMain.dependencies {
+            implementation(libs.androidx.fragment.ktx)
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
         }

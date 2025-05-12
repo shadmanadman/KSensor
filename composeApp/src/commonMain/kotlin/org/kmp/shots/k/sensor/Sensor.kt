@@ -15,10 +15,24 @@ sealed class SensorData {
     data class Magnetometer(val x: Float, val y: Float, val z: Float) : SensorData()
     data class Barometer(val pressure: Float) : SensorData()
     data class StepCounter(val steps: Int) : SensorData()
-    data class Location(val latitude: Double, val longitude: Double, val altitude: Double? = null) : SensorData()
+    data class Location(
+        val latitude: Double?=null,
+        val longitude: Double?=null,
+        val altitude: Double? = null,
+        val onError: ((Throwable) -> Unit)? = null,
+        val onSuccess: (() -> Unit)? = null
+    ) : SensorData()
 }
-
-internal expect class SensorManager {
+internal interface SensorManager {
     fun registerSensors(types: List<SensorType>, onSensorData: (SensorType, SensorData) -> Unit)
     fun unregisterSensors(types: List<SensorType>)
+}
+
+internal expect class SensorHandler: SensorManager {
+    override fun registerSensors(
+        types: List<SensorType>,
+        onSensorData: (SensorType, SensorData) -> Unit
+    )
+
+    override fun unregisterSensors(types: List<SensorType>)
 }
