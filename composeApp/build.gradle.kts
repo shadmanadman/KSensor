@@ -29,6 +29,10 @@ kotlin {
     }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.accompanist.permissions)
+
+        }
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotlin.test)
