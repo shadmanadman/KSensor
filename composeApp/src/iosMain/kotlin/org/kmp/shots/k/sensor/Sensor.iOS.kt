@@ -7,7 +7,7 @@ import platform.CoreLocation.*
 import platform.Foundation.*
 import platform.darwin.*
 
-internal actual class SensorHandler : SensorManager {
+internal actual class SensorHandler : SensorController {
 
     private val motionManager = CMMotionManager()
     private val altimeter = if (CMAltimeter.isRelativeAltitudeAvailable()) CMAltimeter() else null

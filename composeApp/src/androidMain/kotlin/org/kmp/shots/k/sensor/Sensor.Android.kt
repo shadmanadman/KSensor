@@ -15,8 +15,8 @@ import android.os.Bundle
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 
-internal actual class SensorHandler : SensorManager {
-    private val context = AppContext.get()
+internal actual class SensorHandler : SensorController {
+    private val context : Context by lazy { AppContext.get() }
 
     private val sensorManager =
         context.getSystemService(Context.SENSOR_SERVICE) as android.hardware.SensorManager
@@ -141,7 +141,7 @@ internal actual class SensorHandler : SensorManager {
 
                 SensorType.LOCATION -> {
                     if (!hasLocationPermission(context)) {
-                        MainActivity().requestLocationPermission() { granted ->
+                        MainActivity().requestLocationPermission { granted ->
                             if (granted) {
                                 registerSensors(types, onSensorData, onSensorError)
                             }

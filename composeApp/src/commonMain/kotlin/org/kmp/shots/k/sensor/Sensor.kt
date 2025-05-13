@@ -42,7 +42,7 @@ sealed class SensorData() {
     ) : SensorData()
 }
 
-internal interface SensorManager {
+internal interface SensorController {
     fun registerSensors(
         types: List<SensorType>,
         onSensorData: (SensorType, SensorData) -> Unit,
@@ -52,7 +52,7 @@ internal interface SensorManager {
     fun unregisterSensors(types: List<SensorType>)
 }
 
-internal expect class SensorHandler : SensorManager {
+internal expect class SensorHandler : SensorController {
     override fun registerSensors(
         types: List<SensorType>,
         onSensorData: (SensorType, SensorData) -> Unit,
@@ -60,4 +60,22 @@ internal expect class SensorHandler : SensorManager {
     )
 
     override fun unregisterSensors(types: List<SensorType>)
+}
+
+
+
+class FakeSensorManager : SensorController {
+    val registeredSensors = mutableListOf<SensorType>()
+
+    override fun registerSensors(
+        types: List<SensorType>,
+        onSensorData: (SensorType, SensorData) -> Unit,
+        onSensorError: (Exception) -> Unit
+    ) {
+        registeredSensors.addAll(types)
+    }
+
+    override fun unregisterSensors(types: List<SensorType>) {
+        registeredSensors.removeAll(types)
+    }
 }

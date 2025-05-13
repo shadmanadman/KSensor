@@ -16,7 +16,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -27,9 +27,20 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
-        
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+            }
+        }
+        androidInstrumentedTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.androidx.test.junit)
+            implementation(libs.androidx.core)
+            implementation(libs.androidx.rules)
+            implementation(libs.androidx.espresso.core)
+        }
         androidMain.dependencies {
             implementation(libs.androidx.fragment.ktx)
             implementation(compose.preview)
@@ -72,6 +83,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
