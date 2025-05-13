@@ -1,5 +1,10 @@
 package org.kmp.shots.k.sensor
 
+enum class PlatformType {
+    iOS,
+    Android
+}
+
 enum class SensorType {
     ACCELEROMETER,
     GYROSCOPE,
@@ -9,29 +14,49 @@ enum class SensorType {
     LOCATION
 }
 
-sealed class SensorData {
-    data class Accelerometer(val x: Float, val y: Float, val z: Float) : SensorData()
-    data class Gyroscope(val x: Float, val y: Float, val z: Float) : SensorData()
-    data class Magnetometer(val x: Float, val y: Float, val z: Float) : SensorData()
-    data class Barometer(val pressure: Float) : SensorData()
-    data class StepCounter(val steps: Int) : SensorData()
+sealed class SensorData() {
+    data class Accelerometer(
+        val x: Float,
+        val y: Float,
+        val z: Float,
+        val platformType: PlatformType
+    ) : SensorData()
+
+    data class Gyroscope(val x: Float, val y: Float, val z: Float, val platformType: PlatformType) :
+        SensorData()
+
+    data class Magnetometer(
+        val x: Float,
+        val y: Float,
+        val z: Float,
+        val platformType: PlatformType
+    ) : SensorData()
+
+    data class Barometer(val pressure: Float, val platformType: PlatformType) : SensorData()
+    data class StepCounter(val steps: Int, val platformType: PlatformType) : SensorData()
     data class Location(
-        val latitude: Double?=null,
-        val longitude: Double?=null,
+        val latitude: Double? = null,
+        val longitude: Double? = null,
         val altitude: Double? = null,
-        val onError: ((Throwable) -> Unit)? = null,
-        val onSuccess: (() -> Unit)? = null
+        val platformType: PlatformType
     ) : SensorData()
 }
+
 internal interface SensorManager {
-    fun registerSensors(types: List<SensorType>, onSensorData: (SensorType, SensorData) -> Unit)
+    fun registerSensors(
+        types: List<SensorType>,
+        onSensorData: (SensorType, SensorData) -> Unit,
+        onSensorError: (Exception) -> Unit
+    )
+
     fun unregisterSensors(types: List<SensorType>)
 }
 
-internal expect class SensorHandler: SensorManager {
+internal expect class SensorHandler : SensorManager {
     override fun registerSensors(
         types: List<SensorType>,
-        onSensorData: (SensorType, SensorData) -> Unit
+        onSensorData: (SensorType, SensorData) -> Unit,
+        onSensorError: (Exception) -> Unit
     )
 
     override fun unregisterSensors(types: List<SensorType>)

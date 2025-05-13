@@ -13,10 +13,9 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import androidx.annotation.RequiresPermission
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
-internal actual class SensorHandler: SensorManager {
+internal actual class SensorHandler : SensorManager {
     private val context = AppContext.get()
 
     private val sensorManager =
@@ -28,7 +27,8 @@ internal actual class SensorHandler: SensorManager {
 
     actual override fun registerSensors(
         types: List<SensorType>,
-        onSensorData: (SensorType, SensorData) -> Unit
+        onSensorData: (SensorType, SensorData) -> Unit,
+        onSensorError: (Exception) -> Unit
     ) {
         types.forEach { sensorType ->
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
@@ -42,7 +42,8 @@ internal actual class SensorHandler: SensorManager {
                                 SensorData.Accelerometer(
                                     event.values[0],
                                     event.values[1],
-                                    event.values[2]
+                                    event.values[2],
+                                    PlatformType.Android
                                 )
                             )
                         }
@@ -63,7 +64,8 @@ internal actual class SensorHandler: SensorManager {
                                 SensorData.Gyroscope(
                                     event.values[0],
                                     event.values[1],
-                                    event.values[2]
+                                    event.values[2],
+                                    PlatformType.Android
                                 )
                             )
                         }
@@ -84,7 +86,8 @@ internal actual class SensorHandler: SensorManager {
                                 SensorData.Magnetometer(
                                     event.values[0],
                                     event.values[1],
-                                    event.values[2]
+                                    event.values[2],
+                                    PlatformType.Android
                                 )
                             )
                         }
@@ -100,7 +103,12 @@ internal actual class SensorHandler: SensorManager {
                 SensorType.BAROMETER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                            onSensorData(sensorType, SensorData.Barometer(event.values[0]))
+                            onSensorData(
+                                sensorType, SensorData.Barometer(
+                                    event.values[0],
+                                    PlatformType.Android
+                                )
+                            )
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -116,7 +124,10 @@ internal actual class SensorHandler: SensorManager {
                         override fun onSensorChanged(event: SensorEvent) {
                             onSensorData(
                                 sensorType,
-                                SensorData.StepCounter(event.values[0].toInt())
+                                SensorData.StepCounter(
+                                    event.values[0].toInt(),
+                                    PlatformType.Android
+                                )
                             )
                         }
 
@@ -132,7 +143,7 @@ internal actual class SensorHandler: SensorManager {
                     if (!hasLocationPermission(context)) {
                         MainActivity().requestLocationPermission() { granted ->
                             if (granted) {
-                                registerSensors(types, onSensorData)
+                                registerSensors(types, onSensorData, onSensorError)
                             }
                         }
                     }
@@ -141,9 +152,10 @@ internal actual class SensorHandler: SensorManager {
                             onSensorData(
                                 sensorType,
                                 SensorData.Location(
-                                    location.latitude,
-                                    location.longitude,
-                                    location.altitude
+                                    latitude = location.latitude,
+                                    longitude = location.longitude,
+                                    altitude = location.altitude,
+                                    platformType = PlatformType.Android
                                 )
                             )
                         }
@@ -168,6 +180,7 @@ internal actual class SensorHandler: SensorManager {
                             activeSensorListeners[sensorType] = listener
                         },
                         onError = { exception ->
+                            onSensorError(exception)
                         }
                     )
                 }
@@ -176,7 +189,12 @@ internal actual class SensorHandler: SensorManager {
     }
 
     actual override fun unregisterSensors(types: List<SensorType>) {
-
+        types.forEach { sensorType ->
+            when (val listener = activeSensorListeners.remove(sensorType)) {
+                is SensorEventListener -> sensorManager.unregisterListener(listener)
+                is LocationListener -> locationManager.removeUpdates(listener)
+            }
+        }
     }
 }
 
