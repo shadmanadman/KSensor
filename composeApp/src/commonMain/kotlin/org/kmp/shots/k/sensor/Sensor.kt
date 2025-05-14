@@ -1,5 +1,7 @@
 package org.kmp.shots.k.sensor
 
+import androidx.compose.runtime.Composable
+
 enum class PlatformType {
     iOS,
     Android
@@ -50,9 +52,15 @@ internal interface SensorController {
     )
 
     fun unregisterSensors(types: List<SensorType>)
+
+    @Composable
+    fun HandelPermissions(
+        permission: PermissionType = PermissionType.LOCATION,
+        onPermissionStatus: (PermissionStatus) -> Unit
+    )
 }
 
-internal expect class SensorHandler : SensorController {
+internal expect class SensorHandler() : SensorController {
     override fun registerSensors(
         types: List<SensorType>,
         onSensorData: (SensorType, SensorData) -> Unit,
@@ -60,12 +68,17 @@ internal expect class SensorHandler : SensorController {
     )
 
     override fun unregisterSensors(types: List<SensorType>)
+
+    @Composable
+    override fun HandelPermissions(
+        permission: PermissionType,
+        onPermissionStatus: (PermissionStatus) -> Unit
+    )
 }
 
 
-
-class FakeSensorManager : SensorController {
-    val registeredSensors = mutableListOf<SensorType>()
+internal class FakeSensorManager : SensorController {
+    private val registeredSensors = mutableListOf<SensorType>()
 
     override fun registerSensors(
         types: List<SensorType>,
@@ -77,5 +90,12 @@ class FakeSensorManager : SensorController {
 
     override fun unregisterSensors(types: List<SensorType>) {
         registeredSensors.removeAll(types)
+    }
+
+    @Composable
+    override fun HandelPermissions(
+        permission: PermissionType,
+        onPermissionStatus: (PermissionStatus) -> Unit
+    ) {
     }
 }

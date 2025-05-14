@@ -13,10 +13,11 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import androidx.annotation.RequiresPermission
+import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 
 internal actual class SensorHandler : SensorController {
-    private val context : Context by lazy { AppContext.get() }
+    private val context: Context by lazy { AppContext.get() }
 
     private val sensorManager =
         context.getSystemService(Context.SENSOR_SERVICE) as android.hardware.SensorManager
@@ -140,13 +141,10 @@ internal actual class SensorHandler : SensorController {
                 }
 
                 SensorType.LOCATION -> {
-                    if (!hasLocationPermission(context)) {
-                        MainActivity().requestLocationPermission { granted ->
-                            if (granted) {
-                                registerSensors(types, onSensorData, onSensorError)
-                            }
-                        }
-                    }
+
+                    if (hasLocationPermission(context).not())
+                        onSensorError(SecurityException("Missing location permission"))
+
                     val listener = object : LocationListener {
                         override fun onLocationChanged(location: Location) {
                             onSensorData(
@@ -195,6 +193,14 @@ internal actual class SensorHandler : SensorController {
                 is LocationListener -> locationManager.removeUpdates(listener)
             }
         }
+    }
+
+    @Composable
+    actual override fun HandelPermissions(
+        permission: PermissionType,
+        onPermissionStatus: (PermissionStatus) -> Unit
+    ) {
+        PermissionsManager().askPermission(permission, onPermissionStatus)
     }
 }
 

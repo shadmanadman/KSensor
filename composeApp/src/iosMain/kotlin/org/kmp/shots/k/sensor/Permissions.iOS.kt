@@ -17,9 +17,9 @@ import platform.darwin.NSObject
 
 private val locationManager = CLLocationManager()
 
-internal actual class PermissionManager : PermissionHandler {
+internal actual class PermissionsManager : PermissionHandler {
     @Composable
-    override fun askPermission(
+    actual override fun askPermission(
         permission: PermissionType,
         permissionStatus: (PermissionStatus) -> Unit
     ) {
@@ -33,7 +33,7 @@ internal actual class PermissionManager : PermissionHandler {
     }
 
     @Composable
-    override fun launchSettings() {
+    actual override fun launchSettings() {
         NSURL.URLWithString(UIApplicationOpenSettingsURLString)?.let {
             UIApplication.sharedApplication.openURL(it)
         }

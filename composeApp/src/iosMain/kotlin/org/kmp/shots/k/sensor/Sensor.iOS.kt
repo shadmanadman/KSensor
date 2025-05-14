@@ -1,5 +1,6 @@
 package org.kmp.shots.k.sensor
 
+import androidx.compose.runtime.Composable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import platform.CoreMotion.*
@@ -162,5 +163,13 @@ internal actual class SensorHandler : SensorController {
                 SensorType.LOCATION -> locationManager.stopUpdatingLocation()
             }
         }
+    }
+
+    @Composable
+    actual override fun HandelPermissions(
+        permission: PermissionType,
+        onPermissionStatus: (PermissionStatus) -> Unit
+    ) {
+        PermissionsManager().askPermission(permission, onPermissionStatus)
     }
 }
