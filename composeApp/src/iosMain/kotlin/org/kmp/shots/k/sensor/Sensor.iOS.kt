@@ -16,36 +16,29 @@ internal actual class SensorHandler : SensorController {
     private val pedometer = if (CMPedometer.isStepCountingAvailable()) CMPedometer() else null
     private val locationManager = CLLocationManager()
 
-    private val lastEmitTimestamps = mutableMapOf<SensorType, SensorTimeInterval>()
-
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
-        sensorTypesWithIntervals: Map<SensorType, SensorTimeInterval?>,
-        defaultIntervalMillis: Long,
+        sensorType: List<SensorType>,
+        locationIntervalMillis: Long,
         onSensorData: (SensorType, SensorData) -> Unit,
         onSensorError: (Exception) -> Unit
     ) {
-        sensorTypesWithIntervals.forEach { (sensorType, sensorTimeIntervals) ->
+        sensorType.forEach { sensorType ->
             when (sensorType) {
                 SensorType.ACCELEROMETER -> {
                     if (motionManager.accelerometerAvailable) {
                         motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
-                            val now = (NSDate().timeIntervalSince1970 * 1000).toLong()
-                            val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                            if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                                lastEmitTimestamps[sensorType] = now
-                                data?.let {
-                                    it.acceleration.useContents {
-                                        onSensorData(
-                                            SensorType.ACCELEROMETER,
-                                            SensorData.Accelerometer(
-                                                this.x.toFloat(),
-                                                this.y.toFloat(),
-                                                this.z.toFloat(),
-                                                PlatformType.iOS
-                                            )
+                            data?.let {
+                                it.acceleration.useContents {
+                                    onSensorData(
+                                        SensorType.ACCELEROMETER,
+                                        SensorData.Accelerometer(
+                                            this.x.toFloat(),
+                                            this.y.toFloat(),
+                                            this.z.toFloat(),
+                                            PlatformType.iOS
                                         )
-                                    }
+                                    )
                                 }
                             }
                         }
@@ -55,84 +48,66 @@ internal actual class SensorHandler : SensorController {
                 SensorType.GYROSCOPE -> {
                     if (motionManager.gyroAvailable) {
                         motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
-                            val now = (NSDate().timeIntervalSince1970 * 1000).toLong()
-                            val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                            if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                                lastEmitTimestamps[sensorType] = now
-                                data?.let {
-                                    it.rotationRate.useContents {
-                                        onSensorData(
-                                            SensorType.GYROSCOPE,
-                                            SensorData.Gyroscope(
-                                                this.x.toFloat(),
-                                                this.y.toFloat(),
-                                                this.z.toFloat(),
-                                                PlatformType.iOS
-                                            )
+                            data?.let {
+                                it.rotationRate.useContents {
+                                    onSensorData(
+                                        SensorType.GYROSCOPE,
+                                        SensorData.Gyroscope(
+                                            this.x.toFloat(),
+                                            this.y.toFloat(),
+                                            this.z.toFloat(),
+                                            PlatformType.iOS
                                         )
-                                    }
+                                    )
                                 }
                             }
                         }
+
                     }
                 }
 
                 SensorType.MAGNETOMETER -> {
                     if (motionManager.magnetometerAvailable) {
                         motionManager.startMagnetometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
-                            val now = (NSDate().timeIntervalSince1970 * 1000).toLong()
-                            val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                            if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                                lastEmitTimestamps[sensorType] = now
-                                data?.let {
-                                    it.magneticField.useContents {
-                                        onSensorData(
-                                            SensorType.MAGNETOMETER,
-                                            SensorData.Magnetometer(
-                                                this.x.toFloat(),
-                                                this.y.toFloat(),
-                                                this.z.toFloat(),
-                                                PlatformType.iOS
-                                            )
+                            data?.let {
+                                it.magneticField.useContents {
+                                    onSensorData(
+                                        SensorType.MAGNETOMETER,
+                                        SensorData.Magnetometer(
+                                            this.x.toFloat(),
+                                            this.y.toFloat(),
+                                            this.z.toFloat(),
+                                            PlatformType.iOS
                                         )
-                                    }
-
+                                    )
                                 }
+
                             }
+
                         }
                     }
                 }
 
                 SensorType.BAROMETER -> {
                     altimeter?.startRelativeAltitudeUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
-                        val now = (NSDate().timeIntervalSince1970 * 1000).toLong()
-                        val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                        if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                            lastEmitTimestamps[sensorType] = now
-                            data?.let {
-                                val pressure = it.pressure.doubleValue.toFloat()
-                                onSensorData(
-                                    SensorType.BAROMETER,
-                                    SensorData.Barometer(pressure, PlatformType.iOS)
-                                )
-                            }
+                        data?.let {
+                            val pressure = it.pressure.doubleValue.toFloat()
+                            onSensorData(
+                                SensorType.BAROMETER,
+                                SensorData.Barometer(pressure, PlatformType.iOS)
+                            )
                         }
                     }
                 }
 
                 SensorType.STEP_COUNTER -> {
                     pedometer?.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
-                        val now = (NSDate().timeIntervalSince1970 * 1000).toLong()
-                        val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                        if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                            lastEmitTimestamps[sensorType] = now
-                            data?.let {
-                                val steps = it.numberOfSteps.intValue
-                                onSensorData(
-                                    SensorType.STEP_COUNTER,
-                                    SensorData.StepCounter(steps, PlatformType.iOS)
-                                )
-                            }
+                        data?.let {
+                            val steps = it.numberOfSteps.intValue
+                            onSensorData(
+                                SensorType.STEP_COUNTER,
+                                SensorData.StepCounter(steps, PlatformType.iOS)
+                            )
                         }
                     }
                 }

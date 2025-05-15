@@ -44,7 +44,7 @@ class SensorManagerIosTest {
         var called = false
 
         sensorHandler.registerSensors(
-            types = listOf(sensorType),
+            sensorType = listOf(sensorType),
             onSensorData = { type, data ->
                 if (type == sensorType) {
                     println("$sensorType data received: $data")

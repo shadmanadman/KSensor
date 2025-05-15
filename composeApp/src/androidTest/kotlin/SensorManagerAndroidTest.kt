@@ -1,8 +1,8 @@
 import android.Manifest
 import android.content.Context
+import androidx.compose.runtime.Composable
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import junit.framework.TestCase
 import org.junit.Before
@@ -10,12 +10,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.kmp.shots.k.sensor.AppContext
+import org.kmp.shots.k.sensor.PermissionType
+import org.kmp.shots.k.sensor.PermissionsManager
 import org.kmp.shots.k.sensor.SensorHandler
 import org.kmp.shots.k.sensor.SensorType
 import kotlin.test.assertTrue
 
 
-const val WAIT_FOR_SENSOR_DATA = 4000L
+const val WAIT_FOR_SENSOR_DATA = 2000L
 
 @RunWith(AndroidJUnit4::class)
 class SensorManagerAndroidTest : TestCase() {
@@ -68,7 +70,7 @@ class SensorManagerAndroidTest : TestCase() {
         var called = false
 
         sensorHandler.registerSensors(
-            types = listOf(sensorType),
+            sensorType = listOf(sensorType),
             onSensorData = { type, data ->
                 if (type == sensorType) {
                     println("$sensorType data received: $data")

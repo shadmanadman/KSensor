@@ -7,8 +7,8 @@ typealias SensorTimeInterval = Long
 
 internal interface SensorController {
     fun registerSensors(
-        sensorTypesWithIntervals: Map<SensorType, SensorTimeInterval?>,
-        defaultIntervalMillis: SensorTimeInterval = DEFAULT_INTERVAL_MILLIS,
+        sensorType: List<SensorType>,
+        locationIntervalMillis: SensorTimeInterval = DEFAULT_INTERVAL_MILLIS,
         onSensorData: (SensorType, SensorData) -> Unit,
         onSensorError: (Exception) -> Unit
     )
@@ -24,8 +24,8 @@ internal interface SensorController {
 
 internal expect class SensorHandler() : SensorController {
     override fun registerSensors(
-        sensorTypesWithIntervals: Map<SensorType, SensorTimeInterval?>,
-        defaultIntervalMillis: SensorTimeInterval,
+        sensorType: List<SensorType>,
+        locationIntervalMillis: SensorTimeInterval,
         onSensorData: (SensorType, SensorData) -> Unit,
         onSensorError: (Exception) -> Unit
     )
@@ -41,15 +41,15 @@ internal expect class SensorHandler() : SensorController {
 
 
 internal class FakeSensorManager : SensorController {
-    private val registeredSensors = mutableMapOf<SensorType, SensorTimeInterval?>()
+    private val registeredSensors = mutableListOf<SensorType>()
 
     override fun registerSensors(
-        sensorTypesWithIntervals: Map<SensorType, SensorTimeInterval?>,
-        defaultIntervalMillis: SensorTimeInterval,
+        sensorType: List<SensorType>,
+        locationIntervalMillis: SensorTimeInterval,
         onSensorData: (SensorType, SensorData) -> Unit,
         onSensorError: (Exception) -> Unit
     ) {
-        registeredSensors.putAll(sensorTypesWithIntervals)
+        registeredSensors.addAll(sensorType)
     }
 
     override fun unregisterSensors(types: List<SensorType>) {

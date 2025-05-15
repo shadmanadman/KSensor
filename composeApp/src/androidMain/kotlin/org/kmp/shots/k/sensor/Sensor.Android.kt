@@ -25,35 +25,30 @@ internal actual class SensorHandler : SensorController {
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
     private val activeSensorListeners = mutableMapOf<SensorType, Any>()
-    private val lastEmitTimestamps = mutableMapOf<SensorType, SensorTimeInterval>()
 
     actual override fun registerSensors(
-        sensorTypesWithIntervals: Map<SensorType, SensorTimeInterval?>,
-        defaultIntervalMillis: SensorTimeInterval,
+        sensorType: List<SensorType>,
+        locationIntervalMillis: SensorTimeInterval,
         onSensorData: (SensorType, SensorData) -> Unit,
         onSensorError: (Exception) -> Unit
     ) {
-        sensorTypesWithIntervals.forEach { sensorType, sensorTimeIntervals ->
+        sensorType.forEach { sensorType ->
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
 
             when (sensorType) {
                 SensorType.ACCELEROMETER -> {
                     val listener = object : SensorEventListener {
+
                         override fun onSensorChanged(event: SensorEvent) {
-                            val now = System.currentTimeMillis()
-                            val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                            if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                                lastEmitTimestamps[sensorType] = now
-                                onSensorData(
-                                    sensorType,
-                                    SensorData.Accelerometer(
-                                        event.values[0],
-                                        event.values[1],
-                                        event.values[2],
-                                        PlatformType.Android
-                                    )
+                            onSensorData(
+                                sensorType,
+                                SensorData.Accelerometer(
+                                    event.values[0],
+                                    event.values[1],
+                                    event.values[2],
+                                    PlatformType.Android
                                 )
-                            }
+                            )
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -67,10 +62,6 @@ internal actual class SensorHandler : SensorController {
                 SensorType.GYROSCOPE -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                            val now = System.currentTimeMillis()
-                            val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                            if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                                lastEmitTimestamps[sensorType] = now
                                 onSensorData(
                                     sensorType,
                                     SensorData.Gyroscope(
@@ -80,7 +71,6 @@ internal actual class SensorHandler : SensorController {
                                         PlatformType.Android
                                     )
                                 )
-                            }
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -94,10 +84,6 @@ internal actual class SensorHandler : SensorController {
                 SensorType.MAGNETOMETER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                            val now = System.currentTimeMillis()
-                            val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                            if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                                lastEmitTimestamps[sensorType] = now
                                 onSensorData(
                                     sensorType,
                                     SensorData.Magnetometer(
@@ -107,7 +93,6 @@ internal actual class SensorHandler : SensorController {
                                         PlatformType.Android
                                     )
                                 )
-                            }
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -121,17 +106,12 @@ internal actual class SensorHandler : SensorController {
                 SensorType.BAROMETER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                            val now = System.currentTimeMillis()
-                            val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                            if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                                lastEmitTimestamps[sensorType] = now
                                 onSensorData(
                                     sensorType, SensorData.Barometer(
                                         event.values[0],
                                         PlatformType.Android
                                     )
                                 )
-                            }
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -145,10 +125,6 @@ internal actual class SensorHandler : SensorController {
                 SensorType.STEP_COUNTER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                            val now = System.currentTimeMillis()
-                            val lastTime = lastEmitTimestamps[sensorType] ?: 0L
-                            if (now - lastTime >= (sensorTimeIntervals ?: defaultIntervalMillis)) {
-                                lastEmitTimestamps[sensorType] = now
                                 onSensorData(
                                     sensorType,
                                     SensorData.StepCounter(
@@ -156,7 +132,6 @@ internal actual class SensorHandler : SensorController {
                                         PlatformType.Android
                                     )
                                 )
-                            }
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -201,7 +176,7 @@ internal actual class SensorHandler : SensorController {
                     requestLocationUpdatesSafely(
                         locationManager = locationManager,
                         listener = listener,
-                        timeInterval = sensorTimeIntervals ?: defaultIntervalMillis,
+                        timeInterval = locationIntervalMillis?:DEFAULT_INTERVAL_MILLIS,
                         onSuccess = {
                             activeSensorListeners[sensorType] = listener
                         },
