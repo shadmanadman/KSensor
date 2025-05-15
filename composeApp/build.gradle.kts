@@ -2,6 +2,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import kotlin.toString
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -140,3 +141,11 @@ mavenPublishing {
     signAllPublications()
 }
 
+
+signing {
+    useInMemoryPgpKeys(
+        findProperty("signingKeyId").toString(),
+        findProperty("signingKey").toString(),
+        findProperty("signingPassword").toString()
+    )
+}
