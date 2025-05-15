@@ -17,6 +17,8 @@ fragmentKtx = "1.8.6"
 junit = "4.13.2"
 kotlin = "2.1.20"
 accompanist-permissions = "0.32.0"
+groupId = "io.github.shadmanadman"
+artifactId = "KSensor"
 
 [libraries]
 androidx-core = { module = "androidx.test:core", version.ref = "core" }
