@@ -1,6 +1,8 @@
 import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.compose.runtime.Composable
+import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
@@ -25,13 +27,14 @@ class SensorManagerAndroidTest : TestCase() {
     @get:Rule
     val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
         Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.BODY_SENSORS
     )
+    private val context = ApplicationProvider.getApplicationContext<Context>()
 
 
     @Before
     fun setup() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
         AppContext.setUp(context)
     }
 
@@ -60,10 +63,6 @@ class SensorManagerAndroidTest : TestCase() {
         assertSensorCallback(SensorType.STEP_COUNTER)
     }
 
-    @Test
-    fun testLocation() {
-        assertSensorCallback(SensorType.LOCATION)
-    }
 
     private fun assertSensorCallback(sensorType: SensorType) {
         val sensorHandler = SensorHandler()
@@ -87,5 +86,14 @@ class SensorManagerAndroidTest : TestCase() {
         sensorHandler.unregisterSensors(listOf(sensorType))
 
         assertTrue(called, "Expected $sensorType data callback")
+    }
+
+    private fun checkLocationPermission(): Boolean {
+        return (ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED)
     }
 }

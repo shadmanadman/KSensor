@@ -41,7 +41,7 @@ internal expect class SensorHandler() : SensorController {
 
 
 internal class FakeSensorManager : SensorController {
-    private val registeredSensors = mutableListOf<SensorType>()
+    val registeredSensors = mutableListOf<SensorType>()
 
     override fun registerSensors(
         sensorType: List<SensorType>,

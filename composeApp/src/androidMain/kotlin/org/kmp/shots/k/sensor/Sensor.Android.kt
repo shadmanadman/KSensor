@@ -143,10 +143,6 @@ internal actual class SensorHandler : SensorController {
                 }
 
                 SensorType.LOCATION -> {
-
-                    if (hasLocationPermission(context).not())
-                        onSensorError(SecurityException("Missing location permission"))
-
                     val listener = object : LocationListener {
                         override fun onLocationChanged(location: Location) {
                             onSensorData(
@@ -176,7 +172,7 @@ internal actual class SensorHandler : SensorController {
                     requestLocationUpdatesSafely(
                         locationManager = locationManager,
                         listener = listener,
-                        timeInterval = locationIntervalMillis?:DEFAULT_INTERVAL_MILLIS,
+                        timeInterval = locationIntervalMillis,
                         onSuccess = {
                             activeSensorListeners[sensorType] = listener
                         },

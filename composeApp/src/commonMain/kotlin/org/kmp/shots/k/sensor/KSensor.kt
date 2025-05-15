@@ -7,7 +7,7 @@ object KSensor : SensorController {
 
     override fun registerSensors(
         types: List<SensorType>,
-        locationIntervalMillis: SensorTimeInterval?,
+        locationIntervalMillis: SensorTimeInterval,
         onSensorData: (SensorType, SensorData) -> Unit,
         onSensorError: (Exception) -> Unit
     ) = sensorHandler.registerSensors(types,locationIntervalMillis, onSensorData, onSensorError)
