@@ -137,11 +137,11 @@ mavenPublishing {
 }
 
 signing {
-    val keyId = findProperty("signingInMemoryKeyId")?.toString()
-    val key = findProperty("signingInMemoryKey")?.toString()
-    val keyPassword = findProperty("signingInMemoryKeyPassword")?.toString()
-    val mavenCentralUser = findProperty("mavenCentralUsername")?.toString()
-    val mavenCentralPassword = findProperty("mavenCentralPassword")?.toString()
+    val keyId = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKeyId")
+    val key = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKey")
+    val keyPassword = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKeyPassword")
+    val mavenCentralUser = System.getenv("ORG_GRADLE_PROJECT_mavenCentralUsername")
+    val mavenCentralPassword = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKeyPassword")
 
 
 
