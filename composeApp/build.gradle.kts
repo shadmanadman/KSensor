@@ -136,14 +136,24 @@ mavenPublishing {
             }
 }
 
-extensions.configure<SigningExtension> {
-    useGpgCmd()
-}
-
 signing {
+    val keyId = findProperty("signing.keyId")?.toString()
+    val key = findProperty("signing.key")?.toString()
+    val keyPassword = findProperty("signing.password")?.toString()
+    val mavenCentralUser = findProperty("mavenCentral.user")?.toString()
+    val mavenCentralPassword = findProperty("mavenCentral.password")?.toString()
+
+
+
+    if (keyId == null) println("Missing property: signing.keyId")
+    if (key == null) println("Missing property: signing.key")
+    if (keyPassword == null) println("Missing property: signing.password")
+    if (mavenCentralUser == null) println("Missing property: mavenCentral.user")
+    if (mavenCentralPassword == null) println("Missing property: mavenCentral.password")
+
     useInMemoryPgpKeys(
-        findProperty("signingInMemoryKeyId").toString(),
-        findProperty("signingInMemoryKey").toString(),
-        findProperty("signingInMemoryKeyPassword").toString()
+        keyId,
+        key,
+        keyPassword
     )
 }
