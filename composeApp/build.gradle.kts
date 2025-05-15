@@ -1,16 +1,13 @@
-import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import kotlin.toString
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    id ("signing")
-    id("com.vanniktech.maven.publish") version "0.30.0"
+    id("signing")
+    id("maven-publish")
 }
 
 kotlin {
@@ -101,42 +98,54 @@ dependencies {
 }
 
 
-mavenPublishing {
+publishing {
     val tag: String? = System.getenv("GITHUB_REF")?.split("/")?.lastOrNull()
 
-    coordinates(
-        groupId = libs.versions.groupId.get(),
-        artifactId = libs.versions.artifactId.get(),
-        version = tag ?: "1.0.0-SNAPSHOT"
-    )
+    publications {
+        create<MavenPublication>("release") {
+            from(components["kotlin"])
+            groupId = libs.versions.groupId.get()
+            artifactId = libs.versions.artifactId.get()
+            version = tag ?: "1.0.0-SNAPSHOT"
 
-    pom {
-        name = "KSensor"
-        description = "A KMP library that provides Sensors info for both Android and iOS"
-        url = "https://github.com/shadmanadman/KSensor"
-        licenses {
-            license {
-                name = "Apache License, Version 2.0"
-                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+
+            pom {
+                name = "KSensor"
+                description = "A KMP library that provides Sensors info for both Android and iOS"
+                url = "https://github.com/shadmanadman/KSensor"
+                licenses {
+                    license {
+                        name = "Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "shadmanadman"
+                        name = "Shadman Adman"
+                        email = "adman.shadman@gmail.com"
+                    }
+                }
+                scm {
+                    connection = "scm:git:https://github.com/shadmanadman/KSensor"
+                    developerConnection = "scm:git:github.com/shadmanadman/KSensor.git"
+                    url = "https://github.com/shadmanadman/KSensor"
+                }
             }
-        }
-        developers {
-            developer {
-                id = "shadmanadman"
-                name = "Shadman Adman"
-                email = "adman.shadman@gmail.com"
-            }
-        }
-        scm {
-            connection = "scm:git:https://github.com/shadmanadman/KSensor"
-            developerConnection = "scm:git:github.com/shadmanadman/KSensor.git"
-            url = "https://github.com/shadmanadman/KSensor"
         }
     }
 
 
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    signAllPublications()
+    repositories{
+        maven {
+            name = "sonatype"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = findProperty("mavenCentralUsername") as String?
+                password = findProperty("mavenCentralPassword") as String?
+            }
+        }
+    }
 }
 
 
@@ -146,4 +155,5 @@ signing {
         findProperty("signingKey").toString(),
         findProperty("signingPassword").toString()
     )
+    sign(publishing.publications)
 }
