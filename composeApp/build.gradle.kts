@@ -136,11 +136,14 @@ mavenPublishing {
             }
 }
 
-//signing {
-//    useInMemoryPgpKeys(
-//        findProperty("signingKeyId").toString(),
-//        findProperty("signingKey").toString(),
-//        findProperty("signingPassword").toString()
-//    )
-//    sign(publishing.publications["release"])
-//}
+extensions.configure<SigningExtension> {
+    useGpgCmd()
+}
+
+signing {
+    useInMemoryPgpKeys(
+        findProperty("signingInMemoryKeyId").toString(),
+        findProperty("signingInMemoryKey").toString(),
+        findProperty("signingInMemoryKeyPassword").toString()
+    )
+}
