@@ -155,5 +155,5 @@ signing {
         findProperty("signingKey").toString(),
         findProperty("signingPassword").toString()
     )
-    sign(publishing.publications)
+    sign(publishing.publications["release"])
 }
