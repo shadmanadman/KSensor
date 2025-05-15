@@ -1,3 +1,4 @@
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -7,7 +8,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     id("signing")
-    id("maven-publish")
+//    id("maven-publish")
+    id("com.vanniktech.maven.publish") version "0.32.0"
 }
 
 kotlin {
@@ -98,16 +100,16 @@ dependencies {
 }
 
 
-publishing {
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
     val tag: String? = System.getenv("GITHUB_REF")?.split("/")?.lastOrNull()
 
-    publications {
-        create<MavenPublication>("release") {
-            from(components["kotlin"])
-            groupId = libs.versions.groupId.get()
-            artifactId = libs.versions.artifactId.get()
-            version = tag ?: "1.0.0-SNAPSHOT"
-
+    coordinates(
+        groupId = libs.versions.groupId.get(),
+        artifactId = libs.versions.artifactId.get(),
+        version = tag ?: "1.0.0-SNAPSHOT"
+    )
 
             pom {
                 name = "KSensor"
@@ -132,27 +134,13 @@ publishing {
                     url = "https://github.com/shadmanadman/KSensor"
                 }
             }
-        }
-    }
-
-
-    repositories{
-        maven {
-            name = "sonatype"
-            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = findProperty("mavenCentralUsername") as String?
-                password = findProperty("mavenCentralPassword") as String?
-            }
-        }
-    }
 }
 
-signing {
-    useInMemoryPgpKeys(
-        findProperty("signingKeyId").toString(),
-        findProperty("signingKey").toString(),
-        findProperty("signingPassword").toString()
-    )
-    sign(publishing.publications["release"])
-}
+//signing {
+//    useInMemoryPgpKeys(
+//        findProperty("signingKeyId").toString(),
+//        findProperty("signingKey").toString(),
+//        findProperty("signingPassword").toString()
+//    )
+//    sign(publishing.publications["release"])
+//}
