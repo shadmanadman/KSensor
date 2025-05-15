@@ -137,11 +137,11 @@ mavenPublishing {
 }
 
 signing {
-    val keyId = findProperty("signing.keyId")?.toString()
-    val key = findProperty("signing.key")?.toString()
-    val keyPassword = findProperty("signing.password")?.toString()
-    val mavenCentralUser = findProperty("mavenCentral.user")?.toString()
-    val mavenCentralPassword = findProperty("mavenCentral.password")?.toString()
+    val keyId = findProperty("signingInMemoryKeyId")?.toString()
+    val key = findProperty("signingInMemoryKey")?.toString()
+    val keyPassword = findProperty("signingInMemoryKeyPassword")?.toString()
+    val mavenCentralUser = findProperty("mavenCentralUsername")?.toString()
+    val mavenCentralPassword = findProperty("mavenCentralPassword")?.toString()
 
 
 
