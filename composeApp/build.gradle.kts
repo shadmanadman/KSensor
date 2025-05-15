@@ -148,6 +148,8 @@ publishing {
     }
 }
 
+println("mavenCentralUsername is set: ${findProperty("mavenCentralUsername")}")
+println("mavenCentralPassword is set: ${findProperty("mavenCentralPassword")}")
 
 signing {
     useInMemoryPgpKeys(
