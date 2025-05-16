@@ -7,9 +7,8 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.vanniktechPublish)
     id("signing")
-//    id("maven-publish")
-    id("com.vanniktech.maven.publish") version "0.32.0"
 }
 
 kotlin {
@@ -73,7 +72,7 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        testOptions.targetSdk = libs.versions.android.targetSdk.get().toInt()
     }
     packaging {
         resources {
@@ -140,16 +139,6 @@ signing {
     val keyId = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKeyId")
     val key = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKey")
     val keyPassword = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKeyPassword")
-    val mavenCentralUser = System.getenv("ORG_GRADLE_PROJECT_mavenCentralUsername")
-    val mavenCentralPassword = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKeyPassword")
-
-
-
-    if (keyId == null) println("Missing property: signing.keyId")
-    if (key == null) println("Missing property: signing.key")
-    if (keyPassword == null) println("Missing property: signing.password")
-    if (mavenCentralUser == null) println("Missing property: mavenCentral.user")
-    if (mavenCentralPassword == null) println("Missing property: mavenCentral.password")
 
     useInMemoryPgpKeys(
         keyId,

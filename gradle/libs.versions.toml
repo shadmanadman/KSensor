@@ -1,8 +1,8 @@
 [versions]
 agp = "8.10.0"
-android-compileSdk = "35"
+android-compileSdk = "36"
 android-minSdk = "24"
-android-targetSdk = "35"
+android-targetSdk = "36"
 androidx-activityCompose = "1.10.1"
 androidx-appcompat = "1.7.0"
 androidx-constraintlayout = "2.2.1"
@@ -17,6 +17,7 @@ fragmentKtx = "1.8.6"
 junit = "4.13.2"
 kotlin = "2.1.20"
 accompanist-permissions = "0.32.0"
+vanniktech-publish = "0.32.0"
 groupId = "io.github.shadmanadman"
 artifactId = "KSensor"
 
@@ -44,3 +45,4 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+vanniktechPublish = {id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish"}
