@@ -1,14 +1,61 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+latest suported sensors:
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
+    ACCELEROMETER,
+    GYROSCOPE,
+    MAGNETOMETER,
+    BAROMETER,
+    STEP_COUNTER,
+    LOCATION
 
-* `/iosApp` contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform, 
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+<!-- GETTING STARTED -->
+## Getting Started
+### Adding dependencies
+- Add it in your `commonMain.dependencies` :
+  ```
+  implementation("io.github.shadmanadman:ksensor:1.9.4")
+  ```
 
+  
+### Usage  
+```
+//Create a list of sensors that you need
+val sensors = listof(
+SensorType.ACCELEROMETER,
+SensorType.GYROSCOPE,
+SensorType.MAGNETOMETER,
+SensorType.BAROMETER,
+SensorType.STEP_COUNTER,
+SensorType.LOCATION)
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+// Register sensors
+KSensor.registerSensors(
+    types = sensors,
+    locationIntervalMillis = {optional. default is 1000L},
+    onSensorData = { type, data ->
+        println("Sensor: $type - Data: $data")
+    },
+    onSensorError = { error ->
+        println("Sensor error: ${error.message}")
+    }
+)
+
+// Unregister sensors when no longer needed
+KSensor.unregisterSensors(sensors)
+```
+Each `SensorData` has a `platformType` so you know the sensor info comes from Android or iOS.
+
+If you are using Location you need ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION permissions on Android. You can handel this permissions yourself or let the library handle them for you:
+```
+    //Put this in AndroidManifest
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+```
+Inside a composable call:
+```
+KSensor.HandelPermissions() { status ->
+    when (status) {
+        PermissionStatus.Granted -> println("Permission Granted")
+        PermissionStatus.Denied -> println("Permission Denied")
+    }
+}
+```
