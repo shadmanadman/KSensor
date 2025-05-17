@@ -50,7 +50,7 @@ KSensor.unregisterSensors(sensors)
 ```
 Each `SensorData` has a `platformType` so you know the sensor info comes from Android or iOS.
 
-If you are using Location you need ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION permissions on Android. You can handel this permissions yourself or let the library handle them for you:
+If you are using Location you need `FINE_LOCATION` and `COARSE_LOCATION` permissions on Android. You can handel this permissions yourself or let the library handle them for you:
 ```
     //Put this in AndroidManifest
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
