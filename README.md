@@ -1,10 +1,12 @@
-latest suported sensors:
+![](KSensor.png)
 
-    ACCELEROMETER,
-    GYROSCOPE,
-    MAGNETOMETER,
-    BAROMETER,
-    STEP_COUNTER,
+### latest suported sensors:
+
+    ACCELEROMETER
+    GYROSCOPE
+    MAGNETOMETER
+    BAROMETER
+    STEP_COUNTER
     LOCATION
 
 <!-- GETTING STARTED -->
