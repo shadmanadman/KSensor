@@ -18,7 +18,7 @@
 ### Adding dependencies
 - Add it in your `commonMain.dependencies` :
   ```
-  implementation("io.github.shadmanadman:ksensor:1.9.4")
+  implementation("io.github.shadmanadman:ksensor:0.35.0")
   ```
 
   
