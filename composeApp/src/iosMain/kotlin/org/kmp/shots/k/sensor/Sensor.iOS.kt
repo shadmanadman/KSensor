@@ -3,6 +3,9 @@ package org.kmp.shots.k.sensor
 import androidx.compose.runtime.Composable
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import platform.CoreMotion.*
 import platform.CoreLocation.*
 import platform.Foundation.*
@@ -19,10 +22,11 @@ internal actual class SensorHandler : SensorController {
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
         sensorType: List<SensorType>,
-        locationIntervalMillis: Long,
-        onSensorData: (SensorType, SensorData) -> Unit,
-        onSensorError: (Exception) -> Unit
-    ) {
+        locationIntervalMillis: Long
+    ): Flow<SensorUpdate> = callbackFlow {
+        awaitClose {
+            unregisterSensors(sensorType)
+        }
         sensorType.forEach { sensorType ->
             when (sensorType) {
                 SensorType.ACCELEROMETER -> {
@@ -30,13 +34,15 @@ internal actual class SensorHandler : SensorController {
                         motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
                             data?.let {
                                 it.acceleration.useContents {
-                                    onSensorData(
-                                        SensorType.ACCELEROMETER,
-                                        SensorData.Accelerometer(
-                                            this.x.toFloat(),
-                                            this.y.toFloat(),
-                                            this.z.toFloat(),
-                                            PlatformType.iOS
+                                    trySend(
+                                        SensorUpdate.Data(
+                                            SensorType.ACCELEROMETER,
+                                            SensorData.Accelerometer(
+                                                this.x.toFloat(),
+                                                this.y.toFloat(),
+                                                this.z.toFloat(),
+                                                PlatformType.iOS
+                                            )
                                         )
                                     )
                                 }
@@ -50,13 +56,15 @@ internal actual class SensorHandler : SensorController {
                         motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
                             data?.let {
                                 it.rotationRate.useContents {
-                                    onSensorData(
-                                        SensorType.GYROSCOPE,
-                                        SensorData.Gyroscope(
-                                            this.x.toFloat(),
-                                            this.y.toFloat(),
-                                            this.z.toFloat(),
-                                            PlatformType.iOS
+                                    trySend(
+                                        SensorUpdate.Data(
+                                            SensorType.GYROSCOPE,
+                                            SensorData.Gyroscope(
+                                                this.x.toFloat(),
+                                                this.y.toFloat(),
+                                                this.z.toFloat(),
+                                                PlatformType.iOS
+                                            )
                                         )
                                     )
                                 }
@@ -71,13 +79,15 @@ internal actual class SensorHandler : SensorController {
                         motionManager.startMagnetometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
                             data?.let {
                                 it.magneticField.useContents {
-                                    onSensorData(
-                                        SensorType.MAGNETOMETER,
-                                        SensorData.Magnetometer(
-                                            this.x.toFloat(),
-                                            this.y.toFloat(),
-                                            this.z.toFloat(),
-                                            PlatformType.iOS
+                                    trySend(
+                                        SensorUpdate.Data(
+                                            SensorType.MAGNETOMETER,
+                                            SensorData.Magnetometer(
+                                                this.x.toFloat(),
+                                                this.y.toFloat(),
+                                                this.z.toFloat(),
+                                                PlatformType.iOS
+                                            )
                                         )
                                     )
                                 }
@@ -92,9 +102,11 @@ internal actual class SensorHandler : SensorController {
                     altimeter?.startRelativeAltitudeUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
                         data?.let {
                             val pressure = it.pressure.doubleValue.toFloat()
-                            onSensorData(
-                                SensorType.BAROMETER,
-                                SensorData.Barometer(pressure, PlatformType.iOS)
+                            trySend(
+                                SensorUpdate.Data(
+                                    SensorType.BAROMETER,
+                                    SensorData.Barometer(pressure, PlatformType.iOS)
+                                )
                             )
                         }
                     }
@@ -104,9 +116,11 @@ internal actual class SensorHandler : SensorController {
                     pedometer?.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
                         data?.let {
                             val steps = it.numberOfSteps.intValue
-                            onSensorData(
-                                SensorType.STEP_COUNTER,
-                                SensorData.StepCounter(steps, PlatformType.iOS)
+                            trySend(
+                                SensorUpdate.Data(
+                                    SensorType.STEP_COUNTER,
+                                    SensorData.StepCounter(steps, PlatformType.iOS)
+                                )
                             )
                         }
                     }
@@ -129,13 +143,15 @@ internal actual class SensorHandler : SensorController {
                                         longitude = this.longitude
                                     }
 
-                                    onSensorData(
-                                        SensorType.LOCATION,
-                                        SensorData.Location(
-                                            latitude = latitude,
-                                            longitude = longitude,
-                                            altitude = it.altitude,
-                                            platformType = PlatformType.iOS
+                                    trySend(
+                                        SensorUpdate.Data(
+                                            SensorType.LOCATION,
+                                            SensorData.Location(
+                                                latitude = latitude,
+                                                longitude = longitude,
+                                                altitude = it.altitude,
+                                                platformType = PlatformType.iOS
+                                            )
                                         )
                                     )
                                 }
@@ -145,7 +161,7 @@ internal actual class SensorHandler : SensorController {
                                 manager: CLLocationManager,
                                 didFailWithError: NSError
                             ) {
-                                onSensorError(Exception(didFailWithError.description))
+                                trySend(SensorUpdate.Error(Exception(didFailWithError.description)))
                             }
                         }
 

@@ -1,21 +1,19 @@
 import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import androidx.compose.runtime.Composable
-import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import junit.framework.TestCase
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.kmp.shots.k.sensor.AppContext
-import org.kmp.shots.k.sensor.PermissionType
-import org.kmp.shots.k.sensor.PermissionsManager
 import org.kmp.shots.k.sensor.SensorHandler
 import org.kmp.shots.k.sensor.SensorType
+import org.kmp.shots.k.sensor.SensorUpdate
 import kotlin.test.assertTrue
 
 
@@ -64,36 +62,28 @@ class SensorManagerAndroidTest : TestCase() {
     }
 
 
-    private fun assertSensorCallback(sensorType: SensorType) {
+    private fun assertSensorCallback(sensorType: SensorType) = runBlocking {
         val sensorHandler = SensorHandler()
         var called = false
 
         sensorHandler.registerSensors(
-            sensorType = listOf(sensorType),
-            onSensorData = { type, data ->
-                if (type == sensorType) {
-                    println("$sensorType data received: $data")
+            sensorType = listOf(sensorType)
+        ).catch {
+
+        }.collect { senorUpdate->
+            when (senorUpdate) {
+                is SensorUpdate.Data -> {
                     called = true
                 }
-            },
-            onSensorError = {
-                println("Error for $sensorType: ${it.message}")
+                is SensorUpdate.Error -> {
+                }
             }
-        )
+        }
 
         Thread.sleep(WAIT_FOR_SENSOR_DATA)
 
         sensorHandler.unregisterSensors(listOf(sensorType))
 
         assertTrue(called, "Expected $sensorType data callback")
-    }
-
-    private fun checkLocationPermission(): Boolean {
-        return (ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.ACCESS_COARSE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED)
     }
 }

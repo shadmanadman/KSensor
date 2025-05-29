@@ -1,16 +1,15 @@
 package org.kmp.shots.k.sensor
 
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.flow.Flow
 
 object KSensor : SensorController {
     private val sensorHandler: SensorHandler = SensorHandler()
 
     override fun registerSensors(
         types: List<SensorType>,
-        locationIntervalMillis: SensorTimeInterval,
-        onSensorData: (SensorType, SensorData) -> Unit,
-        onSensorError: (Exception) -> Unit
-    ) = sensorHandler.registerSensors(types,locationIntervalMillis, onSensorData, onSensorError)
+        locationIntervalMillis: SensorTimeInterval
+    ): Flow<SensorUpdate> = sensorHandler.registerSensors(types,locationIntervalMillis)
 
     override fun unregisterSensors(types: List<SensorType>) = sensorHandler.unregisterSensors(types)
 

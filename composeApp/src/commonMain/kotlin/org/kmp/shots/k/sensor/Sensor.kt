@@ -1,17 +1,22 @@
 package org.kmp.shots.k.sensor
 
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 const val DEFAULT_INTERVAL_MILLIS = 1000L
 typealias SensorTimeInterval = Long
 
+sealed class SensorUpdate {
+    data class Data(val type: SensorType, val data: SensorData) : SensorUpdate()
+    data class Error(val exception: Exception) : SensorUpdate()
+}
+
 internal interface SensorController {
     fun registerSensors(
         sensorType: List<SensorType>,
-        locationIntervalMillis: SensorTimeInterval = DEFAULT_INTERVAL_MILLIS,
-        onSensorData: (SensorType, SensorData) -> Unit,
-        onSensorError: (Exception) -> Unit
-    )
+        locationIntervalMillis: SensorTimeInterval = DEFAULT_INTERVAL_MILLIS
+    ): Flow<SensorUpdate>
 
     fun unregisterSensors(types: List<SensorType>)
 
@@ -25,10 +30,8 @@ internal interface SensorController {
 internal expect class SensorHandler() : SensorController {
     override fun registerSensors(
         sensorType: List<SensorType>,
-        locationIntervalMillis: SensorTimeInterval,
-        onSensorData: (SensorType, SensorData) -> Unit,
-        onSensorError: (Exception) -> Unit
-    )
+        locationIntervalMillis: SensorTimeInterval
+    ): Flow<SensorUpdate>
 
     override fun unregisterSensors(types: List<SensorType>)
 
@@ -45,10 +48,8 @@ internal class FakeSensorManager : SensorController {
 
     override fun registerSensors(
         sensorType: List<SensorType>,
-        locationIntervalMillis: SensorTimeInterval,
-        onSensorData: (SensorType, SensorData) -> Unit,
-        onSensorError: (Exception) -> Unit
-    ) {
+        locationIntervalMillis: SensorTimeInterval
+    ): Flow<SensorUpdate> = callbackFlow {
         registeredSensors.addAll(sensorType)
     }
 

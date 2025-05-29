@@ -15,6 +15,9 @@ import android.os.Bundle
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 internal actual class SensorHandler : SensorController {
     private val context: Context by lazy { AppContext.get() }
@@ -28,10 +31,13 @@ internal actual class SensorHandler : SensorController {
 
     actual override fun registerSensors(
         sensorType: List<SensorType>,
-        locationIntervalMillis: SensorTimeInterval,
-        onSensorData: (SensorType, SensorData) -> Unit,
-        onSensorError: (Exception) -> Unit
-    ) {
+        locationIntervalMillis: SensorTimeInterval
+    ): Flow<SensorUpdate> = callbackFlow {
+
+        awaitClose {
+            unregisterSensors(sensorType)
+        }
+
         sensorType.forEach { sensorType ->
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
 
@@ -40,13 +46,15 @@ internal actual class SensorHandler : SensorController {
                     val listener = object : SensorEventListener {
 
                         override fun onSensorChanged(event: SensorEvent) {
-                            onSensorData(
-                                sensorType,
-                                SensorData.Accelerometer(
-                                    event.values[0],
-                                    event.values[1],
-                                    event.values[2],
-                                    PlatformType.Android
+                            trySend(
+                                SensorUpdate.Data(
+                                    sensorType,
+                                    SensorData.Accelerometer(
+                                        event.values[0],
+                                        event.values[1],
+                                        event.values[2],
+                                        PlatformType.Android
+                                    )
                                 )
                             )
                         }
@@ -62,15 +70,16 @@ internal actual class SensorHandler : SensorController {
                 SensorType.GYROSCOPE -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                                onSensorData(
-                                    sensorType,
-                                    SensorData.Gyroscope(
+                            trySend(
+                                SensorUpdate.Data(
+                                    type = sensorType, data = SensorData.Gyroscope(
                                         event.values[0],
                                         event.values[1],
                                         event.values[2],
                                         PlatformType.Android
                                     )
                                 )
+                            )
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -84,7 +93,8 @@ internal actual class SensorHandler : SensorController {
                 SensorType.MAGNETOMETER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                                onSensorData(
+                            trySend(
+                                SensorUpdate.Data(
                                     sensorType,
                                     SensorData.Magnetometer(
                                         event.values[0],
@@ -93,6 +103,7 @@ internal actual class SensorHandler : SensorController {
                                         PlatformType.Android
                                     )
                                 )
+                            )
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -106,12 +117,14 @@ internal actual class SensorHandler : SensorController {
                 SensorType.BAROMETER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                                onSensorData(
+                            trySend(
+                                SensorUpdate.Data(
                                     sensorType, SensorData.Barometer(
                                         event.values[0],
                                         PlatformType.Android
                                     )
                                 )
+                            )
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -125,13 +138,15 @@ internal actual class SensorHandler : SensorController {
                 SensorType.STEP_COUNTER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
-                                onSensorData(
+                            trySend(
+                                SensorUpdate.Data(
                                     sensorType,
                                     SensorData.StepCounter(
                                         event.values[0].toInt(),
                                         PlatformType.Android
                                     )
                                 )
+                            )
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -145,13 +160,15 @@ internal actual class SensorHandler : SensorController {
                 SensorType.LOCATION -> {
                     val listener = object : LocationListener {
                         override fun onLocationChanged(location: Location) {
-                            onSensorData(
-                                sensorType,
-                                SensorData.Location(
-                                    latitude = location.latitude,
-                                    longitude = location.longitude,
-                                    altitude = location.altitude,
-                                    platformType = PlatformType.Android
+                            trySend(
+                                SensorUpdate.Data(
+                                    sensorType,
+                                    SensorData.Location(
+                                        latitude = location.latitude,
+                                        longitude = location.longitude,
+                                        altitude = location.altitude,
+                                        platformType = PlatformType.Android
+                                    )
                                 )
                             )
                         }
@@ -177,7 +194,7 @@ internal actual class SensorHandler : SensorController {
                             activeSensorListeners[sensorType] = listener
                         },
                         onError = { exception ->
-                            onSensorError(exception)
+                            trySend(SensorUpdate.Error(exception))
                         }
                     )
                 }
