@@ -24,9 +24,6 @@ internal actual class SensorHandler : SensorController {
         sensorType: List<SensorType>,
         locationIntervalMillis: Long
     ): Flow<SensorUpdate> = callbackFlow {
-        awaitClose {
-            unregisterSensors(sensorType)
-        }
         sensorType.forEach { sensorType ->
             when (sensorType) {
                 SensorType.ACCELEROMETER -> {
@@ -48,7 +45,8 @@ internal actual class SensorHandler : SensorController {
                                 }
                             }
                         }
-                    }
+                    }else
+                        println("Accelerometer not available")
                 }
 
                 SensorType.GYROSCOPE -> {
@@ -71,7 +69,8 @@ internal actual class SensorHandler : SensorController {
                             }
                         }
 
-                    }
+                    }else
+                        println("Gyroscope not available")
                 }
 
                 SensorType.MAGNETOMETER -> {
@@ -95,7 +94,8 @@ internal actual class SensorHandler : SensorController {
                             }
 
                         }
-                    }
+                    }else
+                        println("Magnetometer not available")
                 }
 
                 SensorType.BAROMETER -> {
@@ -169,6 +169,10 @@ internal actual class SensorHandler : SensorController {
                     locationManager.startUpdatingLocation()
                 }
             }
+        }
+
+        awaitClose {
+            unregisterSensors(sensorType)
         }
     }
 

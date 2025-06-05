@@ -34,10 +34,6 @@ internal actual class SensorHandler : SensorController {
         locationIntervalMillis: SensorTimeInterval
     ): Flow<SensorUpdate> = callbackFlow {
 
-        awaitClose {
-            unregisterSensors(sensorType)
-        }
-
         sensorType.forEach { sensorType ->
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
 
@@ -61,10 +57,10 @@ internal actual class SensorHandler : SensorController {
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
                     }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also {
+                    sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }
+                    }?:println("ACCELEROMETER not available")
                 }
 
                 SensorType.GYROSCOPE -> {
@@ -84,10 +80,10 @@ internal actual class SensorHandler : SensorController {
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
                     }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)?.also {
+                    sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }
+                    }?:println("GYROSCOPE not available")
                 }
 
                 SensorType.MAGNETOMETER -> {
@@ -108,10 +104,10 @@ internal actual class SensorHandler : SensorController {
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
                     }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)?.also {
+                    sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }
+                    }?:println("MAGNETOMETER not available")
                 }
 
                 SensorType.BAROMETER -> {
@@ -129,10 +125,10 @@ internal actual class SensorHandler : SensorController {
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
                     }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE)?.also {
+                    sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }
+                    }?:println("BAROMETER not available")
                 }
 
                 SensorType.STEP_COUNTER -> {
@@ -151,10 +147,10 @@ internal actual class SensorHandler : SensorController {
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
                     }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)?.also {
+                    sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }
+                    } ?: println("Step counter not available")
                 }
 
                 SensorType.LOCATION -> {
@@ -199,6 +195,9 @@ internal actual class SensorHandler : SensorController {
                     )
                 }
             }
+        }
+        awaitClose {
+            unregisterSensors(sensorType)
         }
     }
 
