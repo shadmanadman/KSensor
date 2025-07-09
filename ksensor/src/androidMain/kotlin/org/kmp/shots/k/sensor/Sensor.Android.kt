@@ -3,9 +3,6 @@ package org.kmp.shots.k.sensor
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.content.res.Resources
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -17,12 +14,17 @@ import android.os.Bundle
 import android.view.OrientationEventListener
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import org.kmp.shots.k.sensor.SensorData.*
-import org.kmp.shots.k.sensor.SensorUpdate.*
+import org.kmp.shots.k.sensor.SensorData.Accelerometer
+import org.kmp.shots.k.sensor.SensorData.Barometer
+import org.kmp.shots.k.sensor.SensorData.Gyroscope
+import org.kmp.shots.k.sensor.SensorData.Magnetometer
+import org.kmp.shots.k.sensor.SensorData.Orientation
+import org.kmp.shots.k.sensor.SensorData.StepCounter
+import org.kmp.shots.k.sensor.SensorUpdate.Data
+import org.kmp.shots.k.sensor.SensorUpdate.Error
 
 internal actual class SensorHandler : SensorController {
     private val context: Context by lazy { AppContext.get() }
@@ -281,12 +283,4 @@ inline fun requestLocationUpdatesSafely(
     } catch (e: SecurityException) {
         onError(e)
     }
-}
-
-
-private fun hasLocationPermission(context: Context): Boolean {
-    val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-    val coarse =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
-    return fine == PackageManager.PERMISSION_GRANTED || coarse == PackageManager.PERMISSION_GRANTED
 }

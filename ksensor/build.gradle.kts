@@ -34,6 +34,7 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.accompanist.permissions)
+            implementation(libs.androidx.activity.compose)
 
         }
         val commonTest by getting {
@@ -47,11 +48,6 @@ kotlin {
             implementation(libs.androidx.core)
             implementation(libs.androidx.rules)
             implementation(libs.androidx.espresso.core)
-        }
-        androidMain.dependencies {
-            implementation(libs.androidx.fragment.ktx)
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -103,7 +99,7 @@ mavenPublishing {
     coordinates(
         groupId = libs.versions.groupId.get(),
         artifactId = libs.versions.artifactId.get(),
-        version = tag ?: "1.2.0-SNAPSHOT"
+        version = tag ?: "1.3.1-SNAPSHOT"
     )
 
             pom {
