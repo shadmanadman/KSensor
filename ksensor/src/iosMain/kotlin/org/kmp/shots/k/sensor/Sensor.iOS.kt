@@ -6,9 +6,14 @@ import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import org.kmp.shots.k.sensor.SensorData.*
+import org.kmp.shots.k.sensor.SensorUpdate.*
 import platform.CoreMotion.*
 import platform.CoreLocation.*
 import platform.Foundation.*
+import platform.UIKit.UIDevice
+import platform.UIKit.UIDeviceOrientation
+import platform.UIKit.UIDeviceOrientationDidChangeNotification
 import platform.darwin.*
 import kotlin.time.Clock.System
 
@@ -18,6 +23,7 @@ internal actual class SensorHandler : SensorController {
     private val altimeter = if (CMAltimeter.isRelativeAltitudeAvailable()) CMAltimeter() else null
     private val pedometer = if (CMPedometer.isStepCountingAvailable()) CMPedometer() else null
     private val locationManager = CLLocationManager()
+    private var orientationObserver: NSObject? = null
 
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
@@ -32,9 +38,9 @@ internal actual class SensorHandler : SensorController {
                             data?.let {
                                 it.acceleration.useContents {
                                     trySend(
-                                        SensorUpdate.Data(
+                                        Data(
                                             SensorType.ACCELEROMETER,
-                                            SensorData.Accelerometer(
+                                            Accelerometer(
                                                 this.x.toFloat(),
                                                 this.y.toFloat(),
                                                 this.z.toFloat(),
@@ -45,7 +51,7 @@ internal actual class SensorHandler : SensorController {
                                 }
                             }
                         }
-                    }else
+                    } else
                         println("Accelerometer not available")
                 }
 
@@ -55,9 +61,9 @@ internal actual class SensorHandler : SensorController {
                             data?.let {
                                 it.rotationRate.useContents {
                                     trySend(
-                                        SensorUpdate.Data(
+                                        Data(
                                             SensorType.GYROSCOPE,
-                                            SensorData.Gyroscope(
+                                            Gyroscope(
                                                 this.x.toFloat(),
                                                 this.y.toFloat(),
                                                 this.z.toFloat(),
@@ -69,7 +75,7 @@ internal actual class SensorHandler : SensorController {
                             }
                         }
 
-                    }else
+                    } else
                         println("Gyroscope not available")
                 }
 
@@ -79,9 +85,9 @@ internal actual class SensorHandler : SensorController {
                             data?.let {
                                 it.magneticField.useContents {
                                     trySend(
-                                        SensorUpdate.Data(
+                                        Data(
                                             SensorType.MAGNETOMETER,
-                                            SensorData.Magnetometer(
+                                            Magnetometer(
                                                 this.x.toFloat(),
                                                 this.y.toFloat(),
                                                 this.z.toFloat(),
@@ -94,7 +100,7 @@ internal actual class SensorHandler : SensorController {
                             }
 
                         }
-                    }else
+                    } else
                         println("Magnetometer not available")
                 }
 
@@ -103,9 +109,9 @@ internal actual class SensorHandler : SensorController {
                         data?.let {
                             val pressure = it.pressure.doubleValue.toFloat()
                             trySend(
-                                SensorUpdate.Data(
+                                Data(
                                     SensorType.BAROMETER,
-                                    SensorData.Barometer(pressure, PlatformType.iOS)
+                                    Barometer(pressure, PlatformType.iOS)
                                 )
                             )
                         }
@@ -117,9 +123,9 @@ internal actual class SensorHandler : SensorController {
                         data?.let {
                             val steps = it.numberOfSteps.intValue
                             trySend(
-                                SensorUpdate.Data(
+                                Data(
                                     SensorType.STEP_COUNTER,
-                                    SensorData.StepCounter(steps, PlatformType.iOS)
+                                    StepCounter(steps, PlatformType.iOS)
                                 )
                             )
                         }
@@ -144,9 +150,9 @@ internal actual class SensorHandler : SensorController {
                                     }
 
                                     trySend(
-                                        SensorUpdate.Data(
+                                        Data(
                                             SensorType.LOCATION,
-                                            SensorData.Location(
+                                            Location(
                                                 latitude = latitude,
                                                 longitude = longitude,
                                                 altitude = it.altitude,
@@ -161,12 +167,49 @@ internal actual class SensorHandler : SensorController {
                                 manager: CLLocationManager,
                                 didFailWithError: NSError
                             ) {
-                                trySend(SensorUpdate.Error(Exception(didFailWithError.description)))
+                                trySend(Error(Exception(didFailWithError.description)))
                             }
                         }
 
                     locationManager.requestWhenInUseAuthorization()
                     locationManager.startUpdatingLocation()
+                }
+
+                SensorType.DEVICE_ORIENTATION -> {
+                    UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
+
+                    // Send current orientation immediately
+                    val initialOrientation =
+                        UIDevice.currentDevice.orientation.toDeviceOrientation()
+                    trySend(
+                        element = Data(
+                            type = SensorType.DEVICE_ORIENTATION,
+                            Orientation(orientation = initialOrientation)
+                        )
+                    ).isSuccess
+
+                    orientationObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+                        name = UIDeviceOrientationDidChangeNotification,
+                        `object` = null,
+                        queue = NSOperationQueue.mainQueue()
+                    ) {
+                        val orientation = UIDevice.currentDevice.orientation
+                        val mapped = when (orientation) {
+                            UIDeviceOrientation.UIDeviceOrientationPortrait,
+                            UIDeviceOrientation.UIDeviceOrientationPortraitUpsideDown -> DeviceOrientation.PORTRAIT
+
+                            UIDeviceOrientation.UIDeviceOrientationLandscapeLeft,
+                            UIDeviceOrientation.UIDeviceOrientationLandscapeRight -> DeviceOrientation.LANDSCAPE
+
+                            else -> DeviceOrientation.UNKNOWN
+                        }
+                        trySend(
+                            element = Data(
+                                type = SensorType.DEVICE_ORIENTATION,
+                                data = Orientation(orientation = mapped)
+                            )
+                        ).isSuccess
+                    } as NSObject?
                 }
             }
         }
@@ -185,6 +228,12 @@ internal actual class SensorHandler : SensorController {
                 SensorType.BAROMETER -> altimeter?.stopRelativeAltitudeUpdates()
                 SensorType.STEP_COUNTER -> pedometer?.stopPedometerUpdates()
                 SensorType.LOCATION -> locationManager.stopUpdatingLocation()
+                SensorType.DEVICE_ORIENTATION -> {
+                    orientationObserver?.let {
+                        NSNotificationCenter.defaultCenter.removeObserver(it)
+                        UIDevice.currentDevice.endGeneratingDeviceOrientationNotifications()
+                    }
+                }
             }
         }
     }
