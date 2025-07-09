@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -12,12 +14,15 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.view.OrientationEventListener
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import org.kmp.shots.k.sensor.SensorData.*
+import org.kmp.shots.k.sensor.SensorUpdate.*
 
 internal actual class SensorHandler : SensorController {
     private val context: Context by lazy { AppContext.get() }
@@ -43,16 +48,16 @@ internal actual class SensorHandler : SensorController {
 
                         override fun onSensorChanged(event: SensorEvent) {
                             trySend(
-                                SensorUpdate.Data(
+                                Data(
                                     sensorType,
-                                    SensorData.Accelerometer(
+                                    Accelerometer(
                                         event.values[0],
                                         event.values[1],
                                         event.values[2],
                                         PlatformType.Android
                                     )
                                 )
-                            )
+                            ).isSuccess
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -60,22 +65,22 @@ internal actual class SensorHandler : SensorController {
                     sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }?:println("ACCELEROMETER not available")
+                    } ?: println("ACCELEROMETER not available")
                 }
 
                 SensorType.GYROSCOPE -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
                             trySend(
-                                SensorUpdate.Data(
-                                    type = sensorType, data = SensorData.Gyroscope(
+                                Data(
+                                    type = sensorType, data = Gyroscope(
                                         event.values[0],
                                         event.values[1],
                                         event.values[2],
                                         PlatformType.Android
                                     )
                                 )
-                            )
+                            ).isSuccess
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -83,23 +88,23 @@ internal actual class SensorHandler : SensorController {
                     sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }?:println("GYROSCOPE not available")
+                    } ?: println("GYROSCOPE not available")
                 }
 
                 SensorType.MAGNETOMETER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
                             trySend(
-                                SensorUpdate.Data(
+                                Data(
                                     sensorType,
-                                    SensorData.Magnetometer(
+                                    Magnetometer(
                                         event.values[0],
                                         event.values[1],
                                         event.values[2],
                                         PlatformType.Android
                                     )
                                 )
-                            )
+                            ).isSuccess
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -107,20 +112,20 @@ internal actual class SensorHandler : SensorController {
                     sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }?:println("MAGNETOMETER not available")
+                    } ?: println("MAGNETOMETER not available")
                 }
 
                 SensorType.BAROMETER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
                             trySend(
-                                SensorUpdate.Data(
-                                    sensorType, SensorData.Barometer(
+                                Data(
+                                    sensorType, Barometer(
                                         event.values[0],
                                         PlatformType.Android
                                     )
                                 )
-                            )
+                            ).isSuccess
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -128,21 +133,21 @@ internal actual class SensorHandler : SensorController {
                     sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).also {
                         sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
                         activeSensorListeners[sensorType] = listener
-                    }?:println("BAROMETER not available")
+                    } ?: println("BAROMETER not available")
                 }
 
                 SensorType.STEP_COUNTER -> {
                     val listener = object : SensorEventListener {
                         override fun onSensorChanged(event: SensorEvent) {
                             trySend(
-                                SensorUpdate.Data(
+                                Data(
                                     sensorType,
-                                    SensorData.StepCounter(
+                                    StepCounter(
                                         event.values[0].toInt(),
                                         PlatformType.Android
                                     )
                                 )
-                            )
+                            ).isSuccess
                         }
 
                         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -157,7 +162,7 @@ internal actual class SensorHandler : SensorController {
                     val listener = object : LocationListener {
                         override fun onLocationChanged(location: Location) {
                             trySend(
-                                SensorUpdate.Data(
+                                Data(
                                     sensorType,
                                     SensorData.Location(
                                         latitude = location.latitude,
@@ -166,7 +171,7 @@ internal actual class SensorHandler : SensorController {
                                         platformType = PlatformType.Android
                                     )
                                 )
-                            )
+                            ).isSuccess
                         }
 
                         override fun onStatusChanged(
@@ -190,9 +195,42 @@ internal actual class SensorHandler : SensorController {
                             activeSensorListeners[sensorType] = listener
                         },
                         onError = { exception ->
-                            trySend(SensorUpdate.Error(exception))
+                            trySend(Error(exception)).isFailure
                         }
                     )
+                }
+
+                SensorType.DEVICE_ORIENTATION -> {
+                    val listener = object : OrientationEventListener(context){
+                        override fun onOrientationChanged(orientation: Int) {
+                            val newOrientation = when (orientation) {
+                                in 45..134 -> Data(
+                                    type = SensorType.DEVICE_ORIENTATION,
+                                    data = Orientation(orientation = DeviceOrientation.LANDSCAPE)
+                                )
+                                in 135..224 -> Data(
+                                    type = SensorType.DEVICE_ORIENTATION,
+                                    data = Orientation(orientation = DeviceOrientation.PORTRAIT)
+                                )
+                                in 225..314 -> Data(
+                                    type = SensorType.DEVICE_ORIENTATION,
+                                    data = Orientation(orientation = DeviceOrientation.LANDSCAPE)
+                                )
+                                in 315..360, in 0..44 -> Data(
+                                    type = SensorType.DEVICE_ORIENTATION,
+                                    data = Orientation(orientation = DeviceOrientation.PORTRAIT)
+                                )
+                                else -> Data(
+                                    type = SensorType.DEVICE_ORIENTATION,
+                                    data = Orientation(orientation = DeviceOrientation.UNKNOWN)
+                                )
+                            }
+                            trySend(newOrientation).isSuccess
+
+                        }
+                    }
+                    listener.enable()
+                    awaitClose { listener.disable() }
                 }
             }
         }

@@ -5,13 +5,18 @@ enum class PlatformType {
     Android
 }
 
+enum class DeviceOrientation {
+    PORTRAIT, LANDSCAPE, UNKNOWN
+}
+
 enum class SensorType {
     ACCELEROMETER,
     GYROSCOPE,
     MAGNETOMETER,
     BAROMETER,
     STEP_COUNTER,
-    LOCATION
+    LOCATION,
+    DEVICE_ORIENTATION
 }
 
 sealed class SensorData() {
@@ -40,4 +45,8 @@ sealed class SensorData() {
         val altitude: Double? = null,
         val platformType: PlatformType
     ) : SensorData()
+
+    data class Orientation(
+        val orientation: DeviceOrientation
+    ): SensorData()
 }

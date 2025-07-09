@@ -1,4 +1,4 @@
-rootProject.name = "KSensor"
+rootProject.name = "KSensorLib"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -28,4 +28,4 @@ dependencyResolutionManagement {
     }
 }
 
-include(":composeApp")
+include(":ksensor")
