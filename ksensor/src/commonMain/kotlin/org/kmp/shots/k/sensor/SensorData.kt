@@ -47,6 +47,7 @@ sealed class SensorData() {
     ) : SensorData()
 
     data class Orientation(
-        val orientation: DeviceOrientation
+        val orientation: DeviceOrientation,
+        val platformType: PlatformType
     ): SensorData()
 }

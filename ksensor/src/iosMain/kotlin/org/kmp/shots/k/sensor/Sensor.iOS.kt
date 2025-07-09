@@ -184,7 +184,7 @@ internal actual class SensorHandler : SensorController {
                     trySend(
                         element = Data(
                             type = SensorType.DEVICE_ORIENTATION,
-                            Orientation(orientation = initialOrientation)
+                            Orientation(orientation = initialOrientation,PlatformType.iOS)
                         )
                     ).isSuccess
 
@@ -206,7 +206,7 @@ internal actual class SensorHandler : SensorController {
                         trySend(
                             element = Data(
                                 type = SensorType.DEVICE_ORIENTATION,
-                                data = Orientation(orientation = mapped)
+                                data = Orientation(orientation = mapped,PlatformType.iOS)
                             )
                         ).isSuccess
                     } as NSObject?

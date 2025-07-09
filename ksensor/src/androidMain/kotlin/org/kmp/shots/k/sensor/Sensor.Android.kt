@@ -206,23 +206,28 @@ internal actual class SensorHandler : SensorController {
                             val newOrientation = when (orientation) {
                                 in 45..134 -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.LANDSCAPE)
+                                    data = Orientation(orientation = DeviceOrientation.LANDSCAPE,
+                                        PlatformType.Android)
                                 )
                                 in 135..224 -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.PORTRAIT)
+                                    data = Orientation(orientation = DeviceOrientation.PORTRAIT,
+                                        PlatformType.Android)
                                 )
                                 in 225..314 -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.LANDSCAPE)
+                                    data = Orientation(orientation = DeviceOrientation.LANDSCAPE,
+                                        PlatformType.Android)
                                 )
                                 in 315..360, in 0..44 -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.PORTRAIT)
+                                    data = Orientation(orientation = DeviceOrientation.PORTRAIT,
+                                        PlatformType.Android)
                                 )
                                 else -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.UNKNOWN)
+                                    data = Orientation(orientation = DeviceOrientation.UNKNOWN,
+                                        PlatformType.Android)
                                 )
                             }
                             trySend(newOrientation).isSuccess
