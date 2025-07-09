@@ -9,7 +9,7 @@ class SensorHandlerTest {
     @Test
     fun testRegisterSensors() {
         val fake = FakeSensorManager()
-        fake.registerSensors(listOf(SensorType.ACCELEROMETER), onSensorData = {_, _ -> } , onSensorError = {})
+        fake.registerSensors(listOf(SensorType.ACCELEROMETER))
 
         assertTrue(fake.registeredSensors.contains(SensorType.ACCELEROMETER))
     }
@@ -17,7 +17,7 @@ class SensorHandlerTest {
     @Test
     fun testUnregisterSensors() {
         val fake = FakeSensorManager()
-        fake.registerSensors(listOf(SensorType.ACCELEROMETER), onSensorData = {_, _ -> } , onSensorError = {})
+        fake.registerSensors(listOf(SensorType.ACCELEROMETER))
         fake.unregisterSensors(listOf(SensorType.ACCELEROMETER))
 
         assertFalse(fake.registeredSensors.contains(SensorType.ACCELEROMETER))

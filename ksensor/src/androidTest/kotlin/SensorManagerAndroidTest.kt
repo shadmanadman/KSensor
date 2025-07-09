@@ -61,6 +61,10 @@ class SensorManagerAndroidTest : TestCase() {
         assertSensorCallback(SensorType.STEP_COUNTER)
     }
 
+    @Test
+    fun testOrientation(){
+        assertSensorCallback(SensorType.DEVICE_ORIENTATION)
+    }
 
     private fun assertSensorCallback(sensorType: SensorType) = runBlocking {
         val sensorHandler = SensorHandler()
@@ -73,6 +77,7 @@ class SensorManagerAndroidTest : TestCase() {
         }.collect { senorUpdate->
             when (senorUpdate) {
                 is SensorUpdate.Data -> {
+                    println(senorUpdate.data.toString())
                     called = true
                 }
                 is SensorUpdate.Error -> {

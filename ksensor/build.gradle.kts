@@ -96,14 +96,14 @@ dependencies {
 
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
     signAllPublications()
     val tag: String? = System.getenv("GITHUB_REF")?.split("/")?.lastOrNull()
 
     coordinates(
         groupId = libs.versions.groupId.get(),
         artifactId = libs.versions.artifactId.get(),
-        version = tag ?: "1.0.0-SNAPSHOT"
+        version = tag ?: "1.2.0-SNAPSHOT"
     )
 
             pom {
