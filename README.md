@@ -12,6 +12,7 @@
     BAROMETER
     STEP_COUNTER
     LOCATION
+    DEVICE_ORIENTATION
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -19,7 +20,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:0.59.0")
+  implementation("io.github.shadmanadman:KSensor:0.71.0")
   ```
 
 ### Usage
@@ -31,7 +32,8 @@ SensorType.GYROSCOPE,
 SensorType.MAGNETOMETER,
 SensorType.BAROMETER,
 SensorType.STEP_COUNTER,
-SensorType.LOCATION)
+SensorType.LOCATION,
+SensorType.DEVICE_ORIENTATION)
 
 // Register sensors
 KSensor.registerSensors(
