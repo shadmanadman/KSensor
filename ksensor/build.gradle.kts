@@ -35,6 +35,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.accompanist.permissions)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.startup)
 
         }
         val commonTest by getting {
