@@ -20,7 +20,7 @@ kotlin = "2.2.0"
 accompanist-permissions = "0.32.0"
 vanniktech-publish = "0.33.0"
 groupId = "io.github.shadmanadman"
-artifactId = "KSensor"
+artifactId = "ksensor"
 
 [libraries]
 androidx-core = { module = "androidx.test:core", version.ref = "core" }

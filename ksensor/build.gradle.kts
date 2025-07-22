@@ -20,16 +20,11 @@ kotlin {
         publishLibraryVariants("release")
     }
 
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+
 
     sourceSets {
         androidMain.dependencies {
@@ -50,11 +45,13 @@ kotlin {
             implementation(libs.androidx.rules)
             implementation(libs.androidx.espresso.core)
         }
-        commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
+        val commonMain by getting {
+            dependencies {
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material)
+                implementation(compose.ui)
+            }
         }
     }
 }
@@ -100,32 +97,32 @@ mavenPublishing {
     coordinates(
         groupId = libs.versions.groupId.get(),
         artifactId = libs.versions.artifactId.get(),
-        version = tag ?: "1.3.1-SNAPSHOT"
+        version = tag ?: "1.3.4-SNAPSHOT"
     )
 
-            pom {
-                name = "KSensor"
-                description = "A KMP library that provides Sensors info for both Android and iOS"
-                url = "https://github.com/shadmanadman/KSensor"
-                licenses {
-                    license {
-                        name = "Apache License, Version 2.0"
-                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-                    }
-                }
-                developers {
-                    developer {
-                        id = "shadmanadman"
-                        name = "Shadman Adman"
-                        email = "adman.shadman@gmail.com"
-                    }
-                }
-                scm {
-                    connection = "scm:git:https://github.com/shadmanadman/KSensor"
-                    developerConnection = "scm:git:github.com/shadmanadman/KSensor.git"
-                    url = "https://github.com/shadmanadman/KSensor"
-                }
+    pom {
+        name = "KSensor"
+        description = "A KMP library that provides Sensors info for both Android and iOS"
+        url = "https://github.com/shadmanadman/KSensor"
+        licenses {
+            license {
+                name = "Apache License, Version 2.0"
+                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
             }
+        }
+        developers {
+            developer {
+                id = "shadmanadman"
+                name = "Shadman Adman"
+                email = "adman.shadman@gmail.com"
+            }
+        }
+        scm {
+            connection = "scm:git:https://github.com/shadmanadman/KSensor"
+            developerConnection = "scm:git:github.com/shadmanadman/KSensor.git"
+            url = "https://github.com/shadmanadman/KSensor"
+        }
+    }
 }
 
 signing {
