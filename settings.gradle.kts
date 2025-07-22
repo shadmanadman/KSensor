@@ -1,4 +1,4 @@
-rootProject.name = "ksensor"
+rootProject.name = "ksensorlib"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
