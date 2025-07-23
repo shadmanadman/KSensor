@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -93,7 +92,6 @@ mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
     val tag: String? = System.getenv("GITHUB_REF")?.split("/")?.lastOrNull()
-
     coordinates(
         groupId = libs.versions.groupId.get(),
         artifactId = libs.versions.artifactId.get(),
