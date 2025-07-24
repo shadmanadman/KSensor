@@ -20,7 +20,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:0.80.0")
+  implementation("io.github.shadmanadman:KSensor:0.80.11")
   ```
 
 ### Usage
