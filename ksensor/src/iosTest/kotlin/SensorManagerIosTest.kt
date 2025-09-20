@@ -41,6 +41,11 @@ class SensorManagerIosTest {
         assertSensorCallback(SensorType.LOCATION)
     }
 
+    @Test
+    fun testProximity() {
+        assertSensorCallback(SensorType.PROXIMITY)
+    }
+
     private fun assertSensorCallback(sensorType: SensorType) = runBlocking {
         val sensorHandler = SensorHandler()
         var called = false
@@ -49,12 +54,13 @@ class SensorManagerIosTest {
             sensorType = listOf(sensorType)
         ).catch {
 
-        }.collect { senorUpdate->
+        }.collect { senorUpdate ->
             when (senorUpdate) {
                 is SensorUpdate.Data -> {
-                    println(senorUpdate.data.toString())
+                    println("SensorUpdate : ${senorUpdate.data}")
                     called = true
                 }
+
                 is SensorUpdate.Error -> {
                 }
             }

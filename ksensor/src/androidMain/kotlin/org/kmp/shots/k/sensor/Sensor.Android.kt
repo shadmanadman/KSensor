@@ -203,33 +203,47 @@ internal actual class SensorHandler : SensorController {
                 }
 
                 SensorType.DEVICE_ORIENTATION -> {
-                    val listener = object : OrientationEventListener(context){
+                    val listener = object : OrientationEventListener(context) {
                         override fun onOrientationChanged(orientation: Int) {
                             val newOrientation = when (orientation) {
                                 in 45..134 -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.LANDSCAPE,
-                                        PlatformType.Android)
+                                    data = Orientation(
+                                        orientation = DeviceOrientation.LANDSCAPE,
+                                        platformType = PlatformType.Android
+                                    )
                                 )
+
                                 in 135..224 -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.PORTRAIT,
-                                        PlatformType.Android)
+                                    data = Orientation(
+                                        orientation = DeviceOrientation.PORTRAIT,
+                                        platformType = PlatformType.Android
+                                    )
                                 )
+
                                 in 225..314 -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.LANDSCAPE,
-                                        PlatformType.Android)
+                                    data = Orientation(
+                                        orientation = DeviceOrientation.LANDSCAPE,
+                                        platformType = PlatformType.Android
+                                    )
                                 )
+
                                 in 315..360, in 0..44 -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.PORTRAIT,
-                                        PlatformType.Android)
+                                    data = Orientation(
+                                        orientation = DeviceOrientation.PORTRAIT,
+                                        platformType = PlatformType.Android
+                                    )
                                 )
+
                                 else -> Data(
                                     type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(orientation = DeviceOrientation.UNKNOWN,
-                                        PlatformType.Android)
+                                    data = Orientation(
+                                        orientation = DeviceOrientation.UNKNOWN,
+                                        platformType = PlatformType.Android
+                                    )
                                 )
                             }
                             trySend(newOrientation).isSuccess
@@ -239,6 +253,32 @@ internal actual class SensorHandler : SensorController {
                     listener.enable()
                     awaitClose { listener.disable() }
                 }
+
+                SensorType.PROXIMITY -> {
+                    val proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+                    val listener = object : SensorEventListener {
+                        override fun onSensorChanged(event: SensorEvent) {
+                            val distanceInCM = event.values[0]
+                            trySend(
+                                Data(
+                                    type = sensorType, data = SensorData.Proximity(
+                                        distanceInCM = distanceInCM,
+                                        isNear = distanceInCM < (proximitySensor?.maximumRange
+                                            ?: distanceInCM)
+                                    )
+                                )
+                            ).isSuccess
+                        }
+
+                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+                    }
+                    sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY).also {
+                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+                        activeSensorListeners[sensorType] = listener
+                    } ?: println("Proximity sensor not available")
+                }
+
+                SensorType.LIGHT -> TODO()
             }
         }
         awaitClose {

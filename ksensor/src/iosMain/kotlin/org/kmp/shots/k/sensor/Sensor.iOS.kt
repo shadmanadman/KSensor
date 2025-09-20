@@ -14,6 +14,7 @@ import platform.Foundation.*
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceOrientation
 import platform.UIKit.UIDeviceOrientationDidChangeNotification
+import platform.UIKit.UIDeviceProximityStateDidChangeNotification
 import platform.darwin.*
 import kotlin.time.Clock.System
 
@@ -22,8 +23,11 @@ internal actual class SensorHandler : SensorController {
     private val motionManager = CMMotionManager()
     private val altimeter = if (CMAltimeter.isRelativeAltitudeAvailable()) CMAltimeter() else null
     private val pedometer = if (CMPedometer.isStepCountingAvailable()) CMPedometer() else null
+
     private val locationManager = CLLocationManager()
     private var orientationObserver: NSObject? = null
+
+    private var proximityObserver: NSObject? = null
 
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
@@ -184,7 +188,10 @@ internal actual class SensorHandler : SensorController {
                     trySend(
                         element = Data(
                             type = SensorType.DEVICE_ORIENTATION,
-                            Orientation(orientation = initialOrientation,PlatformType.iOS)
+                            Orientation(
+                                orientation = initialOrientation,
+                                platformType = PlatformType.iOS
+                            )
                         )
                     ).isSuccess
 
@@ -206,11 +213,39 @@ internal actual class SensorHandler : SensorController {
                         trySend(
                             element = Data(
                                 type = SensorType.DEVICE_ORIENTATION,
-                                data = Orientation(orientation = mapped,PlatformType.iOS)
+                                data = Orientation(
+                                    orientation = mapped,
+                                    platformType = PlatformType.iOS
+                                )
                             )
                         ).isSuccess
                     } as NSObject?
                 }
+
+                SensorType.PROXIMITY -> {
+                    val device = UIDevice.currentDevice
+                    device.proximityMonitoringEnabled = true
+                    proximityObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+                        name = UIDeviceProximityStateDidChangeNotification,
+                        `object` = device,
+                        queue = NSOperationQueue.mainQueue,
+                        usingBlock = {
+                            val isNear = device.proximityState
+                            trySend(
+                                Data(
+                                    type = sensorType,
+                                    // In ios the proximity sensor is restricted
+                                    data = Proximity(
+                                        distanceInCM = if (isNear) 0f else -1f,
+                                        isNear = isNear
+                                    )
+                                )
+                            ).isSuccess
+                        }
+                    ) as NSObject?
+                }
+
+                SensorType.LIGHT -> TODO()
             }
         }
 
@@ -234,6 +269,15 @@ internal actual class SensorHandler : SensorController {
                         UIDevice.currentDevice.endGeneratingDeviceOrientationNotifications()
                     }
                 }
+
+                SensorType.PROXIMITY -> {
+                    proximityObserver?.let {
+                        NSNotificationCenter.defaultCenter.removeObserver(it)
+                        UIDevice.currentDevice.proximityMonitoringEnabled = false
+                    }
+                }
+
+                SensorType.LIGHT -> TODO()
             }
         }
     }

@@ -62,8 +62,13 @@ class SensorManagerAndroidTest : TestCase() {
     }
 
     @Test
-    fun testOrientation(){
+    fun testOrientation() {
         assertSensorCallback(SensorType.DEVICE_ORIENTATION)
+    }
+
+    @Test
+    fun testProximity() {
+        assertSensorCallback(SensorType.PROXIMITY)
     }
 
     private fun assertSensorCallback(sensorType: SensorType) = runBlocking {
@@ -74,12 +79,13 @@ class SensorManagerAndroidTest : TestCase() {
             sensorType = listOf(sensorType)
         ).catch {
 
-        }.collect { senorUpdate->
+        }.collect { senorUpdate ->
             when (senorUpdate) {
                 is SensorUpdate.Data -> {
                     println(senorUpdate.data.toString())
                     called = true
                 }
+
                 is SensorUpdate.Error -> {
                 }
             }
