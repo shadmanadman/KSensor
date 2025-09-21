@@ -42,7 +42,8 @@ SensorType.LIGHT)
 // Register sensors
 KSensor.registerSensors(
     types = sensors,
-    locationIntervalMillis = {optional. default is 1000L}
+    // Optional. defualt is 1000L
+    locationIntervalMillis = 1000L
 ).collect {sensorUpdate ->
     when (sensorUpdate) {
         is SensorUpdate.Data -> println(sensorUpdate.data)
