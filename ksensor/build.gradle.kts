@@ -99,7 +99,7 @@ mavenPublishing {
     coordinates(
         groupId = libs.versions.groupId.get(),
         artifactId = libs.versions.artifactId.get(),
-        version = tag ?: "1.3.1-SNAPSHOT"
+        version = tag ?: "1.3.6-SNAPSHOT"
     )
 
             pom {

@@ -2,7 +2,7 @@
 [![Gradle](https://img.shields.io/badge/Gradle-8.x-green.svg?style=flat-square&logo=gradle)](https://gradle.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-![](KSensor.png)
+![](KSensor.jpg)
 
 ### latest supported sensors:
 
@@ -13,6 +13,8 @@
     STEP_COUNTER
     LOCATION
     DEVICE_ORIENTATION
+    PROXIMITY
+    LIGHT
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -33,7 +35,9 @@ SensorType.MAGNETOMETER,
 SensorType.BAROMETER,
 SensorType.STEP_COUNTER,
 SensorType.LOCATION,
-SensorType.DEVICE_ORIENTATION)
+SensorType.DEVICE_ORIENTATION,
+SensorType.PROXIMITY,
+SensorType.LIGHT)
 
 // Register sensors
 KSensor.registerSensors(
@@ -44,15 +48,12 @@ KSensor.registerSensors(
         is SensorUpdate.Data -> println(sensorUpdate.data)
         is SensorUpdate.Error -> println(sensorUpdate.exception)
     }
-
-}.catch {
-    //Catch any other throwable
 }
 
 // Unregister sensors when no longer needed
 KSensor.unregisterSensors(sensors)
 ```
-Each `SensorData` has a `platformType` so you know the sensor info comes from Android or iOS.
+Each `SensorData` has a `platformType` so you know the sensor data comes from Android or iOS.
 
 #### Permissions
 If you are using Location you need `FINE_LOCATION` and `COARSE_LOCATION` permissions on Android. You can handel this permissions yourself or let the library handle them for you:

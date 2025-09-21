@@ -58,4 +58,8 @@ sealed class SensorData() {
         val distanceInCM: Float,
         val isNear: Boolean
     ): SensorData()
+
+    data class LightIlluminance(
+        val illuminance: Float
+    ): SensorData()
 }

@@ -15,6 +15,7 @@ import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceOrientation
 import platform.UIKit.UIDeviceOrientationDidChangeNotification
 import platform.UIKit.UIDeviceProximityStateDidChangeNotification
+import platform.UIKit.UIScreen
 import platform.darwin.*
 import kotlin.time.Clock.System
 
@@ -28,6 +29,8 @@ internal actual class SensorHandler : SensorController {
     private var orientationObserver: NSObject? = null
 
     private var proximityObserver: NSObject? = null
+
+    private var timer: NSTimer? = null
 
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
@@ -245,7 +248,26 @@ internal actual class SensorHandler : SensorController {
                     ) as NSObject?
                 }
 
-                SensorType.LIGHT -> TODO()
+                SensorType.LIGHT -> {
+                    timer = NSTimer.scheduledTimerWithTimeInterval(
+                        0.5,
+                        repeats = true,
+                        block = {
+                            val brightness = UIScreen.mainScreen.brightness.toFloat()
+                            // Scale to lux like value (0–1000)
+                            val lux = brightness * 1000f
+                            trySend(
+                                Data(
+                                    type = sensorType,
+                                    data = LightIlluminance(
+                                        illuminance = lux
+                                    )
+                                )
+                            ).isSuccess
+                        }
+                    )
+                    NSRunLoop.mainRunLoop.addTimer(timer!!, NSRunLoopCommonModes)
+                }
             }
         }
 
@@ -277,7 +299,10 @@ internal actual class SensorHandler : SensorController {
                     }
                 }
 
-                SensorType.LIGHT -> TODO()
+                SensorType.LIGHT -> {
+                    timer?.invalidate()
+                    timer = null
+                }
             }
         }
     }

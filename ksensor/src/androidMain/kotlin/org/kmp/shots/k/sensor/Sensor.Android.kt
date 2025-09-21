@@ -278,7 +278,26 @@ internal actual class SensorHandler : SensorController {
                     } ?: println("Proximity sensor not available")
                 }
 
-                SensorType.LIGHT -> TODO()
+                SensorType.LIGHT ->{
+                    val listener = object : SensorEventListener {
+                        override fun onSensorChanged(event: SensorEvent) {
+                            trySend(
+                                Data(
+                                    type = sensorType, data = SensorData.LightIlluminance(
+                                        illuminance = event.values[0]
+                                    )
+                                )
+                            ).isSuccess
+                        }
+
+                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+                    }
+
+                    sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).also {
+                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+                        activeSensorListeners[sensorType] = listener
+                    } ?: println("Light sensor not available")
+                }
             }
         }
         awaitClose {

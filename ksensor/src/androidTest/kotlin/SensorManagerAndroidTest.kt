@@ -71,6 +71,11 @@ class SensorManagerAndroidTest : TestCase() {
         assertSensorCallback(SensorType.PROXIMITY)
     }
 
+    @Test
+    fun testLightSensor() {
+        assertSensorCallback(SensorType.LIGHT)
+    }
+
     private fun assertSensorCallback(sensorType: SensorType) = runBlocking {
         val sensorHandler = SensorHandler()
         var called = false
