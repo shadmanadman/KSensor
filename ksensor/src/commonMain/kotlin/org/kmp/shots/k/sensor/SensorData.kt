@@ -56,10 +56,12 @@ sealed class SensorData() {
 
     data class Proximity(
         val distanceInCM: Float,
-        val isNear: Boolean
+        val isNear: Boolean,
+        val platformType: PlatformType
     ): SensorData()
 
     data class LightIlluminance(
-        val illuminance: Float
+        val illuminance: Float,
+        val platformType: PlatformType
     ): SensorData()
 }

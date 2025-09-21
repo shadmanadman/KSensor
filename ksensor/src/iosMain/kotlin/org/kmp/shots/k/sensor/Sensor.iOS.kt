@@ -240,7 +240,8 @@ internal actual class SensorHandler : SensorController {
                                     // In ios the proximity sensor is restricted
                                     data = Proximity(
                                         distanceInCM = if (isNear) 0f else -1f,
-                                        isNear = isNear
+                                        isNear = isNear,
+                                        platformType = PlatformType.iOS
                                     )
                                 )
                             ).isSuccess
@@ -260,7 +261,8 @@ internal actual class SensorHandler : SensorController {
                                 Data(
                                     type = sensorType,
                                     data = LightIlluminance(
-                                        illuminance = lux
+                                        illuminance = lux,
+                                        platformType = PlatformType.iOS
                                     )
                                 )
                             ).isSuccess

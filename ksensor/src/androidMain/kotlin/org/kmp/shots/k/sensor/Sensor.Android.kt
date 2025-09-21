@@ -264,7 +264,8 @@ internal actual class SensorHandler : SensorController {
                                     type = sensorType, data = SensorData.Proximity(
                                         distanceInCM = distanceInCM,
                                         isNear = distanceInCM < (proximitySensor?.maximumRange
-                                            ?: distanceInCM)
+                                            ?: distanceInCM),
+                                        platformType = PlatformType.Android
                                     )
                                 )
                             ).isSuccess
@@ -284,7 +285,8 @@ internal actual class SensorHandler : SensorController {
                             trySend(
                                 Data(
                                     type = sensorType, data = SensorData.LightIlluminance(
-                                        illuminance = event.values[0]
+                                        illuminance = event.values[0],
+                                        platformType = PlatformType.Android
                                     )
                                 )
                             ).isSuccess
