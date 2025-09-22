@@ -39,237 +39,15 @@ internal actual class SensorHandler : SensorController {
     ): Flow<SensorUpdate> = callbackFlow {
         sensorType.forEach { sensorType ->
             when (sensorType) {
-                SensorType.ACCELEROMETER -> {
-                    if (motionManager.accelerometerAvailable) {
-                        motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
-                            data?.let {
-                                it.acceleration.useContents {
-                                    trySend(
-                                        Data(
-                                            SensorType.ACCELEROMETER,
-                                            Accelerometer(
-                                                this.x.toFloat(),
-                                                this.y.toFloat(),
-                                                this.z.toFloat(),
-                                                PlatformType.iOS
-                                            )
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    } else
-                        println("Accelerometer not available")
-                }
-
-                SensorType.GYROSCOPE -> {
-                    if (motionManager.gyroAvailable) {
-                        motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
-                            data?.let {
-                                it.rotationRate.useContents {
-                                    trySend(
-                                        Data(
-                                            SensorType.GYROSCOPE,
-                                            Gyroscope(
-                                                this.x.toFloat(),
-                                                this.y.toFloat(),
-                                                this.z.toFloat(),
-                                                PlatformType.iOS
-                                            )
-                                        )
-                                    )
-                                }
-                            }
-                        }
-
-                    } else
-                        println("Gyroscope not available")
-                }
-
-                SensorType.MAGNETOMETER -> {
-                    if (motionManager.magnetometerAvailable) {
-                        motionManager.startMagnetometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
-                            data?.let {
-                                it.magneticField.useContents {
-                                    trySend(
-                                        Data(
-                                            SensorType.MAGNETOMETER,
-                                            Magnetometer(
-                                                this.x.toFloat(),
-                                                this.y.toFloat(),
-                                                this.z.toFloat(),
-                                                PlatformType.iOS
-                                            )
-                                        )
-                                    )
-                                }
-
-                            }
-
-                        }
-                    } else
-                        println("Magnetometer not available")
-                }
-
-                SensorType.BAROMETER -> {
-                    altimeter?.startRelativeAltitudeUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
-                        data?.let {
-                            val pressure = it.pressure.doubleValue.toFloat()
-                            trySend(
-                                Data(
-                                    SensorType.BAROMETER,
-                                    Barometer(pressure, PlatformType.iOS)
-                                )
-                            )
-                        }
-                    }
-                }
-
-                SensorType.STEP_COUNTER -> {
-                    pedometer?.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
-                        data?.let {
-                            val steps = it.numberOfSteps.intValue
-                            trySend(
-                                Data(
-                                    SensorType.STEP_COUNTER,
-                                    StepCounter(steps, PlatformType.iOS)
-                                )
-                            )
-                        }
-                    }
-                }
-
-                SensorType.LOCATION -> {
-                    locationManager.delegate =
-                        object : NSObject(), CLLocationManagerDelegateProtocol {
-                            override fun locationManager(
-                                manager: CLLocationManager,
-                                didUpdateLocations: List<*>
-                            ) {
-                                val loc = didUpdateLocations.lastOrNull() as? CLLocation
-                                loc?.let {
-                                    val latitude: Double
-                                    val longitude: Double
-
-                                    it.coordinate.useContents {
-                                        latitude = this.latitude
-                                        longitude = this.longitude
-                                    }
-
-                                    trySend(
-                                        Data(
-                                            SensorType.LOCATION,
-                                            Location(
-                                                latitude = latitude,
-                                                longitude = longitude,
-                                                altitude = it.altitude,
-                                                platformType = PlatformType.iOS
-                                            )
-                                        )
-                                    )
-                                }
-                            }
-
-                            override fun locationManager(
-                                manager: CLLocationManager,
-                                didFailWithError: NSError
-                            ) {
-                                trySend(Error(Exception(didFailWithError.description)))
-                            }
-                        }
-
-                    locationManager.requestWhenInUseAuthorization()
-                    locationManager.startUpdatingLocation()
-                }
-
-                SensorType.DEVICE_ORIENTATION -> {
-                    UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
-
-                    // Send current orientation immediately
-                    val initialOrientation =
-                        UIDevice.currentDevice.orientation.toDeviceOrientation()
-                    trySend(
-                        element = Data(
-                            type = SensorType.DEVICE_ORIENTATION,
-                            Orientation(
-                                orientation = initialOrientation,
-                                platformType = PlatformType.iOS
-                            )
-                        )
-                    ).isSuccess
-
-                    orientationObserver = NSNotificationCenter.defaultCenter.addObserverForName(
-                        name = UIDeviceOrientationDidChangeNotification,
-                        `object` = null,
-                        queue = NSOperationQueue.mainQueue()
-                    ) {
-                        val orientation = UIDevice.currentDevice.orientation
-                        val mapped = when (orientation) {
-                            UIDeviceOrientation.UIDeviceOrientationPortrait,
-                            UIDeviceOrientation.UIDeviceOrientationPortraitUpsideDown -> DeviceOrientation.PORTRAIT
-
-                            UIDeviceOrientation.UIDeviceOrientationLandscapeLeft,
-                            UIDeviceOrientation.UIDeviceOrientationLandscapeRight -> DeviceOrientation.LANDSCAPE
-
-                            else -> DeviceOrientation.UNKNOWN
-                        }
-                        trySend(
-                            element = Data(
-                                type = SensorType.DEVICE_ORIENTATION,
-                                data = Orientation(
-                                    orientation = mapped,
-                                    platformType = PlatformType.iOS
-                                )
-                            )
-                        ).isSuccess
-                    } as NSObject?
-                }
-
-                SensorType.PROXIMITY -> {
-                    val device = UIDevice.currentDevice
-                    device.proximityMonitoringEnabled = true
-                    proximityObserver = NSNotificationCenter.defaultCenter.addObserverForName(
-                        name = UIDeviceProximityStateDidChangeNotification,
-                        `object` = device,
-                        queue = NSOperationQueue.mainQueue,
-                        usingBlock = {
-                            val isNear = device.proximityState
-                            trySend(
-                                Data(
-                                    type = sensorType,
-                                    // In ios the proximity sensor is restricted
-                                    data = Proximity(
-                                        distanceInCM = if (isNear) 0f else -1f,
-                                        isNear = isNear,
-                                        platformType = PlatformType.iOS
-                                    )
-                                )
-                            ).isSuccess
-                        }
-                    ) as NSObject?
-                }
-
-                SensorType.LIGHT -> {
-                    timer = NSTimer.scheduledTimerWithTimeInterval(
-                        0.5,
-                        repeats = true,
-                        block = {
-                            val brightness = UIScreen.mainScreen.brightness.toFloat()
-                            // Scale to lux like value (0–1000)
-                            val lux = brightness * 1000f
-                            trySend(
-                                Data(
-                                    type = sensorType,
-                                    data = LightIlluminance(
-                                        illuminance = lux,
-                                        platformType = PlatformType.iOS
-                                    )
-                                )
-                            ).isSuccess
-                        }
-                    )
-                    NSRunLoop.mainRunLoop.addTimer(timer!!, NSRunLoopCommonModes)
-                }
+                SensorType.ACCELEROMETER -> registerAccelerometer { trySend(it).isSuccess }
+                SensorType.GYROSCOPE -> registerGyroscope { trySend(it).isSuccess }
+                SensorType.MAGNETOMETER -> registerMagnetometer { trySend(it).isSuccess }
+                SensorType.BAROMETER -> registerBarometer { trySend(it).isSuccess }
+                SensorType.STEP_COUNTER -> registerStepCounter { trySend(it).isSuccess }
+                SensorType.LOCATION -> registerLocation { trySend(it).isSuccess }
+                SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
+                SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
+                SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
             }
         }
 
@@ -315,5 +93,238 @@ internal actual class SensorHandler : SensorController {
         onPermissionStatus: (PermissionStatus) -> Unit
     ) {
         PermissionsManager().askPermission(permission, onPermissionStatus)
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun registerAccelerometer(onData: (SensorUpdate) -> Boolean) {
+        if (motionManager.accelerometerAvailable) {
+            motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
+                data?.let {
+                    it.acceleration.useContents {
+                        onData(
+                            Data(
+                                SensorType.ACCELEROMETER,
+                                Accelerometer(
+                                    this.x.toFloat(),
+                                    this.y.toFloat(),
+                                    this.z.toFloat(),
+                                    PlatformType.iOS
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+        } else
+            println("Accelerometer not available")
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun registerGyroscope(onData: (SensorUpdate) -> Boolean) {
+        if (motionManager.gyroAvailable) {
+            motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
+                data?.let {
+                    it.rotationRate.useContents {
+                        onData(
+                            Data(
+                                SensorType.GYROSCOPE,
+                                Gyroscope(
+                                    this.x.toFloat(),
+                                    this.y.toFloat(),
+                                    this.z.toFloat(),
+                                    PlatformType.iOS
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+        } else
+            println("Gyroscope not available")
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun registerMagnetometer(onData: (SensorUpdate) -> Boolean) {
+        if (motionManager.magnetometerAvailable) {
+            motionManager.startMagnetometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
+                data?.let {
+                    it.magneticField.useContents {
+                        onData(
+                            Data(
+                                SensorType.MAGNETOMETER,
+                                Magnetometer(
+                                    this.x.toFloat(),
+                                    this.y.toFloat(),
+                                    this.z.toFloat(),
+                                    PlatformType.iOS
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+        } else
+            println("Magnetometer not available")
+    }
+
+    private fun registerBarometer(onData: (SensorUpdate) -> Boolean) {
+        altimeter?.startRelativeAltitudeUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
+            data?.let {
+                val pressure = it.pressure.doubleValue.toFloat()
+                onData(
+                    Data(
+                        SensorType.BAROMETER,
+                        Barometer(pressure, PlatformType.iOS)
+                    )
+                )
+            }
+        }
+    }
+
+    private fun registerStepCounter(onData: (SensorUpdate) -> Boolean) {
+        pedometer?.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
+            data?.let {
+                val steps = it.numberOfSteps.intValue
+                onData(
+                    Data(
+                        SensorType.STEP_COUNTER,
+                        StepCounter(steps, PlatformType.iOS)
+                    )
+                )
+            }
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun registerLocation(onData: (SensorUpdate) -> Boolean) {
+        locationManager.delegate =
+            object : NSObject(), CLLocationManagerDelegateProtocol {
+                override fun locationManager(
+                    manager: CLLocationManager,
+                    didUpdateLocations: List<*>
+                ) {
+                    val loc = didUpdateLocations.lastOrNull() as? CLLocation
+                    loc?.let {
+                        val latitude: Double
+                        val longitude: Double
+
+                        it.coordinate.useContents {
+                            latitude = this.latitude
+                            longitude = this.longitude
+                        }
+
+                        onData(
+                            Data(
+                                SensorType.LOCATION,
+                                Location(
+                                    latitude = latitude,
+                                    longitude = longitude,
+                                    altitude = it.altitude,
+                                    platformType = PlatformType.iOS
+                                )
+                            )
+                        )
+                    }
+                }
+
+                override fun locationManager(
+                    manager: CLLocationManager,
+                    didFailWithError: NSError
+                ) {
+                    onData(Error(Exception(didFailWithError.description)))
+                }
+            }
+
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+
+    private fun registerDeviceOrientation(onData: (SensorUpdate) -> Boolean) {
+        UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
+
+        // Send current orientation immediately
+        val initialOrientation =
+            UIDevice.currentDevice.orientation.toDeviceOrientation()
+        onData(
+            Data(
+                type = SensorType.DEVICE_ORIENTATION,
+                Orientation(
+                    orientation = initialOrientation,
+                    platformType = PlatformType.iOS
+                )
+            )
+        )
+
+        orientationObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = UIDeviceOrientationDidChangeNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue()
+        ) {
+            val orientation = UIDevice.currentDevice.orientation
+            val mapped = when (orientation) {
+                UIDeviceOrientation.UIDeviceOrientationPortrait,
+                UIDeviceOrientation.UIDeviceOrientationPortraitUpsideDown -> DeviceOrientation.PORTRAIT
+
+                UIDeviceOrientation.UIDeviceOrientationLandscapeLeft,
+                UIDeviceOrientation.UIDeviceOrientationLandscapeRight -> DeviceOrientation.LANDSCAPE
+
+                else -> DeviceOrientation.UNKNOWN
+            }
+            onData(
+                Data(
+                    type = SensorType.DEVICE_ORIENTATION,
+                    data = Orientation(
+                        orientation = mapped,
+                        platformType = PlatformType.iOS
+                    )
+                )
+            )
+        } as NSObject?
+    }
+
+    private fun registerProximity(onData: (SensorUpdate) -> Boolean) {
+        val device = UIDevice.currentDevice
+        device.proximityMonitoringEnabled = true
+        proximityObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = UIDeviceProximityStateDidChangeNotification,
+            `object` = device,
+            queue = NSOperationQueue.mainQueue,
+            usingBlock = {
+                val isNear = device.proximityState
+                onData(
+                    Data(
+                        type = SensorType.PROXIMITY,
+                        // In ios the proximity sensor is restricted
+                        data = Proximity(
+                            distanceInCM = if (isNear) 0f else -1f,
+                            isNear = isNear,
+                            platformType = PlatformType.iOS
+                        )
+                    )
+                )
+            }
+        ) as NSObject?
+    }
+
+    private fun registerLight(onData: (SensorUpdate) -> Boolean) {
+        timer = NSTimer.scheduledTimerWithTimeInterval(
+            0.5,
+            repeats = true,
+            block = {
+                val brightness = UIScreen.mainScreen.brightness.toFloat()
+                // Scale to lux like value (0–1000)
+                val lux = brightness * 1000f
+                onData(
+                    Data(
+                        type = SensorType.LIGHT,
+                        data = LightIlluminance(
+                            illuminance = lux,
+                            platformType = PlatformType.iOS
+                        )
+                    )
+                )
+            }
+        )
+        NSRunLoop.mainRunLoop.addTimer(timer!!, NSRunLoopCommonModes)
     }
 }
