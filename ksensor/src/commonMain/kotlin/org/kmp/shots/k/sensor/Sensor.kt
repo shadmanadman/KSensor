@@ -1,6 +1,7 @@
 package org.kmp.shots.k.sensor
 
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
@@ -51,6 +52,7 @@ internal class FakeSensorManager : SensorController {
         locationIntervalMillis: SensorTimeInterval
     ): Flow<SensorUpdate> = callbackFlow {
         registeredSensors.addAll(sensorType)
+        awaitClose { }
     }
 
     override fun unregisterSensors(types: List<SensorType>) {

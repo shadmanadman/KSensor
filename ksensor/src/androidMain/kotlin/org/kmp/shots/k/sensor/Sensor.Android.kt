@@ -45,261 +45,15 @@ internal actual class SensorHandler : SensorController {
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
 
             when (sensorType) {
-                SensorType.ACCELEROMETER -> {
-                    val listener = object : SensorEventListener {
-
-                        override fun onSensorChanged(event: SensorEvent) {
-                            trySend(
-                                Data(
-                                    sensorType,
-                                    Accelerometer(
-                                        event.values[0],
-                                        event.values[1],
-                                        event.values[2],
-                                        PlatformType.Android
-                                    )
-                                )
-                            ).isSuccess
-                        }
-
-                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                    }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
-                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
-                        activeSensorListeners[sensorType] = listener
-                    } ?: println("ACCELEROMETER not available")
-                }
-
-                SensorType.GYROSCOPE -> {
-                    val listener = object : SensorEventListener {
-                        override fun onSensorChanged(event: SensorEvent) {
-                            trySend(
-                                Data(
-                                    type = sensorType, data = Gyroscope(
-                                        event.values[0],
-                                        event.values[1],
-                                        event.values[2],
-                                        PlatformType.Android
-                                    )
-                                )
-                            ).isSuccess
-                        }
-
-                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                    }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE).also {
-                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
-                        activeSensorListeners[sensorType] = listener
-                    } ?: println("GYROSCOPE not available")
-                }
-
-                SensorType.MAGNETOMETER -> {
-                    val listener = object : SensorEventListener {
-                        override fun onSensorChanged(event: SensorEvent) {
-                            trySend(
-                                Data(
-                                    sensorType,
-                                    Magnetometer(
-                                        event.values[0],
-                                        event.values[1],
-                                        event.values[2],
-                                        PlatformType.Android
-                                    )
-                                )
-                            ).isSuccess
-                        }
-
-                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                    }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD).also {
-                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
-                        activeSensorListeners[sensorType] = listener
-                    } ?: println("MAGNETOMETER not available")
-                }
-
-                SensorType.BAROMETER -> {
-                    val listener = object : SensorEventListener {
-                        override fun onSensorChanged(event: SensorEvent) {
-                            trySend(
-                                Data(
-                                    sensorType, Barometer(
-                                        event.values[0],
-                                        PlatformType.Android
-                                    )
-                                )
-                            ).isSuccess
-                        }
-
-                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                    }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).also {
-                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
-                        activeSensorListeners[sensorType] = listener
-                    } ?: println("BAROMETER not available")
-                }
-
-                SensorType.STEP_COUNTER -> {
-                    val listener = object : SensorEventListener {
-                        override fun onSensorChanged(event: SensorEvent) {
-                            trySend(
-                                Data(
-                                    sensorType,
-                                    StepCounter(
-                                        event.values[0].toInt(),
-                                        PlatformType.Android
-                                    )
-                                )
-                            ).isSuccess
-                        }
-
-                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                    }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER).also {
-                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
-                        activeSensorListeners[sensorType] = listener
-                    } ?: println("Step counter not available")
-                }
-
-                SensorType.LOCATION -> {
-                    val listener = object : LocationListener {
-                        override fun onLocationChanged(location: Location) {
-                            trySend(
-                                Data(
-                                    sensorType,
-                                    SensorData.Location(
-                                        latitude = location.latitude,
-                                        longitude = location.longitude,
-                                        altitude = location.altitude,
-                                        platformType = PlatformType.Android
-                                    )
-                                )
-                            ).isSuccess
-                        }
-
-                        override fun onStatusChanged(
-                            provider: String?,
-                            status: Int,
-                            extras: Bundle?
-                        ) {
-                        }
-
-                        override fun onProviderEnabled(provider: String) {}
-                        override fun onProviderDisabled(provider: String) {}
-                    }
-
-
-                    @SuppressLint("MissingPermission")
-                    requestLocationUpdatesSafely(
-                        locationManager = locationManager,
-                        listener = listener,
-                        timeInterval = locationIntervalMillis,
-                        onSuccess = {
-                            activeSensorListeners[sensorType] = listener
-                        },
-                        onError = { exception ->
-                            trySend(Error(exception)).isFailure
-                        }
-                    )
-                }
-
-                SensorType.DEVICE_ORIENTATION -> {
-                    val listener = object : OrientationEventListener(context) {
-                        override fun onOrientationChanged(orientation: Int) {
-                            val newOrientation = when (orientation) {
-                                in 45..134 -> Data(
-                                    type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(
-                                        orientation = DeviceOrientation.LANDSCAPE,
-                                        platformType = PlatformType.Android
-                                    )
-                                )
-
-                                in 135..224 -> Data(
-                                    type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(
-                                        orientation = DeviceOrientation.PORTRAIT,
-                                        platformType = PlatformType.Android
-                                    )
-                                )
-
-                                in 225..314 -> Data(
-                                    type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(
-                                        orientation = DeviceOrientation.LANDSCAPE,
-                                        platformType = PlatformType.Android
-                                    )
-                                )
-
-                                in 315..360, in 0..44 -> Data(
-                                    type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(
-                                        orientation = DeviceOrientation.PORTRAIT,
-                                        platformType = PlatformType.Android
-                                    )
-                                )
-
-                                else -> Data(
-                                    type = SensorType.DEVICE_ORIENTATION,
-                                    data = Orientation(
-                                        orientation = DeviceOrientation.UNKNOWN,
-                                        platformType = PlatformType.Android
-                                    )
-                                )
-                            }
-                            trySend(newOrientation).isSuccess
-
-                        }
-                    }
-                    listener.enable()
-                    awaitClose { listener.disable() }
-                }
-
-                SensorType.PROXIMITY -> {
-                    val proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-                    val listener = object : SensorEventListener {
-                        override fun onSensorChanged(event: SensorEvent) {
-                            val distanceInCM = event.values[0]
-                            trySend(
-                                Data(
-                                    type = sensorType, data = SensorData.Proximity(
-                                        distanceInCM = distanceInCM,
-                                        isNear = distanceInCM < (proximitySensor?.maximumRange
-                                            ?: distanceInCM),
-                                        platformType = PlatformType.Android
-                                    )
-                                )
-                            ).isSuccess
-                        }
-
-                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                    }
-                    sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY).also {
-                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
-                        activeSensorListeners[sensorType] = listener
-                    } ?: println("Proximity sensor not available")
-                }
-
-                SensorType.LIGHT ->{
-                    val listener = object : SensorEventListener {
-                        override fun onSensorChanged(event: SensorEvent) {
-                            trySend(
-                                Data(
-                                    type = sensorType, data = SensorData.LightIlluminance(
-                                        illuminance = event.values[0],
-                                        platformType = PlatformType.Android
-                                    )
-                                )
-                            ).isSuccess
-                        }
-
-                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                    }
-
-                    sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).also {
-                        sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
-                        activeSensorListeners[sensorType] = listener
-                    } ?: println("Light sensor not available")
-                }
+                SensorType.ACCELEROMETER -> registerAccelerometer { trySend(it).isSuccess }
+                SensorType.GYROSCOPE -> registerGyroscope { trySend(it).isSuccess }
+                SensorType.MAGNETOMETER -> registerMagnetometer { trySend(it).isSuccess }
+                SensorType.BAROMETER -> registerBarometer { trySend(it).isSuccess }
+                SensorType.STEP_COUNTER -> registerStepCounter { trySend(it).isSuccess }
+                SensorType.LOCATION -> registerLocation(locationIntervalMillis) { trySend(it).isSuccess }
+                SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
+                SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
+                SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
             }
         }
         awaitClose {
@@ -322,6 +76,259 @@ internal actual class SensorHandler : SensorController {
         onPermissionStatus: (PermissionStatus) -> Unit
     ) {
         PermissionsManager().askPermission(permission, onPermissionStatus)
+    }
+
+    private fun registerAccelerometer(onData: (SensorUpdate) -> Boolean) {
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                onData(
+                    Data(
+                        SensorType.ACCELEROMETER,
+                        Accelerometer(
+                            event.values[0],
+                            event.values[1],
+                            event.values[2],
+                            PlatformType.Android
+                        )
+                    )
+                )
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            activeSensorListeners[SensorType.ACCELEROMETER] = listener
+        } ?: println("ACCELEROMETER not available")
+    }
+
+    private fun registerGyroscope(onData: (SensorUpdate) -> Boolean) {
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                onData(
+                    Data(
+                        type = SensorType.GYROSCOPE, data = Gyroscope(
+                            event.values[0],
+                            event.values[1],
+                            event.values[2],
+                            PlatformType.Android
+                        )
+                    )
+                )
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE).also {
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            activeSensorListeners[SensorType.GYROSCOPE] = listener
+        } ?: println("GYROSCOPE not available")
+    }
+
+    private fun registerMagnetometer(onData: (SensorUpdate) -> Boolean) {
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                onData(
+                    Data(
+                        SensorType.MAGNETOMETER,
+                        Magnetometer(
+                            event.values[0],
+                            event.values[1],
+                            event.values[2],
+                            PlatformType.Android
+                        )
+                    )
+                )
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD).also {
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            activeSensorListeners[SensorType.MAGNETOMETER] = listener
+        } ?: println("MAGNETOMETER not available")
+    }
+
+    private fun registerBarometer(onData: (SensorUpdate) -> Boolean) {
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                onData(
+                    Data(
+                        SensorType.BAROMETER, Barometer(
+                            event.values[0],
+                            PlatformType.Android
+                        )
+                    )
+                )
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).also {
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            activeSensorListeners[SensorType.BAROMETER] = listener
+        } ?: println("BAROMETER not available")
+    }
+
+    private fun registerStepCounter(onData: (SensorUpdate) -> Boolean) {
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                onData(
+                    Data(
+                        SensorType.STEP_COUNTER,
+                        StepCounter(
+                            event.values[0].toInt(),
+                            PlatformType.Android
+                        )
+                    )
+                )
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER).also {
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            activeSensorListeners[SensorType.STEP_COUNTER] = listener
+        } ?: println("Step counter not available")
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun registerLocation(locationIntervalMillis: SensorTimeInterval, onData: (SensorUpdate) -> Boolean) {
+        val listener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+                onData(
+                    Data(
+                        SensorType.LOCATION,
+                        SensorData.Location(
+                            latitude = location.latitude,
+                            longitude = location.longitude,
+                            altitude = location.altitude,
+                            platformType = PlatformType.Android
+                        )
+                    )
+                )
+            }
+
+            override fun onStatusChanged(
+                provider: String?,
+                status: Int,
+                extras: Bundle?
+            ) {
+            }
+
+            override fun onProviderEnabled(provider: String) {}
+            override fun onProviderDisabled(provider: String) {}
+        }
+
+        requestLocationUpdatesSafely(
+            locationManager = locationManager,
+            listener = listener,
+            timeInterval = locationIntervalMillis,
+            onSuccess = {
+                activeSensorListeners[SensorType.LOCATION] = listener
+            },
+            onError = { exception ->
+                onData(Error(exception))
+            }
+        )
+    }
+
+    private fun registerDeviceOrientation(onData: (SensorUpdate) -> Boolean) {
+        val listener = object : OrientationEventListener(context) {
+            override fun onOrientationChanged(orientation: Int) {
+                val newOrientation = when (orientation) {
+                    in 45..134 -> Data(
+                        type = SensorType.DEVICE_ORIENTATION,
+                        data = Orientation(
+                            orientation = DeviceOrientation.LANDSCAPE,
+                            platformType = PlatformType.Android
+                        )
+                    )
+
+                    in 135..224 -> Data(
+                        type = SensorType.DEVICE_ORIENTATION,
+                        data = Orientation(
+                            orientation = DeviceOrientation.PORTRAIT,
+                            platformType = PlatformType.Android
+                        )
+                    )
+
+                    in 225..314 -> Data(
+                        type = SensorType.DEVICE_ORIENTATION,
+                        data = Orientation(
+                            orientation = DeviceOrientation.LANDSCAPE,
+                            platformType = PlatformType.Android
+                        )
+                    )
+
+                    in 315..360, in 0..44 -> Data(
+                        type = SensorType.DEVICE_ORIENTATION,
+                        data = Orientation(
+                            orientation = DeviceOrientation.PORTRAIT,
+                            platformType = PlatformType.Android
+                        )
+                    )
+
+                    else -> Data(
+                        type = SensorType.DEVICE_ORIENTATION,
+                        data = Orientation(
+                            orientation = DeviceOrientation.UNKNOWN,
+                            platformType = PlatformType.Android
+                        )
+                    )
+                }
+                onData(newOrientation)
+            }
+        }
+        listener.enable()
+        activeSensorListeners[SensorType.DEVICE_ORIENTATION] = listener
+    }
+
+    private fun registerProximity(onData: (SensorUpdate) -> Boolean) {
+        val proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                val distanceInCM = event.values[0]
+                onData(
+                    Data(
+                        type = SensorType.PROXIMITY, data = SensorData.Proximity(
+                            distanceInCM = distanceInCM,
+                            isNear = distanceInCM < (proximitySensor?.maximumRange
+                                ?: distanceInCM),
+                            platformType = PlatformType.Android
+                        )
+                    )
+                )
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY).also {
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            activeSensorListeners[SensorType.PROXIMITY] = listener
+        } ?: println("Proximity sensor not available")
+    }
+
+    private fun registerLight(onData: (SensorUpdate) -> Boolean) {
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                onData(
+                    Data(
+                        type = SensorType.LIGHT, data = SensorData.LightIlluminance(
+                            illuminance = event.values[0],
+                            platformType = PlatformType.Android
+                        )
+                    )
+                )
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+
+        sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).also {
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            activeSensorListeners[SensorType.LIGHT] = listener
+        } ?: println("Light sensor not available")
     }
 }
 
