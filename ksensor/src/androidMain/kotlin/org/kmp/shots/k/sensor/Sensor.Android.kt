@@ -3,6 +3,8 @@ package org.kmp.shots.k.sensor
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -14,6 +16,10 @@ import android.os.Bundle
 import android.view.OrientationEventListener
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -35,6 +41,7 @@ internal actual class SensorHandler : SensorController {
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
     private val activeSensorListeners = mutableMapOf<SensorType, Any>()
+    private val lifecycleOwner = ProcessLifecycleOwner.get()
 
     actual override fun registerSensors(
         sensorType: List<SensorType>,
@@ -54,6 +61,8 @@ internal actual class SensorHandler : SensorController {
                 SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
                 SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
                 SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
+                SensorType.SCREEN_STATE -> registerScreenState { trySend(it).isSuccess }
+                SensorType.APP_STATE -> registerAppState { trySend(it).isSuccess }
             }
         }
         awaitClose {
@@ -66,6 +75,9 @@ internal actual class SensorHandler : SensorController {
             when (val listener = activeSensorListeners.remove(sensorType)) {
                 is SensorEventListener -> sensorManager.unregisterListener(listener)
                 is LocationListener -> locationManager.removeUpdates(listener)
+                is OrientationEventListener -> listener.disable()
+                is ScreenStateReceiver -> context.unregisterReceiver(listener)
+                is LifecycleEventObserver -> lifecycleOwner.lifecycle.removeObserver(listener)
             }
         }
     }
@@ -76,6 +88,48 @@ internal actual class SensorHandler : SensorController {
         onPermissionStatus: (PermissionStatus) -> Unit
     ) {
         PermissionsManager().askPermission(permission, onPermissionStatus)
+    }
+
+
+    fun registerAppState(onData: (SensorUpdate) -> Boolean) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> onData(Data(type = SensorType.APP_STATE, SensorData.AppState(
+                    AppStatus.BACKGROUND, PlatformType.Android)))
+                Lifecycle.Event.ON_START -> onData(Data(type = SensorType.APP_STATE, SensorData.AppState(
+                    AppStatus.FOREGROUND, PlatformType.Android)))
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        activeSensorListeners[SensorType.APP_STATE] = observer
+    }
+
+    private fun registerScreenState(onData: (SensorUpdate) -> Boolean) {
+        val screenStateReceiver = ScreenStateReceiver(
+            onScreenOn = {
+                onData(
+                    Data(
+                        SensorType.SCREEN_STATE,
+                        SensorData.ScreenState(ScreenStatus.ON, PlatformType.Android)
+                    )
+                )
+            },
+            onScreenOff = {
+                onData(
+                    Data(
+                        SensorType.SCREEN_STATE,
+                        SensorData.ScreenState(ScreenStatus.OFF, PlatformType.Android)
+                    )
+                )
+            }
+        )
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        context.registerReceiver(screenStateReceiver, filter)
+        activeSensorListeners[SensorType.SCREEN_STATE] = screenStateReceiver
     }
 
     private fun registerAccelerometer(onData: (SensorUpdate) -> Boolean) {
@@ -193,7 +247,10 @@ internal actual class SensorHandler : SensorController {
     }
 
     @SuppressLint("MissingPermission")
-    private fun registerLocation(locationIntervalMillis: SensorTimeInterval, onData: (SensorUpdate) -> Boolean) {
+    private fun registerLocation(
+        locationIntervalMillis: SensorTimeInterval,
+        onData: (SensorUpdate) -> Boolean
+    ) {
         val listener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
                 onData(

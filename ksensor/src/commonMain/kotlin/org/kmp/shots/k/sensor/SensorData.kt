@@ -9,6 +9,15 @@ enum class DeviceOrientation {
     PORTRAIT, LANDSCAPE, UNKNOWN
 }
 
+enum class ScreenStatus{
+    ON, OFF
+}
+
+enum class AppStatus {
+    FOREGROUND, BACKGROUND
+}
+
+
 enum class SensorType {
     ACCELEROMETER,
     GYROSCOPE,
@@ -19,6 +28,8 @@ enum class SensorType {
     DEVICE_ORIENTATION,
     PROXIMITY,
     LIGHT,
+    SCREEN_STATE,
+    APP_STATE
 }
 
 sealed class SensorData() {
@@ -57,6 +68,16 @@ sealed class SensorData() {
     data class Proximity(
         val distanceInCM: Float,
         val isNear: Boolean,
+        val platformType: PlatformType
+    ): SensorData()
+
+    data class ScreenState(
+        val screenStatus: ScreenStatus,
+        val platformType: PlatformType
+    ): SensorData()
+
+    data class AppState(
+        val appStatus: AppStatus,
         val platformType: PlatformType
     ): SensorData()
 

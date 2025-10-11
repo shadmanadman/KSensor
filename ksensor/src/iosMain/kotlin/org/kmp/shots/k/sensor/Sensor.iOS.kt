@@ -10,6 +10,9 @@ import org.kmp.shots.k.sensor.SensorData.*
 import org.kmp.shots.k.sensor.SensorUpdate.*
 import platform.CoreMotion.*
 import platform.CoreLocation.*
+import platform.UIKit.UIApplicationWillEnterForegroundNotification
+import platform.UIKit.UIApplicationDidEnterBackgroundNotification
+import platform.UIKit.UIApplication
 import platform.Foundation.*
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceOrientation
@@ -32,6 +35,9 @@ internal actual class SensorHandler : SensorController {
 
     private var timer: NSTimer? = null
 
+    private var foregroundObserver: NSObject? = null
+    private var backgroundObserver: NSObject? = null
+
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
         sensorType: List<SensorType>,
@@ -48,6 +54,8 @@ internal actual class SensorHandler : SensorController {
                 SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
                 SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
                 SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
+                SensorType.SCREEN_STATE -> registerScreenState { trySend(it).isSuccess }
+                SensorType.APP_STATE -> registerAppState { trySend(it).isSuccess }
             }
         }
 
@@ -83,6 +91,24 @@ internal actual class SensorHandler : SensorController {
                     timer?.invalidate()
                     timer = null
                 }
+
+                SensorType.SCREEN_STATE  -> {
+                    foregroundObserver?.let {
+                        NSNotificationCenter.defaultCenter.removeObserver(it)
+                    }
+                    backgroundObserver?.let {
+                        NSNotificationCenter.defaultCenter.removeObserver(it)
+                    }
+                }
+
+                SensorType.APP_STATE ->{
+                    foregroundObserver?.let {
+                        NSNotificationCenter.defaultCenter.removeObserver(it)
+                    }
+                    backgroundObserver?.let {
+                        NSNotificationCenter.defaultCenter.removeObserver(it)
+                    }
+                }
             }
         }
     }
@@ -93,6 +119,89 @@ internal actual class SensorHandler : SensorController {
         onPermissionStatus: (PermissionStatus) -> Unit
     ) {
         PermissionsManager().askPermission(permission, onPermissionStatus)
+    }
+
+    private fun registerAppState(onData: (SensorUpdate) -> Boolean) {
+        val currentState = when (UIApplication.sharedApplication.applicationState) {
+            platform.UIKit.UIApplicationState.UIApplicationStateActive -> AppStatus.FOREGROUND
+            else -> AppStatus.BACKGROUND
+        }
+
+        onData(
+            Data(
+                type = SensorType.APP_STATE,
+                data = AppState(appStatus = currentState, platformType = PlatformType.iOS)
+            )
+        )
+
+        foregroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = UIApplicationWillEnterForegroundNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue()
+        ) {
+            onData(
+                Data(
+                    type = SensorType.APP_STATE,
+                    data = AppState(appStatus = AppStatus.FOREGROUND, platformType = PlatformType.iOS)
+                )
+            )
+        } as NSObject?
+
+        backgroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = UIApplicationDidEnterBackgroundNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue()
+        ) {
+            onData(
+                Data(
+                    type = SensorType.APP_STATE,
+                    data = AppState(appStatus = AppStatus.BACKGROUND, platformType = PlatformType.iOS)
+                )
+            )
+        } as NSObject?
+    }
+
+    /**
+     * On iOS, there’s no direct equivalent for screen on/off events. Using private api will cause issue with app store
+     * privacy.
+     */
+    private fun registerScreenState(onData: (SensorUpdate) -> Boolean) {
+        val currentState = when (UIApplication.sharedApplication.applicationState) {
+            platform.UIKit.UIApplicationState.UIApplicationStateActive -> ScreenStatus.ON
+            else -> ScreenStatus.OFF
+        }
+        onData(
+            Data(
+                type = SensorType.SCREEN_STATE,
+                data = ScreenState(screenStatus = currentState, platformType = PlatformType.iOS)
+            )
+        )
+
+        foregroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = UIApplicationWillEnterForegroundNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue()
+        ) {
+            onData(
+                Data(
+                    type = SensorType.SCREEN_STATE,
+                    data = ScreenState(screenStatus = ScreenStatus.ON, platformType = PlatformType.iOS)
+                )
+            )
+        } as NSObject?
+
+        backgroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = UIApplicationDidEnterBackgroundNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue()
+        ) {
+            onData(
+                Data(
+                    type = SensorType.SCREEN_STATE,
+                    data = ScreenState(screenStatus = ScreenStatus.OFF, platformType = PlatformType.iOS)
+                )
+            )
+        } as NSObject?
     }
 
     @OptIn(ExperimentalForeignApi::class)
