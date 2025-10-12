@@ -51,15 +51,23 @@ class SensorManagerIosTest {
         assertSensorCallback(SensorType.LIGHT)
     }
 
+    @Test
+    fun testAppState(){
+        assertSensorCallback(SensorType.APP_STATE)
+    }
+
+    @Test
+    fun testScreenState(){
+        assertSensorCallback(SensorType.SCREEN_STATE)
+    }
+
     private fun assertSensorCallback(sensorType: SensorType) = runBlocking {
         val sensorHandler = SensorHandler()
         var called = false
 
         sensorHandler.registerSensors(
             sensorType = listOf(sensorType)
-        ).catch {
-
-        }.collect { senorUpdate ->
+        ).collect { senorUpdate ->
             when (senorUpdate) {
                 is SensorUpdate.Data -> {
                     println("SensorUpdate : ${senorUpdate.data}")
