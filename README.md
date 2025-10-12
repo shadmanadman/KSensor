@@ -6,15 +6,17 @@
 
 ### latest supported sensors:
 
-    ACCELEROMETER
-    GYROSCOPE
-    MAGNETOMETER
-    BAROMETER
-    STEP_COUNTER
-    LOCATION
-    DEVICE_ORIENTATION
-    PROXIMITY
-    LIGHT
+    ACCELEROMETER : accelerometer
+    GYROSCOPE : gyroscope
+    MAGNETOMETER : compass
+    BAROMETER : barometer
+    STEP_COUNTER : step counter    
+    LOCATION : live location
+    DEVICE_ORIENTATION : device orientation
+    PROXIMITY : proximity sensor
+    LIGHT : light sensor
+    SCREEN_STATE : whether the screen is on or off
+    APP_STATE : whether the app is in the foreground or background
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -22,7 +24,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:0.80.11")
+  implementation("io.github.shadmanadman:KSensor:1.2.20")
   ```
 
 ### Usage
@@ -37,12 +39,14 @@ SensorType.STEP_COUNTER,
 SensorType.LOCATION,
 SensorType.DEVICE_ORIENTATION,
 SensorType.PROXIMITY,
-SensorType.LIGHT)
+SensorType.LIGHT,
+SensorType.SCREEN_STATE
+SensorType.APP_STATE)
 
 // Register sensors
 KSensor.registerSensors(
     types = sensors,
-    // Optional. defualt is 1000L
+    // Optional
     locationIntervalMillis = 1000L
 ).collect {sensorUpdate ->
     when (sensorUpdate) {

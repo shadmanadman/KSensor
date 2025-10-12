@@ -91,7 +91,7 @@ internal actual class SensorHandler : SensorController {
     }
 
 
-    fun registerAppState(onData: (SensorUpdate) -> Boolean) {
+    private fun registerAppState(onData: (SensorUpdate) -> Boolean) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_STOP -> onData(Data(type = SensorType.APP_STATE, SensorData.AppState(
