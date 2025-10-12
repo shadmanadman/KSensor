@@ -54,7 +54,7 @@ internal actual class SensorHandler : SensorController {
                 SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
                 SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
                 SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
-                SensorType.SCREEN_STATE -> registerScreenState { trySend(it).isSuccess }
+                SensorType.SCREEN_STATE -> Unit
                 SensorType.APP_STATE -> registerAppState { trySend(it).isSuccess }
             }
         }
@@ -92,14 +92,7 @@ internal actual class SensorHandler : SensorController {
                     timer = null
                 }
 
-                SensorType.SCREEN_STATE  -> {
-                    foregroundObserver?.let {
-                        NSNotificationCenter.defaultCenter.removeObserver(it)
-                    }
-                    backgroundObserver?.let {
-                        NSNotificationCenter.defaultCenter.removeObserver(it)
-                    }
-                }
+                SensorType.SCREEN_STATE  -> Unit
 
                 SensorType.APP_STATE ->{
                     foregroundObserver?.let {
@@ -122,15 +115,10 @@ internal actual class SensorHandler : SensorController {
     }
 
     private fun registerAppState(onData: (SensorUpdate) -> Boolean) {
-        val currentState = when (UIApplication.sharedApplication.applicationState) {
-            platform.UIKit.UIApplicationState.UIApplicationStateActive -> AppStatus.FOREGROUND
-            else -> AppStatus.BACKGROUND
-        }
-
         onData(
             Data(
                 type = SensorType.APP_STATE,
-                data = AppState(appStatus = currentState, platformType = PlatformType.iOS)
+                data = AppState(appStatus = AppStatus.FOREGROUND, platformType = PlatformType.iOS)
             )
         )
 
@@ -161,48 +149,6 @@ internal actual class SensorHandler : SensorController {
         } as NSObject?
     }
 
-    /**
-     * On iOS, there’s no direct equivalent for screen on/off events. Using private api will cause issue with app store
-     * privacy.
-     */
-    private fun registerScreenState(onData: (SensorUpdate) -> Boolean) {
-        val currentState = when (UIApplication.sharedApplication.applicationState) {
-            platform.UIKit.UIApplicationState.UIApplicationStateActive -> ScreenStatus.ON
-            else -> ScreenStatus.OFF
-        }
-        onData(
-            Data(
-                type = SensorType.SCREEN_STATE,
-                data = ScreenState(screenStatus = currentState, platformType = PlatformType.iOS)
-            )
-        )
-
-        foregroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
-            name = UIApplicationWillEnterForegroundNotification,
-            `object` = null,
-            queue = NSOperationQueue.mainQueue()
-        ) {
-            onData(
-                Data(
-                    type = SensorType.SCREEN_STATE,
-                    data = ScreenState(screenStatus = ScreenStatus.ON, platformType = PlatformType.iOS)
-                )
-            )
-        } as NSObject?
-
-        backgroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
-            name = UIApplicationDidEnterBackgroundNotification,
-            `object` = null,
-            queue = NSOperationQueue.mainQueue()
-        ) {
-            onData(
-                Data(
-                    type = SensorType.SCREEN_STATE,
-                    data = ScreenState(screenStatus = ScreenStatus.OFF, platformType = PlatformType.iOS)
-                )
-            )
-        } as NSObject?
-    }
 
     @OptIn(ExperimentalForeignApi::class)
     private fun registerAccelerometer(onData: (SensorUpdate) -> Boolean) {

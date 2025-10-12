@@ -71,6 +71,10 @@ sealed class SensorData() {
         val platformType: PlatformType
     ): SensorData()
 
+    /**
+     * On iOS, there’s no direct equivalent for screen on/off events. Using private api will cause issue with app store
+     * privacy.
+     */
     data class ScreenState(
         val screenStatus: ScreenStatus,
         val platformType: PlatformType
