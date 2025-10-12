@@ -15,7 +15,7 @@
     DEVICE_ORIENTATION : device orientation
     PROXIMITY : proximity sensor
     LIGHT : light sensor
-    SCREEN_STATE : whether the screen is on or off
+    SCREEN_STATE : whether the screen is on or off / only Android, no direct way for iOS
     APP_STATE : whether the app is in the foreground or background
 
 <!-- GETTING STARTED -->
@@ -24,7 +24,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:1.2.20")
+  implementation("io.github.shadmanadman:KSensor:1.2.22")
   ```
 
 ### Usage
