@@ -44,7 +44,7 @@ internal expect class SensorHandler() : SensorController {
 }
 
 
-internal class FakeSensorManager : SensorController {
+internal class FakeSensorHandler : SensorController {
     val registeredSensors = mutableListOf<SensorType>()
 
     override fun registerSensors(
@@ -52,7 +52,7 @@ internal class FakeSensorManager : SensorController {
         locationIntervalMillis: SensorTimeInterval
     ): Flow<SensorUpdate> = callbackFlow {
         registeredSensors.addAll(types)
-        awaitClose { }
+        awaitClose { unregisterSensors(types)}
     }
 
     override fun unregisterSensors(types: List<SensorType>) {

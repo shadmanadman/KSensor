@@ -1,25 +1,70 @@
-import org.kmp.shots.k.sensor.FakeSensorManager
-import org.kmp.shots.k.sensor.SensorData
+import kotlinx.coroutines.runBlocking
+import org.kmp.shots.k.sensor.FakeSensorHandler
 import org.kmp.shots.k.sensor.SensorType
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SensorHandlerTest {
-    @Test
-    fun testRegisterSensors() {
-        val fake = FakeSensorManager()
-        fake.registerSensors(listOf(SensorType.ACCELEROMETER))
 
-        assertTrue(fake.registeredSensors.contains(SensorType.ACCELEROMETER))
+    @Test
+    fun testAccelerometer() {
+        assertRegisterSensor(SensorType.ACCELEROMETER)
+        assertUnregisterSensor(SensorType.ACCELEROMETER)
     }
 
     @Test
-    fun testUnregisterSensors() {
-        val fake = FakeSensorManager()
-        fake.registerSensors(listOf(SensorType.ACCELEROMETER))
-        fake.unregisterSensors(listOf(SensorType.ACCELEROMETER))
+    fun testGyroscope() {
+        assertRegisterSensor(SensorType.GYROSCOPE)
+        assertUnregisterSensor(SensorType.GYROSCOPE)
+    }
 
-        assertFalse(fake.registeredSensors.contains(SensorType.ACCELEROMETER))
+    @Test
+    fun testMagnetometer() {
+        assertRegisterSensor(SensorType.MAGNETOMETER)
+        assertUnregisterSensor(SensorType.MAGNETOMETER)
+    }
+
+    @Test
+    fun testBarometer() {
+        assertRegisterSensor(SensorType.BAROMETER)
+        assertUnregisterSensor(SensorType.BAROMETER)
+    }
+
+    @Test
+    fun testStepCounter() {
+        assertRegisterSensor(SensorType.STEP_COUNTER)
+        assertUnregisterSensor(SensorType.STEP_COUNTER)
+    }
+
+    @Test
+    fun testOrientation() {
+        assertRegisterSensor(SensorType.DEVICE_ORIENTATION)
+        assertUnregisterSensor(SensorType.DEVICE_ORIENTATION)
+    }
+
+    @Test
+    fun testProximity() {
+        assertRegisterSensor(SensorType.PROXIMITY)
+        assertUnregisterSensor(SensorType.PROXIMITY)
+    }
+
+    @Test
+    fun testLightSensor() {
+        assertRegisterSensor(SensorType.LIGHT)
+        assertUnregisterSensor(SensorType.LIGHT)
+    }
+
+    private fun assertRegisterSensor(sensorType: SensorType) = runBlocking{
+        val fake = FakeSensorHandler()
+        fake.registerSensors(listOf(sensorType)).collect{}
+        assertTrue(fake.registeredSensors.contains(sensorType))
+    }
+
+    private fun assertUnregisterSensor(sensorType: SensorType) = runBlocking{
+        val fake = FakeSensorHandler()
+        fake.registerSensors(listOf(sensorType)).collect{}
+        fake.unregisterSensors(listOf(sensorType))
+        assertFalse(fake.registeredSensors.contains(sensorType))
     }
 }
