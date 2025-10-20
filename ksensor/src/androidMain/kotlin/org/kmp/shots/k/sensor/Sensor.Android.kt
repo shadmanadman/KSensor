@@ -86,15 +86,17 @@ internal actual class SensorHandler : SensorController {
     }
 
     private fun registerAccelerometer(onData: (SensorUpdate) -> Boolean) {
+        val maximumRange =
+            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.maximumRange ?: 0F
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
                     Data(
                         SensorType.ACCELEROMETER,
                         Accelerometer(
-                            event.values[0],
-                            event.values[1],
-                            event.values[2],
+                            event.values[0] / maximumRange,
+                            event.values[1] / maximumRange,
+                            event.values[2] / maximumRange,
                             PlatformType.Android
                         )
                     )
