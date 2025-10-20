@@ -6,21 +6,36 @@ import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import org.kmp.shots.k.sensor.SensorData.*
-import org.kmp.shots.k.sensor.SensorUpdate.*
-import platform.CoreMotion.*
-import platform.CoreLocation.*
-import platform.UIKit.UIApplicationWillEnterForegroundNotification
-import platform.UIKit.UIApplicationDidEnterBackgroundNotification
-import platform.UIKit.UIApplication
-import platform.Foundation.*
+import org.kmp.shots.k.sensor.SensorData.Accelerometer
+import org.kmp.shots.k.sensor.SensorData.Barometer
+import org.kmp.shots.k.sensor.SensorData.Gyroscope
+import org.kmp.shots.k.sensor.SensorData.LightIlluminance
+import org.kmp.shots.k.sensor.SensorData.Location
+import org.kmp.shots.k.sensor.SensorData.Magnetometer
+import org.kmp.shots.k.sensor.SensorData.Orientation
+import org.kmp.shots.k.sensor.SensorData.Proximity
+import org.kmp.shots.k.sensor.SensorData.StepCounter
+import org.kmp.shots.k.sensor.SensorUpdate.Data
+import org.kmp.shots.k.sensor.SensorUpdate.Error
+import platform.CoreLocation.CLLocation
+import platform.CoreLocation.CLLocationManager
+import platform.CoreLocation.CLLocationManagerDelegateProtocol
+import platform.CoreMotion.CMAltimeter
+import platform.CoreMotion.CMMotionManager
+import platform.CoreMotion.CMPedometer
+import platform.Foundation.NSDate
+import platform.Foundation.NSError
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSOperationQueue
+import platform.Foundation.NSRunLoop
+import platform.Foundation.NSRunLoopCommonModes
+import platform.Foundation.NSTimer
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceOrientation
 import platform.UIKit.UIDeviceOrientationDidChangeNotification
 import platform.UIKit.UIDeviceProximityStateDidChangeNotification
 import platform.UIKit.UIScreen
-import platform.darwin.*
-import kotlin.time.Clock.System
+import platform.darwin.NSObject
 
 internal actual class SensorHandler : SensorController {
 
@@ -35,15 +50,12 @@ internal actual class SensorHandler : SensorController {
 
     private var timer: NSTimer? = null
 
-    private var foregroundObserver: NSObject? = null
-    private var backgroundObserver: NSObject? = null
-
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
-        sensorType: List<SensorType>,
+        types: List<SensorType>,
         locationIntervalMillis: Long
     ): Flow<SensorUpdate> = callbackFlow {
-        sensorType.forEach { sensorType ->
+        types.forEach { sensorType ->
             when (sensorType) {
                 SensorType.ACCELEROMETER -> registerAccelerometer { trySend(it).isSuccess }
                 SensorType.GYROSCOPE -> registerGyroscope { trySend(it).isSuccess }
@@ -54,13 +66,13 @@ internal actual class SensorHandler : SensorController {
                 SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
                 SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
                 SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
-                SensorType.SCREEN_STATE -> Unit
-                SensorType.APP_STATE -> registerAppState { trySend(it).isSuccess }
+            }.also {
+                println("Sensor registered for $sensorType on iOS")
             }
         }
 
         awaitClose {
-            unregisterSensors(sensorType)
+            unregisterSensors(types)
         }
     }
 
@@ -91,17 +103,8 @@ internal actual class SensorHandler : SensorController {
                     timer?.invalidate()
                     timer = null
                 }
-
-                SensorType.SCREEN_STATE  -> Unit
-
-                SensorType.APP_STATE ->{
-                    foregroundObserver?.let {
-                        NSNotificationCenter.defaultCenter.removeObserver(it)
-                    }
-                    backgroundObserver?.let {
-                        NSNotificationCenter.defaultCenter.removeObserver(it)
-                    }
-                }
+            }.also {
+                println("Sensor unregistered for $types on iOS")
             }
         }
     }
@@ -113,42 +116,6 @@ internal actual class SensorHandler : SensorController {
     ) {
         PermissionsManager().askPermission(permission, onPermissionStatus)
     }
-
-    private fun registerAppState(onData: (SensorUpdate) -> Boolean) {
-        onData(
-            Data(
-                type = SensorType.APP_STATE,
-                data = AppState(appStatus = AppStatus.FOREGROUND, platformType = PlatformType.iOS)
-            )
-        )
-
-        foregroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
-            name = UIApplicationWillEnterForegroundNotification,
-            `object` = null,
-            queue = NSOperationQueue.mainQueue()
-        ) {
-            onData(
-                Data(
-                    type = SensorType.APP_STATE,
-                    data = AppState(appStatus = AppStatus.FOREGROUND, platformType = PlatformType.iOS)
-                )
-            )
-        } as NSObject?
-
-        backgroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
-            name = UIApplicationDidEnterBackgroundNotification,
-            `object` = null,
-            queue = NSOperationQueue.mainQueue()
-        ) {
-            onData(
-                Data(
-                    type = SensorType.APP_STATE,
-                    data = AppState(appStatus = AppStatus.BACKGROUND, platformType = PlatformType.iOS)
-                )
-            )
-        } as NSObject?
-    }
-
 
     @OptIn(ExperimentalForeignApi::class)
     private fun registerAccelerometer(onData: (SensorUpdate) -> Boolean) {

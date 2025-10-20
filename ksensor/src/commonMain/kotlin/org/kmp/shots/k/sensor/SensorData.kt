@@ -27,9 +27,7 @@ enum class SensorType {
     LOCATION,
     DEVICE_ORIENTATION,
     PROXIMITY,
-    LIGHT,
-    SCREEN_STATE,
-    APP_STATE
+    LIGHT
 }
 
 sealed class SensorData() {
@@ -68,20 +66,6 @@ sealed class SensorData() {
     data class Proximity(
         val distanceInCM: Float,
         val isNear: Boolean,
-        val platformType: PlatformType
-    ): SensorData()
-
-    /**
-     * On iOS, there’s no direct equivalent for screen on/off events. Using private api will cause issue with app store
-     * privacy.
-     */
-    data class ScreenState(
-        val screenStatus: ScreenStatus,
-        val platformType: PlatformType
-    ): SensorData()
-
-    data class AppState(
-        val appStatus: AppStatus,
         val platformType: PlatformType
     ): SensorData()
 

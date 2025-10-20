@@ -15,7 +15,7 @@ sealed class SensorUpdate {
 
 internal interface SensorController {
     fun registerSensors(
-        sensorType: List<SensorType>,
+        types: List<SensorType>,
         locationIntervalMillis: SensorTimeInterval = DEFAULT_INTERVAL_MILLIS
     ): Flow<SensorUpdate>
 
@@ -30,7 +30,7 @@ internal interface SensorController {
 
 internal expect class SensorHandler() : SensorController {
     override fun registerSensors(
-        sensorType: List<SensorType>,
+        types: List<SensorType>,
         locationIntervalMillis: SensorTimeInterval
     ): Flow<SensorUpdate>
 
@@ -48,10 +48,10 @@ internal class FakeSensorManager : SensorController {
     val registeredSensors = mutableListOf<SensorType>()
 
     override fun registerSensors(
-        sensorType: List<SensorType>,
+        types: List<SensorType>,
         locationIntervalMillis: SensorTimeInterval
     ): Flow<SensorUpdate> = callbackFlow {
-        registeredSensors.addAll(sensorType)
+        registeredSensors.addAll(types)
         awaitClose { }
     }
 
