@@ -27,7 +27,8 @@ enum class SensorType {
     LOCATION,
     DEVICE_ORIENTATION,
     PROXIMITY,
-    LIGHT
+    LIGHT,
+    BATTERY
 }
 
 sealed class SensorData() {
@@ -73,4 +74,16 @@ sealed class SensorData() {
         val illuminance: Float,
         val platformType: PlatformType
     ): SensorData()
+
+    // Battery-related
+    enum class ChargingState { UNKNOWN, DISCHARGING, CHARGING, FULL }
+    enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
+
+    data class BatteryStatus(
+        val levelPercent: Int?,
+        val chargingState: ChargingState,
+        val health: BatteryHealth?,
+        val temperatureC: Float?,
+        val platformType: PlatformType
+    ) : SensorData()
 }
