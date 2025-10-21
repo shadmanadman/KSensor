@@ -4,20 +4,6 @@
 
 ![](KSensor.jpg)
 
-### latest supported sensors:
-
-    ACCELEROMETER : accelerometer
-    GYROSCOPE : gyroscope
-    MAGNETOMETER : compass
-    BAROMETER : barometer
-    STEP_COUNTER : step counter    
-    LOCATION : live location
-    DEVICE_ORIENTATION : device orientation
-    PROXIMITY : proximity sensor
-    LIGHT : light sensor
-    SCREEN_STATE : whether the screen is on or off / only Android, no direct way for iOS
-    APP_STATE : whether the app is in the foreground or background
-
 <!-- GETTING STARTED -->
 ## Getting Started
 ### Adding dependencies
@@ -27,9 +13,10 @@ Add it in your `commonMain.dependencies` :
   implementation("io.github.shadmanadman:KSensor:1.2.22")
   ```
 
-### Usage
+### Sensors Observation
+- Create a list of sensors that you need:
+
 ```
-//Create a list of sensors that you need
 val sensors = listof(
 SensorType.ACCELEROMETER,
 SensorType.GYROSCOPE,
@@ -39,35 +26,63 @@ SensorType.STEP_COUNTER,
 SensorType.LOCATION,
 SensorType.DEVICE_ORIENTATION,
 SensorType.PROXIMITY,
-SensorType.LIGHT,
-SensorType.SCREEN_STATE
-SensorType.APP_STATE)
+SensorType.LIGHT)
+```
+- Register sensors for observation:
 
-// Register sensors
+```
 KSensor.registerSensors(
     types = sensors,
-    // Optional
-    locationIntervalMillis = 1000L
-).collect {sensorUpdate ->
+    locationIntervalMillis = 1000L // Optional
+).collect { sensorUpdate ->
     when (sensorUpdate) {
-        is SensorUpdate.Data -> println(sensorUpdate.data)
-        is SensorUpdate.Error -> println(sensorUpdate.exception)
+        is SensorUpdate.Data -> // Get sensor data here
+        is SensorUpdate.Error -> // Get errors here
     }
 }
+```
+- Unregister sensors when no longer needed:
 
-// Unregister sensors when no longer needed
+```
 KSensor.unregisterSensors(sensors)
 ```
+
 Each `SensorData` has a `platformType` so you know the sensor data comes from Android or iOS.
 
+
+### States Observation
+- Just like sensors, create a list of states that you need to observe:
+
+```
+val states = listOf(StateType.APP_VISIBILITY,StateType.SCREEN_STATE)
+```
+- Add observers
+
+```
+KState.addObserver(types = states).collect{ stateUpdate->
+   when(stateUpdate){
+	is StateUpdate.Data-> // Get state data here
+	is StateUpdate.Error-> // Get errors here
+   }
+}
+```
+- Remove observer when no longer needed
+
+```
+KState.removeObserver(states)
+```
+
+Each `StateData` has a `platformType` so you know the state data comes from Android or iOS.
+
+
 #### Permissions
-If you are using Location you need `FINE_LOCATION` and `COARSE_LOCATION` permissions on Android. You can handel this permissions yourself or let the library handle them for you:
+- If you are using Location you need `FINE_LOCATION` and `COARSE_LOCATION` permissions on Android. You can handel this permissions yourself or let the library handle them for you:
 ```
     //Put this in AndroidManifest
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 ```
-Inside a composable call:
+- Inside a composable call:
 ```
 KSensor.HandelPermissions() { status ->
     when (status) {
@@ -76,7 +91,7 @@ KSensor.HandelPermissions() { status ->
     }
 }
 ```
-The iOS location permission is handled by the library itself.
+Note that the iOS location permission is handled by the library itself.
 
 
 
