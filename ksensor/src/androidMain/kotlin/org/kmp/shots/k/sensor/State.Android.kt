@@ -3,9 +3,6 @@ package org.kmp.shots.k.sensor
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.hardware.SensorEventListener
-import android.location.LocationListener
-import android.view.OrientationEventListener
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -13,8 +10,6 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import org.kmp.shots.k.sensor.SensorUpdate.Data
-import kotlin.collections.set
 
 internal actual class StateHandler : StateController{
     private val context: Context by lazy { AppContext.get() }
@@ -50,7 +45,7 @@ internal actual class StateHandler : StateController{
     }
 
     @Composable
-    actual override fun HandelPermissions(onPermissionStatus: (PermissionStatus) -> Unit) = Unit
+    actual override fun HandelPermissions(permission: PermissionType, onPermissionStatus: (PermissionStatus) -> Unit) = Unit
 
 
     private fun observerAppVisibility(onData: (StateUpdate) -> Boolean) {
