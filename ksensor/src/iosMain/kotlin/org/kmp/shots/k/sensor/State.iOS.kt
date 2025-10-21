@@ -42,7 +42,7 @@ internal actual class StateHandler : StateController {
     }
 
     @Composable
-    actual override fun HandelPermissions(onPermissionStatus: (PermissionStatus) -> Unit) = Unit
+    actual override fun HandelPermissions(permission: PermissionType,onPermissionStatus: (PermissionStatus) -> Unit) = Unit
 
     private fun observerAppVisibility(onData: (StateUpdate) -> Boolean) {
         onData(
