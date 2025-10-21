@@ -48,7 +48,53 @@ internal actual class SensorHandler : SensorController {
 
     private var proximityObserver: NSObject? = null
 
+    private var batteryLevelObserver: platform.darwin.NSObjectProtocol? = null
+    private var batteryStateObserver: platform.darwin.NSObjectProtocol? = null
+
     private var timer: NSTimer? = null
+
+    private fun registerBattery(onData: (SensorUpdate) -> Boolean) {
+        val device = UIDevice.currentDevice
+        device.batteryMonitoringEnabled = true
+
+        fun emitBattery() {
+            val levelRaw = device.batteryLevel // -1.0 if unknown
+            val percent: Int? = if (levelRaw < 0f) null else (levelRaw * 100f).toInt()
+            val state = when (device.batteryState) {
+                platform.UIKit.UIDeviceBatteryState.UIDeviceBatteryStateCharging -> SensorData.ChargingState.CHARGING
+                platform.UIKit.UIDeviceBatteryState.UIDeviceBatteryStateFull -> SensorData.ChargingState.FULL
+                platform.UIKit.UIDeviceBatteryState.UIDeviceBatteryStateUnplugged -> SensorData.ChargingState.DISCHARGING
+                else -> SensorData.ChargingState.UNKNOWN
+            }
+            onData(
+                Data(
+                    SensorType.BATTERY,
+                    SensorData.BatteryStatus(
+                        levelPercent = percent,
+                        chargingState = state,
+                        health = null, // iOS does not expose health
+                        temperatureC = null, // iOS does not expose battery temperature via public API
+                        platformType = PlatformType.iOS
+                    )
+                )
+            )
+        }
+
+        val center = NSNotificationCenter.defaultCenter
+        batteryLevelObserver = center.addObserverForName(
+            name = platform.UIKit.UIDeviceBatteryLevelDidChangeNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue
+        ) { _ -> emitBattery() }
+
+        batteryStateObserver = center.addObserverForName(
+            name = platform.UIKit.UIDeviceBatteryStateDidChangeNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue
+        ) { _ -> emitBattery() }
+
+        emitBattery()
+    }
 
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
@@ -66,6 +112,7 @@ internal actual class SensorHandler : SensorController {
                 SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
                 SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
                 SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
+                SensorType.BATTERY -> registerBattery { trySend(it).isSuccess }
             }.also {
                 println("Sensor registered for $sensorType on iOS")
             }
@@ -102,6 +149,13 @@ internal actual class SensorHandler : SensorController {
                 SensorType.LIGHT -> {
                     timer?.invalidate()
                     timer = null
+                }
+                SensorType.BATTERY -> {
+                    batteryLevelObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
+                    batteryStateObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
+                    batteryLevelObserver = null
+                    batteryStateObserver = null
+                    UIDevice.currentDevice.batteryMonitoringEnabled = false
                 }
             }.also {
                 println("Sensor unregistered for $types on iOS")

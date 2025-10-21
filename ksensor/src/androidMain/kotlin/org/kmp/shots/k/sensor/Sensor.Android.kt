@@ -3,6 +3,10 @@ package org.kmp.shots.k.sensor
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -54,6 +58,7 @@ internal actual class SensorHandler : SensorController {
                 SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
                 SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
                 SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
+                SensorType.BATTERY -> registerBattery { trySend(it).isSuccess }
             }.also {
                 println("Sensor registered for $sensorType on Android")
             }
@@ -70,6 +75,7 @@ internal actual class SensorHandler : SensorController {
                 is LocationListener -> locationManager.removeUpdates(listener)
                 is OrientationEventListener -> listener.disable()
                 is ScreenStateReceiver -> context.unregisterReceiver(listener)
+                is BroadcastReceiver -> context.unregisterReceiver(listener)
                 else -> println("Sensor type not found for $sensorType on Android")
             }.also {
                 println("Unregistered sensor for $sensorType on Android")
@@ -342,6 +348,60 @@ internal actual class SensorHandler : SensorController {
             activeSensorListeners[SensorType.LIGHT] = listener
         } ?: println("Light sensor not available")
     }
+
+    private fun registerBattery(onData: (SensorUpdate) -> Boolean) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent == null) return
+                try {
+                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                    val percent: Int? = if (level >= 0 && scale > 0) ((level * 100f) / scale).toInt() else null
+
+                    val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+                    val chargingState = when (status) {
+                        BatteryManager.BATTERY_STATUS_CHARGING -> SensorData.ChargingState.CHARGING
+                        BatteryManager.BATTERY_STATUS_FULL -> SensorData.ChargingState.FULL
+                        BatteryManager.BATTERY_STATUS_DISCHARGING, BatteryManager.BATTERY_STATUS_NOT_CHARGING -> SensorData.ChargingState.DISCHARGING
+                        else -> SensorData.ChargingState.UNKNOWN
+                    }
+
+                    val healthInt = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, 0)
+                    val health = when (healthInt) {
+                        BatteryManager.BATTERY_HEALTH_GOOD -> SensorData.BatteryHealth.GOOD
+                        BatteryManager.BATTERY_HEALTH_OVERHEAT -> SensorData.BatteryHealth.OVERHEAT
+                        BatteryManager.BATTERY_HEALTH_DEAD -> SensorData.BatteryHealth.DEAD
+                        BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> SensorData.BatteryHealth.OVER_VOLTAGE
+                        BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> SensorData.BatteryHealth.UNSPECIFIED_FAILURE
+                        BatteryManager.BATTERY_HEALTH_COLD -> SensorData.BatteryHealth.COLD
+                        else -> SensorData.BatteryHealth.UNKNOWN
+                    }
+
+                    val tempDeciC = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
+                    val temperatureC = if (tempDeciC != Int.MIN_VALUE) tempDeciC / 10f else null
+
+                    onData(
+                        Data(
+                            SensorType.BATTERY,
+                            SensorData.BatteryStatus(
+                                levelPercent = percent,
+                                chargingState = chargingState,
+                                health = health,
+                                temperatureC = temperatureC,
+                                platformType = PlatformType.Android
+                            )
+                        )
+                    )
+                } catch (e: Exception) {
+                    onData(Error(e))
+                }
+            }
+        }
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val sticky = context.registerReceiver(receiver, filter)
+        sticky?.let { receiver.onReceive(context, it) }
+        activeSensorListeners[SensorType.BATTERY] = receiver
+    }
 }
 
 @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
@@ -364,3 +424,4 @@ inline fun requestLocationUpdatesSafely(
         onError(e)
     }
 }
+
