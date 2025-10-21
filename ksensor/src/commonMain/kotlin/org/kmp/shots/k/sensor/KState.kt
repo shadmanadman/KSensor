@@ -15,6 +15,7 @@ object KState : StateController {
 
     @Composable
     override fun HandelPermissions(
+        permission: PermissionType,
         onPermissionStatus: (PermissionStatus) -> Unit
-    ) = stateHandler.HandelPermissions( onPermissionStatus)
+    ) = stateHandler.HandelPermissions( permission,onPermissionStatus)
 }
