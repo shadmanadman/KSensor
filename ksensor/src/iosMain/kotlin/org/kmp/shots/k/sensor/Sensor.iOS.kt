@@ -129,9 +129,9 @@ internal actual class SensorHandler : SensorController {
                                 Accelerometer(
                                     this.x.toFloat(),
                                     this.y.toFloat(),
-                                    this.z.toFloat(),
-                                    PlatformType.iOS
-                                )
+                                    this.z.toFloat()
+                                ),
+                                PlatformType.iOS
                             )
                         )
                     }
@@ -153,9 +153,9 @@ internal actual class SensorHandler : SensorController {
                                 Gyroscope(
                                     this.x.toFloat(),
                                     this.y.toFloat(),
-                                    this.z.toFloat(),
-                                    PlatformType.iOS
-                                )
+                                    this.z.toFloat()
+                                ),
+                                PlatformType.iOS
                             )
                         )
                     }
@@ -177,9 +177,9 @@ internal actual class SensorHandler : SensorController {
                                 Magnetometer(
                                     this.x.toFloat(),
                                     this.y.toFloat(),
-                                    this.z.toFloat(),
-                                    PlatformType.iOS
-                                )
+                                    this.z.toFloat()
+                                ),
+                                PlatformType.iOS
                             )
                         )
                     }
@@ -196,7 +196,8 @@ internal actual class SensorHandler : SensorController {
                 onData(
                     Data(
                         SensorType.BAROMETER,
-                        Barometer(pressure, PlatformType.iOS)
+                        Barometer(pressure),
+                        PlatformType.iOS
                     )
                 )
             }
@@ -210,7 +211,8 @@ internal actual class SensorHandler : SensorController {
                 onData(
                     Data(
                         SensorType.STEP_COUNTER,
-                        StepCounter(steps, PlatformType.iOS)
+                        StepCounter(steps),
+                        PlatformType.iOS
                     )
                 )
             }
@@ -241,9 +243,9 @@ internal actual class SensorHandler : SensorController {
                                 Location(
                                     latitude = latitude,
                                     longitude = longitude,
-                                    altitude = it.altitude,
-                                    platformType = PlatformType.iOS
-                                )
+                                    altitude = it.altitude
+                                ),
+                                PlatformType.iOS
                             )
                         )
                     }
@@ -271,9 +273,8 @@ internal actual class SensorHandler : SensorController {
             Data(
                 type = SensorType.DEVICE_ORIENTATION,
                 Orientation(
-                    orientation = initialOrientation,
-                    platformType = PlatformType.iOS
-                )
+                    orientation = initialOrientation),
+                PlatformType.iOS
             )
         )
 
@@ -296,9 +297,9 @@ internal actual class SensorHandler : SensorController {
                 Data(
                     type = SensorType.DEVICE_ORIENTATION,
                     data = Orientation(
-                        orientation = mapped,
-                        platformType = PlatformType.iOS
-                    )
+                        orientation = mapped
+                    ),
+                    PlatformType.iOS
                 )
             )
         } as NSObject?
@@ -319,9 +320,9 @@ internal actual class SensorHandler : SensorController {
                         // In ios the proximity sensor is restricted
                         data = Proximity(
                             distanceInCM = if (isNear) 0f else -1f,
-                            isNear = isNear,
-                            platformType = PlatformType.iOS
-                        )
+                            isNear = isNear
+                        ),
+                        PlatformType.iOS
                     )
                 )
             }
@@ -340,9 +341,9 @@ internal actual class SensorHandler : SensorController {
                     Data(
                         type = SensorType.LIGHT,
                         data = LightIlluminance(
-                            illuminance = lux,
-                            platformType = PlatformType.iOS
-                        )
+                            illuminance = lux
+                        ),
+                        PlatformType.iOS
                     )
                 )
             }

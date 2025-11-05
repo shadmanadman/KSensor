@@ -19,12 +19,15 @@ enum class ScreenState{
 sealed class StateData{
     data class AppVisibilityStatus(
         val appVisibility: AppVisibility,
-        val platformType: PlatformType
     ): StateData()
 
     data class ScreenStatus(
         val screenState: ScreenState,
-        val platformType: PlatformType
     ): StateData()
 
+    data class ConnectivityState(
+        val isWiFiOn: Boolean,
+        val isMobileDataOn: Boolean,
+        val isConnected: Boolean
+    )
 }

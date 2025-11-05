@@ -52,9 +52,9 @@ internal actual class StateHandler : StateController{
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_STOP -> onData(StateUpdate.Data(type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                    AppVisibility.INVISIBLE, PlatformType.Android)))
+                    AppVisibility.INVISIBLE),PlatformType.Android))
                 Lifecycle.Event.ON_START -> onData(StateUpdate.Data(type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                    AppVisibility.VISIBLE, PlatformType.Android)))
+                    AppVisibility.VISIBLE),PlatformType.Android))
                 else -> Unit
             }
         }
@@ -69,7 +69,8 @@ internal actual class StateHandler : StateController{
                 onData(
                     StateUpdate.Data(
                         StateType.SCREEN_STATE,
-                        StateData.ScreenStatus(ScreenState.ON, PlatformType.Android)
+                        StateData.ScreenStatus(ScreenState.ON),
+                        PlatformType.Android
                     )
                 )
             },
@@ -77,7 +78,8 @@ internal actual class StateHandler : StateController{
                 onData(
                     StateUpdate.Data(
                         StateType.SCREEN_STATE,
-                        StateData.ScreenStatus(ScreenState.OFF, PlatformType.Android)
+                        StateData.ScreenStatus(ScreenState.OFF),
+                        PlatformType.Android
                     )
                 )
             }

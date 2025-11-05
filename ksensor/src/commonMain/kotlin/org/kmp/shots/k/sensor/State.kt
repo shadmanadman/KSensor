@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 sealed class StateUpdate {
-    data class Data(val type: StateType, val data: StateData) : StateUpdate()
+    data class Data(val type: StateType, val data: StateData,val platformType: PlatformType) : StateUpdate()
     data class Error(val exception: Exception) : StateUpdate()
 }
 

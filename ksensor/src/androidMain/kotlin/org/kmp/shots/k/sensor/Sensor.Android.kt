@@ -96,9 +96,9 @@ internal actual class SensorHandler : SensorController {
                         Accelerometer(
                             event.values[0] / maximumRange,
                             event.values[1] / maximumRange,
-                            event.values[2] / maximumRange,
-                            PlatformType.Android
-                        )
+                            event.values[2] / maximumRange
+                        ),
+                        PlatformType.Android
                     )
                 )
             }
@@ -119,9 +119,9 @@ internal actual class SensorHandler : SensorController {
                         type = SensorType.GYROSCOPE, data = Gyroscope(
                             event.values[0],
                             event.values[1],
-                            event.values[2],
-                            PlatformType.Android
-                        )
+                            event.values[2]
+                        ),
+                        PlatformType.Android
                     )
                 )
             }
@@ -144,8 +144,8 @@ internal actual class SensorHandler : SensorController {
                             event.values[0],
                             event.values[1],
                             event.values[2],
-                            PlatformType.Android
-                        )
+                        ),
+                        PlatformType.Android
                     )
                 )
             }
@@ -165,8 +165,8 @@ internal actual class SensorHandler : SensorController {
                     Data(
                         SensorType.BAROMETER, Barometer(
                             event.values[0],
-                            PlatformType.Android
-                        )
+                        ),
+                        PlatformType.Android
                     )
                 )
             }
@@ -186,9 +186,9 @@ internal actual class SensorHandler : SensorController {
                     Data(
                         SensorType.STEP_COUNTER,
                         StepCounter(
-                            event.values[0].toInt(),
-                            PlatformType.Android
-                        )
+                            event.values[0].toInt()
+                        ),
+                        PlatformType.Android
                     )
                 )
             }
@@ -214,9 +214,8 @@ internal actual class SensorHandler : SensorController {
                         SensorData.Location(
                             latitude = location.latitude,
                             longitude = location.longitude,
-                            altitude = location.altitude,
-                            platformType = PlatformType.Android
-                        )
+                            altitude = location.altitude),
+                        PlatformType.Android
                     )
                 )
             }
@@ -252,41 +251,41 @@ internal actual class SensorHandler : SensorController {
                     in 45..134 -> Data(
                         type = SensorType.DEVICE_ORIENTATION,
                         data = Orientation(
-                            orientation = DeviceOrientation.LANDSCAPE,
-                            platformType = PlatformType.Android
-                        )
+                            orientation = DeviceOrientation.LANDSCAPE
+                        ),
+                        PlatformType.Android
                     )
 
                     in 135..224 -> Data(
                         type = SensorType.DEVICE_ORIENTATION,
                         data = Orientation(
-                            orientation = DeviceOrientation.PORTRAIT,
-                            platformType = PlatformType.Android
-                        )
+                            orientation = DeviceOrientation.PORTRAIT
+                        ),
+                        platformType = PlatformType.Android
                     )
 
                     in 225..314 -> Data(
                         type = SensorType.DEVICE_ORIENTATION,
                         data = Orientation(
-                            orientation = DeviceOrientation.LANDSCAPE,
-                            platformType = PlatformType.Android
-                        )
+                            orientation = DeviceOrientation.LANDSCAPE
+                        ),
+                        platformType = PlatformType.Android
                     )
 
                     in 315..360, in 0..44 -> Data(
                         type = SensorType.DEVICE_ORIENTATION,
                         data = Orientation(
-                            orientation = DeviceOrientation.PORTRAIT,
-                            platformType = PlatformType.Android
-                        )
+                            orientation = DeviceOrientation.PORTRAIT
+                        ),
+                        platformType = PlatformType.Android
                     )
 
                     else -> Data(
                         type = SensorType.DEVICE_ORIENTATION,
                         data = Orientation(
-                            orientation = DeviceOrientation.UNKNOWN,
-                            platformType = PlatformType.Android
-                        )
+                            orientation = DeviceOrientation.UNKNOWN
+                        ),
+                        platformType = PlatformType.Android
                     )
                 }
                 onData(newOrientation)
@@ -306,9 +305,9 @@ internal actual class SensorHandler : SensorController {
                         type = SensorType.PROXIMITY, data = SensorData.Proximity(
                             distanceInCM = distanceInCM,
                             isNear = distanceInCM < (proximitySensor?.maximumRange
-                                ?: distanceInCM),
-                            platformType = PlatformType.Android
-                        )
+                                ?: distanceInCM)
+                        ),
+                        platformType = PlatformType.Android
                     )
                 )
             }
@@ -327,9 +326,9 @@ internal actual class SensorHandler : SensorController {
                 onData(
                     Data(
                         type = SensorType.LIGHT, data = SensorData.LightIlluminance(
-                            illuminance = event.values[0],
-                            platformType = PlatformType.Android
-                        )
+                            illuminance = event.values[0]
+                        ),
+                        platformType = PlatformType.Android
                     )
                 )
             }
