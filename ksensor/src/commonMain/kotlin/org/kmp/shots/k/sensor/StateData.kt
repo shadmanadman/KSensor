@@ -2,32 +2,44 @@ package org.kmp.shots.k.sensor
 
 
 enum class StateType{
-    SCREEN_STATE,
-    APP_VISIBILITY
-}
-
-enum class AppVisibility{
-    VISIBLE,
-    INVISIBLE
-}
-
-enum class ScreenState{
-    ON, OFF
+    SCREEN,
+    APP_VISIBILITY,
+    CONNECTIVITY,
+    ACTIVE_NETWORK
 }
 
 
-sealed class StateData{
+
+
+
+
+
+sealed class StateData {
     data class AppVisibilityStatus(
         val appVisibility: AppVisibility,
-    ): StateData()
+    ) : StateData() {
+        enum class AppVisibility {
+            VISIBLE,
+            INVISIBLE
+        }
+    }
 
     data class ScreenStatus(
         val screenState: ScreenState,
-    ): StateData()
+    ) : StateData() {
+        enum class ScreenState {
+            ON, OFF
+        }
+    }
 
-    data class ConnectivityState(
-        val isWiFiOn: Boolean,
-        val isMobileDataOn: Boolean,
-        val isConnected: Boolean
-    )
+    data class CurrentActiveNetwork(val activeNetwork: ActiveNetwork) : StateData(){
+        enum class ActiveNetwork{
+            WIFI,
+            CELLULAR,
+            NONE
+        }
+    }
+    data class ConnectivityStatus(
+        val isConnected: Boolean,
+    ) : StateData()
 }

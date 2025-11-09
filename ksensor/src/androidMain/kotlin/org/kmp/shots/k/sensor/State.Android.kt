@@ -1,8 +1,13 @@
 package org.kmp.shots.k.sensor
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -11,19 +16,22 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-internal actual class StateHandler : StateController{
+internal actual class StateHandler : StateController {
     private val context: Context by lazy { AppContext.get() }
     private val lifecycleOwner = ProcessLifecycleOwner.get()
-
+    private val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private lateinit var connectivityMonitor: ConnectivityMonitor
     private val activeStateObservers = mutableMapOf<StateType, Any>()
 
     actual override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         types.forEach { stateType ->
-            if(activeStateObservers.contains(stateType))return@forEach
+            if (activeStateObservers.contains(stateType)) return@forEach
 
-            when(stateType){
-                StateType.SCREEN_STATE -> observerScreenState { trySend(it).isSuccess }
+            when (stateType) {
+                StateType.SCREEN -> observerScreenState { trySend(it).isSuccess }
                 StateType.APP_VISIBILITY -> observerAppVisibility { trySend(it).isSuccess }
+                StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on Android")
             }
@@ -37,6 +45,7 @@ internal actual class StateHandler : StateController{
             when (val listener = activeStateObservers.remove(stateType)) {
                 is ScreenStateReceiver -> context.unregisterReceiver(listener)
                 is LifecycleEventObserver -> lifecycleOwner.lifecycle.removeObserver(listener)
+                is ConnectivityManager -> connectivityManager.unregisterNetworkCallback(connectivityMonitor)
                 else -> println("Observer not found for $stateType on Android")
             }.also {
                 println("Observer removed for $stateType on Android")
@@ -45,16 +54,58 @@ internal actual class StateHandler : StateController{
     }
 
     @Composable
-    actual override fun HandelPermissions(permission: PermissionType, onPermissionStatus: (PermissionStatus) -> Unit) = Unit
+    actual override fun HandelPermissions(
+        permission: PermissionType,
+        onPermissionStatus: (PermissionStatus) -> Unit
+    ) = Unit
 
+    @SuppressLint("MissingPermission")
+    private fun observeConnectivity(onData: (StateUpdate) -> Boolean) {
+        val networkRequest = android.net.NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        connectivityMonitor = ConnectivityMonitor(onStatusChanged = {
+            onData(
+                StateUpdate.Data(
+                    type = StateType.CONNECTIVITY,
+                    StateData.ConnectivityStatus(
+                        isConnected = it
+                    ),
+                    PlatformType.Android
+                )
+            )
+        }, onActiveNetworkChanged = {
+            StateUpdate.Data(
+                type = StateType.ACTIVE_NETWORK,
+                StateData.CurrentActiveNetwork(
+                    activeNetwork = it
+                ),
+                PlatformType.Android
+            )
+        })
+        connectivityManager.registerNetworkCallback(networkRequest, connectivityMonitor)
+        activeStateObservers[StateType.CONNECTIVITY] = connectivityManager
+    }
 
     private fun observerAppVisibility(onData: (StateUpdate) -> Boolean) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_STOP -> onData(StateUpdate.Data(type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                    AppVisibility.INVISIBLE),PlatformType.Android))
-                Lifecycle.Event.ON_START -> onData(StateUpdate.Data(type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                    AppVisibility.VISIBLE),PlatformType.Android))
+                Lifecycle.Event.ON_STOP -> onData(
+                    StateUpdate.Data(
+                        type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
+                            StateData.AppVisibilityStatus.AppVisibility.INVISIBLE
+                        ), PlatformType.Android
+                    )
+                )
+
+                Lifecycle.Event.ON_START -> onData(
+                    StateUpdate.Data(
+                        type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
+                            StateData.AppVisibilityStatus.AppVisibility.VISIBLE
+                        ), PlatformType.Android
+                    )
+                )
+
                 else -> Unit
             }
         }
@@ -68,8 +119,8 @@ internal actual class StateHandler : StateController{
             onScreenOn = {
                 onData(
                     StateUpdate.Data(
-                        StateType.SCREEN_STATE,
-                        StateData.ScreenStatus(ScreenState.ON),
+                        StateType.SCREEN,
+                        StateData.ScreenStatus(StateData.ScreenStatus.ScreenState.ON),
                         PlatformType.Android
                     )
                 )
@@ -77,8 +128,8 @@ internal actual class StateHandler : StateController{
             onScreenOff = {
                 onData(
                     StateUpdate.Data(
-                        StateType.SCREEN_STATE,
-                        StateData.ScreenStatus(ScreenState.OFF),
+                        StateType.SCREEN,
+                        StateData.ScreenStatus(StateData.ScreenStatus.ScreenState.OFF),
                         PlatformType.Android
                     )
                 )
@@ -89,6 +140,24 @@ internal actual class StateHandler : StateController{
             addAction(Intent.ACTION_SCREEN_OFF)
         }
         context.registerReceiver(screenStateReceiver, filter)
-        activeStateObservers[StateType.SCREEN_STATE] = screenStateReceiver
+        activeStateObservers[StateType.SCREEN] = screenStateReceiver
+    }
+
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    fun getTransportStatus(): StateData.CurrentActiveNetwork.ActiveNetwork {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        val network = connectivityManager.activeNetwork
+            ?: return StateData.CurrentActiveNetwork.ActiveNetwork.NONE
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(network)
+                ?: return StateData.CurrentActiveNetwork.ActiveNetwork.NONE
+
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
+            return StateData.CurrentActiveNetwork.ActiveNetwork.WIFI
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))
+            return StateData.CurrentActiveNetwork.ActiveNetwork.CELLULAR
+        return StateData.CurrentActiveNetwork.ActiveNetwork.NONE
     }
 }
