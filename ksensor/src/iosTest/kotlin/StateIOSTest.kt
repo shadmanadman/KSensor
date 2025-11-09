@@ -1,8 +1,5 @@
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.kmp.shots.k.sensor.SensorHandler
-import org.kmp.shots.k.sensor.SensorType
-import org.kmp.shots.k.sensor.SensorUpdate
 import org.kmp.shots.k.sensor.StateHandler
 import org.kmp.shots.k.sensor.StateType
 import org.kmp.shots.k.sensor.StateUpdate
@@ -17,7 +14,15 @@ class StateIOSTest {
     }
     @Test
     fun testScreenState(){
-        assertStateObserver(StateType.SCREEN_STATE)
+        assertStateObserver(StateType.SCREEN)
+    }
+    @Test
+    fun testConnectivityState(){
+        assertStateObserver(StateType.CONNECTIVITY)
+    }
+    @Test
+    fun testActiveNetworkState(){
+        assertStateObserver(StateType.ACTIVE_NETWORK)
     }
     private fun assertStateObserver(stateType: StateType) = runBlocking {
         val stateHandler = StateHandler()

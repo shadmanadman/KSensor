@@ -14,10 +14,20 @@ class StateHandlerTest {
     }
     @Test
     fun testScreenState(){
-        assertObservingState(StateType.SCREEN_STATE)
-        assertObserverRemoved(StateType.SCREEN_STATE)
+        assertObservingState(StateType.SCREEN)
+        assertObserverRemoved(StateType.SCREEN)
     }
 
+    @Test
+    fun testConnectivityState(){
+        assertObservingState(StateType.CONNECTIVITY)
+        assertObserverRemoved(StateType.CONNECTIVITY)
+    }
+    @Test
+    fun testActiveNetworkState(){
+        assertObservingState(StateType.ACTIVE_NETWORK)
+        assertObserverRemoved(StateType.ACTIVE_NETWORK)
+    }
     private fun assertObservingState(stateType: StateType) = runBlocking{
         val fake = FakeStateHandler()
         fake.addObserver(listOf(stateType)).collect{}

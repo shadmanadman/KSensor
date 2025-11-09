@@ -14,7 +14,15 @@ class StateAndroidTest {
     }
     @Test
     fun testScreenState(){
-        assertStateObserver(StateType.SCREEN_STATE)
+        assertStateObserver(StateType.SCREEN)
+    }
+    @Test
+    fun testConnectivityState(){
+        assertStateObserver(StateType.CONNECTIVITY)
+    }
+    @Test
+    fun testActiveNetworkState(){
+        assertStateObserver(StateType.ACTIVE_NETWORK)
     }
     private fun assertStateObserver(stateType: StateType) = runBlocking {
         val stateHandler = StateHandler()
