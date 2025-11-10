@@ -16,21 +16,12 @@ enum class StateType{
 
 sealed class StateData {
     data class AppVisibilityStatus(
-        val appVisibility: AppVisibility,
-    ) : StateData() {
-        enum class AppVisibility {
-            VISIBLE,
-            INVISIBLE
-        }
-    }
+        val isAppVisible: Boolean,
+    ) : StateData()
 
     data class ScreenStatus(
-        val screenState: ScreenState,
-    ) : StateData() {
-        enum class ScreenState {
-            ON, OFF
-        }
-    }
+        val isScreenOn: Boolean,
+    ) : StateData()
 
     data class CurrentActiveNetwork(val activeNetwork: ActiveNetwork) : StateData(){
         enum class ActiveNetwork{

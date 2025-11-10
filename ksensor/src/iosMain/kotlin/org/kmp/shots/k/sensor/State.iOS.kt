@@ -106,7 +106,7 @@ internal actual class StateHandler : StateController {
         onData(
             StateUpdate.Data(
                 type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                    StateData.AppVisibilityStatus.AppVisibility.INVISIBLE
+                    false
                 ),
                 PlatformType.iOS
             )
@@ -120,7 +120,7 @@ internal actual class StateHandler : StateController {
             onData(
                 StateUpdate.Data(
                     type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                        StateData.AppVisibilityStatus.AppVisibility.VISIBLE
+                        true
                     ),
                     PlatformType.iOS
                 )
@@ -135,7 +135,7 @@ internal actual class StateHandler : StateController {
             onData(
                 StateUpdate.Data(
                     type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                        StateData.AppVisibilityStatus.AppVisibility.INVISIBLE
+                        false
                     ),
                     PlatformType.iOS
                 )

@@ -93,7 +93,7 @@ internal actual class StateHandler : StateController {
                 Lifecycle.Event.ON_STOP -> onData(
                     StateUpdate.Data(
                         type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                            StateData.AppVisibilityStatus.AppVisibility.INVISIBLE
+                            false
                         ), PlatformType.Android
                     )
                 )
@@ -101,7 +101,7 @@ internal actual class StateHandler : StateController {
                 Lifecycle.Event.ON_START -> onData(
                     StateUpdate.Data(
                         type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
-                            StateData.AppVisibilityStatus.AppVisibility.VISIBLE
+                            true
                         ), PlatformType.Android
                     )
                 )
@@ -120,7 +120,7 @@ internal actual class StateHandler : StateController {
                 onData(
                     StateUpdate.Data(
                         StateType.SCREEN,
-                        StateData.ScreenStatus(StateData.ScreenStatus.ScreenState.ON),
+                        StateData.ScreenStatus(true),
                         PlatformType.Android
                     )
                 )
@@ -129,7 +129,7 @@ internal actual class StateHandler : StateController {
                 onData(
                     StateUpdate.Data(
                         StateType.SCREEN,
-                        StateData.ScreenStatus(StateData.ScreenStatus.ScreenState.OFF),
+                        StateData.ScreenStatus(false),
                         PlatformType.Android
                     )
                 )
