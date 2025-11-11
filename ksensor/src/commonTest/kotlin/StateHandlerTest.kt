@@ -28,6 +28,11 @@ class StateHandlerTest {
         assertObservingState(StateType.ACTIVE_NETWORK)
         assertObserverRemoved(StateType.ACTIVE_NETWORK)
     }
+    @Test
+    fun testLocationSate(){
+        assertObservingState(StateType.LOCATION)
+        assertObserverRemoved(StateType.LOCATION)
+    }
     private fun assertObservingState(stateType: StateType) = runBlocking{
         val fake = FakeStateHandler()
         fake.addObserver(listOf(stateType)).collect{}

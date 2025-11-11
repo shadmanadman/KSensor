@@ -24,6 +24,10 @@ class StateAndroidTest {
     fun testActiveNetworkState(){
         assertStateObserver(StateType.ACTIVE_NETWORK)
     }
+    @Test
+    fun testLocationState(){
+        assertStateObserver(StateType.LOCATION)
+    }
     private fun assertStateObserver(stateType: StateType) = runBlocking {
         val stateHandler = StateHandler()
         var called = false
