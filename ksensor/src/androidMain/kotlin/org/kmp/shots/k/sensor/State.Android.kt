@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.annotation.RequiresPermission
@@ -21,6 +22,9 @@ internal actual class StateHandler : StateController {
     private val lifecycleOwner = ProcessLifecycleOwner.get()
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val locationManager =
+        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
     private lateinit var connectivityMonitor: ConnectivityMonitor
     private val activeStateObservers = mutableMapOf<StateType, Any>()
 
@@ -32,6 +36,7 @@ internal actual class StateHandler : StateController {
                 StateType.SCREEN -> observerScreenState { trySend(it).isSuccess }
                 StateType.APP_VISIBILITY -> observerAppVisibility { trySend(it).isSuccess }
                 StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
+                StateType.LOCATION -> observerLocation { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on Android")
             }
@@ -44,8 +49,12 @@ internal actual class StateHandler : StateController {
         types.forEach { stateType ->
             when (val listener = activeStateObservers.remove(stateType)) {
                 is ScreenStateReceiver -> context.unregisterReceiver(listener)
+                is LocationProviderReceiver -> context.unregisterReceiver(listener)
                 is LifecycleEventObserver -> lifecycleOwner.lifecycle.removeObserver(listener)
-                is ConnectivityManager -> connectivityManager.unregisterNetworkCallback(connectivityMonitor)
+                is ConnectivityManager -> connectivityManager.unregisterNetworkCallback(
+                    connectivityMonitor
+                )
+
                 else -> println("Observer not found for $stateType on Android")
             }.also {
                 println("Observer removed for $stateType on Android")
@@ -58,6 +67,32 @@ internal actual class StateHandler : StateController {
         permission: PermissionType,
         onPermissionStatus: (PermissionStatus) -> Unit
     ) = Unit
+
+    private fun observerLocation(onData: (StateUpdate) -> Boolean) {
+        val isLocationOn = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+
+        onData(
+            StateUpdate.Data(
+                type = StateType.LOCATION,
+                data= StateData.LocationStatus(isLocationOn),
+                platformType = PlatformType.Android
+            )
+        )
+
+        val locationReceiver = LocationProviderReceiver(onProviderChanged = {
+            onData(
+                StateUpdate.Data(
+                    type = StateType.LOCATION,
+                    data= StateData.LocationStatus(isLocationOn),
+                    platformType = PlatformType.Android
+                )
+            )
+        })
+
+        context.registerReceiver(locationReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
+        activeStateObservers[StateType.LOCATION] = locationReceiver
+    }
 
     @SuppressLint("MissingPermission")
     private fun observeConnectivity(onData: (StateUpdate) -> Boolean) {

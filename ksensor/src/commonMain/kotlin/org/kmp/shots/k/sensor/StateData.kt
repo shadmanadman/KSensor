@@ -5,7 +5,8 @@ enum class StateType{
     SCREEN,
     APP_VISIBILITY,
     CONNECTIVITY,
-    ACTIVE_NETWORK
+    ACTIVE_NETWORK,
+    LOCATION
 }
 
 
@@ -17,6 +18,10 @@ enum class StateType{
 sealed class StateData {
     data class AppVisibilityStatus(
         val isAppVisible: Boolean,
+    ) : StateData()
+
+    data class LocationStatus(
+        val isLocationOn: Boolean
     ) : StateData()
 
     data class ScreenStatus(
