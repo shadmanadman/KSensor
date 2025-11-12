@@ -12,14 +12,18 @@ import platform.UIKit.UIApplicationDidEnterBackgroundNotification
 import platform.UIKit.UIApplicationWillEnterForegroundNotification
 import platform.darwin.NSObject
 
-internal actual class StateHandler : StateController {
+internal object IosStateControllerFactory: StateControllerFactory {
+    override fun create(): StateController = StateHandler()
+}
+
+internal class StateHandler : StateController {
     private var foregroundObserver: NSObject? = null
     private var backgroundObserver: NSObject? = null
     private val monitor = nw_path_monitor_create()
 
     private lateinit var locationProviderReceiver: LocationProviderReceiver
     private val connectivityMonitor = ConnectivityMonitor
-    actual override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
+    override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         types.forEach { stateType ->
             when (stateType) {
                 StateType.SCREEN -> trySend(Error(exception = Exception("iOS dos not have a convince way to check screen state")))
@@ -32,7 +36,7 @@ internal actual class StateHandler : StateController {
         }
     }
 
-    actual override fun removeObserver(types: List<StateType>) {
+    override fun removeObserver(types: List<StateType>) {
         types.forEach { stateType ->
             when (stateType) {
                 StateType.SCREEN -> println("iOS dos not have a convince way to check screen state")
@@ -57,7 +61,7 @@ internal actual class StateHandler : StateController {
     }
 
     @Composable
-    actual override fun HandelPermissions(
+    override fun HandelPermissions(
         permission: PermissionType,
         onPermissionStatus: (PermissionStatus) -> Unit
     ) = Unit

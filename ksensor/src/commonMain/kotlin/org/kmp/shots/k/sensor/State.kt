@@ -6,12 +6,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 sealed class StateUpdate {
-    data class Data(val type: StateType, val data: StateData,val platformType: PlatformType) : StateUpdate()
+    data class Data(val type: StateType, val data: StateData, val platformType: PlatformType) :
+        StateUpdate()
+
     data class Error(val exception: Exception) : StateUpdate()
 }
 
 
-internal interface StateController {
+interface StateController {
     fun addObserver(
         types: List<StateType>,
     ): Flow<StateUpdate>
@@ -25,20 +27,19 @@ internal interface StateController {
     )
 }
 
-internal expect class StateHandler() : StateController {
-    override fun addObserver(types: List<StateType>): Flow<StateUpdate>
-    override fun removeObserver(types: List<StateType>)
-    @Composable
-    override fun HandelPermissions(permission: PermissionType,onPermissionStatus: (PermissionStatus) -> Unit)
-
+interface StateControllerFactory {
+    fun create(): StateController
 }
+
+internal class StateHandler(private val platformController: StateController) :
+    StateController by platformController
 
 internal class FakeStateHandler : StateController {
     val observedStates = mutableListOf<StateType>()
 
     override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         observedStates.addAll(types)
-        awaitClose { removeObserver(types)}
+        awaitClose { removeObserver(types) }
     }
 
     override fun removeObserver(types: List<StateType>) {

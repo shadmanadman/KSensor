@@ -17,7 +17,10 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-internal actual class StateHandler : StateController {
+internal object AndroidStateControllerFactory: StateControllerFactory{
+    override fun create(): StateController = StateHandler()
+}
+internal class StateHandler : StateController {
     private val context: Context by lazy { AppContext.get() }
     private val lifecycleOwner = ProcessLifecycleOwner.get()
     private val connectivityManager =
@@ -28,7 +31,7 @@ internal actual class StateHandler : StateController {
     private lateinit var connectivityMonitor: ConnectivityMonitor
     private val activeStateObservers = mutableMapOf<StateType, Any>()
 
-    actual override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
+    override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         types.forEach { stateType ->
             if (activeStateObservers.contains(stateType)) return@forEach
 
@@ -45,7 +48,7 @@ internal actual class StateHandler : StateController {
         }
     }
 
-    actual override fun removeObserver(types: List<StateType>) {
+    override fun removeObserver(types: List<StateType>) {
         types.forEach { stateType ->
             when (val listener = activeStateObservers.remove(stateType)) {
                 is ScreenStateReceiver -> context.unregisterReceiver(listener)
@@ -63,7 +66,7 @@ internal actual class StateHandler : StateController {
     }
 
     @Composable
-    actual override fun HandelPermissions(
+    override fun HandelPermissions(
         permission: PermissionType,
         onPermissionStatus: (PermissionStatus) -> Unit
     ) = Unit
