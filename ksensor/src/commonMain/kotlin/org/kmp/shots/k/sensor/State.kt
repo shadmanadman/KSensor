@@ -27,6 +27,10 @@ interface StateController {
     )
 }
 
+interface StateControllerFactory {
+    fun create(): StateController
+}
+
 internal class StateHandler(private val platformController: StateController) :
     StateController by platformController
 
