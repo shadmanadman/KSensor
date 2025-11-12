@@ -17,8 +17,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-internal object AndroidStateControllerFactory: StateControllerFactory{
-    override fun create(): StateController = StateHandler()
+internal object AndroidStateControllerFactory{
+    fun init(): StateController = StateHandler()
 }
 internal class StateHandler : StateController {
     private val context: Context by lazy { AppContext.get() }

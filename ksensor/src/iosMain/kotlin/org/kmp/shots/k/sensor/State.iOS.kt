@@ -12,8 +12,8 @@ import platform.UIKit.UIApplicationDidEnterBackgroundNotification
 import platform.UIKit.UIApplicationWillEnterForegroundNotification
 import platform.darwin.NSObject
 
-internal object IosStateControllerFactory: StateControllerFactory {
-    override fun create(): StateController = StateHandler()
+internal object IosStateControllerFactory {
+    fun init(): StateController = StateHandler()
 }
 
 internal class StateHandler : StateController {
