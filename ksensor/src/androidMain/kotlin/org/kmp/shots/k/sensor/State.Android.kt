@@ -17,10 +17,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-internal object AndroidStateControllerFactory: StateControllerFactory{
-    override fun create(): StateController = StateHandler()
-}
-internal class StateHandler : StateController {
+internal class AndroidStateHandler : StateController {
     private val context: Context by lazy { AppContext.get() }
     private val lifecycleOwner = ProcessLifecycleOwner.get()
     private val connectivityManager =
@@ -72,13 +69,10 @@ internal class StateHandler : StateController {
     ) = Unit
 
     private fun observerLocation(onData: (StateUpdate) -> Boolean) {
-        val isLocationOn = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-
         onData(
             StateUpdate.Data(
                 type = StateType.LOCATION,
-                data= StateData.LocationStatus(isLocationOn),
+                data = StateData.LocationStatus(locationManager.isLocationEnabled),
                 platformType = PlatformType.Android
             )
         )
@@ -87,13 +81,16 @@ internal class StateHandler : StateController {
             onData(
                 StateUpdate.Data(
                     type = StateType.LOCATION,
-                    data= StateData.LocationStatus(isLocationOn),
+                    data = StateData.LocationStatus(locationManager.isLocationEnabled),
                     platformType = PlatformType.Android
                 )
             )
         })
 
-        context.registerReceiver(locationReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
+        context.registerReceiver(
+            locationReceiver,
+            IntentFilter(LocationManager.MODE_CHANGED_ACTION)
+        )
         activeStateObservers[StateType.LOCATION] = locationReceiver
     }
 
@@ -113,12 +110,14 @@ internal class StateHandler : StateController {
                 )
             )
         }, onActiveNetworkChanged = {
-            StateUpdate.Data(
-                type = StateType.ACTIVE_NETWORK,
-                StateData.CurrentActiveNetwork(
-                    activeNetwork = it
-                ),
-                PlatformType.Android
+            onData(
+                StateUpdate.Data(
+                    type = StateType.ACTIVE_NETWORK,
+                    StateData.CurrentActiveNetwork(
+                        activeNetwork = it
+                    ),
+                    PlatformType.Android
+                )
             )
         })
         connectivityManager.registerNetworkCallback(networkRequest, connectivityMonitor)

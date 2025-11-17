@@ -1,6 +1,6 @@
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.kmp.shots.k.sensor.StateHandler
+import org.kmp.shots.k.sensor.IOSStateHandler
 import org.kmp.shots.k.sensor.StateType
 import org.kmp.shots.k.sensor.StateUpdate
 import kotlin.test.Test
@@ -25,7 +25,7 @@ class StateIOSTest {
         assertStateObserver(StateType.ACTIVE_NETWORK)
     }
     private fun assertStateObserver(stateType: StateType) = runBlocking {
-        val stateHandler = StateHandler()
+        val stateHandler = IOSStateHandler()
         var called = false
 
         stateHandler.addObserver(

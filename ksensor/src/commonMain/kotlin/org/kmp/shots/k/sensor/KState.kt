@@ -4,13 +4,17 @@ import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.Flow
 
 object KState : StateController {
-    private lateinit var factory: StateControllerFactory
-    private val stateController : StateController by lazy {
-        factory.create()
-    }
+    private lateinit var stateController: StateController
+//    private val stateController : StateController by lazy {
+//        factory.create()
+//    }
+//
+//    internal fun init(factory: StateControllerFactory) {
+//        this.factory = factory
+//    }
 
-    fun init(factory: StateControllerFactory) {
-        this.factory = factory
+    internal fun setController(controller: StateController) {
+        stateController = controller
     }
 
     override fun addObserver(types: List<StateType>): Flow<StateUpdate>  =

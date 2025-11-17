@@ -1,6 +1,6 @@
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.kmp.shots.k.sensor.StateHandler
+import org.kmp.shots.k.sensor.AndroidStateHandler
 import org.kmp.shots.k.sensor.StateType
 import org.kmp.shots.k.sensor.StateUpdate
 import kotlin.test.Test
@@ -29,7 +29,7 @@ class StateAndroidTest {
         assertStateObserver(StateType.LOCATION)
     }
     private fun assertStateObserver(stateType: StateType) = runBlocking {
-        val stateHandler = StateHandler()
+        val stateHandler = AndroidStateHandler()
         var called = false
 
         stateHandler.addObserver(

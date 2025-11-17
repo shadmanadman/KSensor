@@ -12,11 +12,7 @@ import platform.UIKit.UIApplicationDidEnterBackgroundNotification
 import platform.UIKit.UIApplicationWillEnterForegroundNotification
 import platform.darwin.NSObject
 
-internal object IosStateControllerFactory: StateControllerFactory {
-    override fun create(): StateController = StateHandler()
-}
-
-internal class StateHandler : StateController {
+internal class IOSStateHandler : StateController {
     private var foregroundObserver: NSObject? = null
     private var backgroundObserver: NSObject? = null
     private val monitor = nw_path_monitor_create()
