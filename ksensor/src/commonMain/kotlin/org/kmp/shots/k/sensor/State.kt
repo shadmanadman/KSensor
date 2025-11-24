@@ -27,6 +27,8 @@ interface StateController {
     )
 }
 
+expect fun createController(): StateController
+
 internal class FakeStateHandler : StateController {
     val observedStates = mutableListOf<StateType>()
 

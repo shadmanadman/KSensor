@@ -6,7 +6,6 @@ import androidx.startup.Initializer
 internal class AppContextInject : Initializer<AppContext> {
     override fun create(context: Context): AppContext {
         AppContext.setUp(context)
-        KState.setController(AndroidStateHandler())
         return AppContext
     }
 

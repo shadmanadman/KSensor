@@ -1,6 +1,8 @@
 package org.kmp.shots.k.sensor
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.kmp.shots.k.sensor.StateUpdate.Data
@@ -12,6 +14,7 @@ import platform.UIKit.UIApplicationDidEnterBackgroundNotification
 import platform.UIKit.UIApplicationWillEnterForegroundNotification
 import platform.darwin.NSObject
 
+actual fun createController(): StateController = IOSStateHandler()
 internal class IOSStateHandler : StateController {
     private var foregroundObserver: NSObject? = null
     private var backgroundObserver: NSObject? = null
@@ -30,6 +33,7 @@ internal class IOSStateHandler : StateController {
                 println("Observer added for $stateType on iOS")
             }
         }
+        awaitClose { removeObserver(types) }
     }
 
     override fun removeObserver(types: List<StateType>) {

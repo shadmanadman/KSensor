@@ -3,29 +3,16 @@ package org.kmp.shots.k.sensor
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.Flow
 
-object KState : StateController {
-    private lateinit var stateController: StateController
-//    private val stateController : StateController by lazy {
-//        factory.create()
-//    }
-//
-//    internal fun init(factory: StateControllerFactory) {
-//        this.factory = factory
-//    }
+object KState  {
+    private val controller = createController()
 
-    internal fun setController(controller: StateController) {
-        stateController = controller
-    }
+    suspend fun addObserver(types: List<StateType>): Flow<StateUpdate> = controller.addObserver(types)
 
-    override fun addObserver(types: List<StateType>): Flow<StateUpdate>  =
-        stateController.addObserver(types)
-
-    override fun removeObserver(types: List<StateType>) =
-        stateController.removeObserver(types)
+    suspend fun removeObserver(types: List<StateType>)  = controller.removeObserver(types)
 
     @Composable
-    override fun HandelPermissions(
+   fun HandelPermissions(
         permission: PermissionType,
         onPermissionStatus: (PermissionStatus) -> Unit
-    ) = stateController.HandelPermissions( permission,onPermissionStatus)
+    ) =  controller.HandelPermissions(permission,onPermissionStatus)
 }

@@ -17,6 +17,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
+actual fun createController(): StateController  = AndroidStateHandler()
+
 internal class AndroidStateHandler : StateController {
     private val context: Context by lazy { AppContext.get() }
     private val lifecycleOwner = ProcessLifecycleOwner.get()
