@@ -10,7 +10,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:1.90.30")
+  implementation("io.github.shadmanadman:KSensor:1.90.40")
   ```
 
 ### Sensors Observation
