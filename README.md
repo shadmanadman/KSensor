@@ -17,7 +17,7 @@ Add it in your `commonMain.dependencies` :
 
 - Create a list of sensors that you need.
 
-```
+``` kotlin
 val sensors = listof(
 SensorType.ACCELEROMETER,
 SensorType.GYROSCOPE,
@@ -32,7 +32,7 @@ SensorType.LIGHT)
 
 - Register sensors for observation.
 
-```
+``` kotlin
 KSensor.registerSensors(
     types = sensors,
     locationIntervalMillis = 1000L // Optional
@@ -46,14 +46,14 @@ KSensor.registerSensors(
 
 - Unregister sensors when no longer needed.
 
-```
+``` kotlin
 KSensor.unregisterSensors(sensors)
 ```
 
 Each `SensorData` has a `platformType` so you know the sensor data comes from Android or iOS.
 
 - Sensor Data Models:
-```
+``` kotlin
 Accelerometer(val x: Float, val y: Float,val z: Float)
 Gyroscope(val x: Float, val y: Float, val z: Float)
 Magnetometer(val x: Float, val y: Float, val z: Float)
@@ -69,7 +69,7 @@ LightIlluminance(val illuminance: Float)
 
 - Just like sensors, create a list of states that you need to observe.
 
-```
+``` kotlin
 val states = listOf(
 StateType.APP_VISIBILITY,
 StateType.CONNECTIVITY,
@@ -81,7 +81,7 @@ StateType.SCREEN_STATE
 
 - Add observers.
 
-```
+``` kotlin
 KState.addObserver(types = states).collect{ stateUpdate->
    when(stateUpdate){
 	is StateUpdate.Data-> // Get state data here
@@ -92,14 +92,14 @@ KState.addObserver(types = states).collect{ stateUpdate->
 
 - Remove observer when no longer needed.
 
-```
+``` kotlin
 KState.removeObserver(states)
 ```
 
 Each `StateData` has a `platformType` so you know the state data comes from Android or iOS.
 
 - State Data Models:
-```
+``` kotlin
 AppVisibilityStatus(val isAppVisible: Boolean)
 LocationStatus(val isLocationOn: Boolean)
 ScreenStatus(val isScreenOn: Boolean)
@@ -112,7 +112,7 @@ ConnectivityStatus(val isConnected: Boolean)
 
 If you are observing location you need `FINE_LOCATION` and `COARSE_LOCATION` permissions on Android.
 You can handel this permissions yourself or let the library handle them for you:
-```
+``` kotlin
     //Put this in AndroidManifest
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -120,7 +120,7 @@ You can handel this permissions yourself or let the library handle them for you:
 
 - Inside a composable call:
 
-```
+``` kotlin
 KSensor.HandelPermissions() { status ->
     when (status) {
         PermissionStatus.Granted -> println("Permission Granted")
