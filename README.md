@@ -2,7 +2,7 @@
 [![Gradle](https://img.shields.io/badge/Gradle-8.x-green.svg?style=flat-square&logo=gradle)](https://gradle.org/)
 [![License](https://img.shields.io/badge/License-0BSD-informational.svg)](https://opensource.org/licenses/0BSD)
 
-![](cover.jpg)
+![](KSensor.png)
 
 ## Getting Started
 ### Adding dependencies
@@ -10,7 +10,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:1.50.34")
+  implementation("io.github.shadmanadman:KSensor:1.90.30")
   ```
 
 ### Sensors Observation
@@ -52,13 +52,31 @@ KSensor.unregisterSensors(sensors)
 
 Each `SensorData` has a `platformType` so you know the sensor data comes from Android or iOS.
 
+- Sensor Data Models:
+```
+Accelerometer(val x: Float, val y: Float,val z: Float)
+Gyroscope(val x: Float, val y: Float, val z: Float)
+Magnetometer(val x: Float, val y: Float, val z: Float)
+Barometer(val pressure: Float)
+StepCounter(val steps: Int)
+Location(val lat: Double? = null, val lon: Double? = null, val alt: Double? = null)
+Orientation(val orientation: DeviceOrientation,val orientationInt: Int = 0)
+Proximity(val distanceInCM: Float, val isNear: Boolean)
+LightIlluminance(val illuminance: Float)
+```
 
 ### States Observation
 
 - Just like sensors, create a list of states that you need to observe.
 
 ```
-val states = listOf(StateType.APP_VISIBILITY,StateType.SCREEN_STATE)
+val states = listOf(
+StateType.APP_VISIBILITY,
+StateType.CONNECTIVITY,
+StateType.ACTIVE_NETWORK,
+StateType.LOCATION,
+StateType.SCREEN_STATE
+)
 ```
 
 - Add observers.
@@ -79,6 +97,15 @@ KState.removeObserver(states)
 ```
 
 Each `StateData` has a `platformType` so you know the state data comes from Android or iOS.
+
+- State Data Models:
+```
+AppVisibilityStatus(val isAppVisible: Boolean)
+LocationStatus(val isLocationOn: Boolean)
+ScreenStatus(val isScreenOn: Boolean)
+CurrentActiveNetwork(val activeNetwork: ActiveNetwork)
+ConnectivityStatus(val isConnected: Boolean)
+```
 
 
 #### Permissions

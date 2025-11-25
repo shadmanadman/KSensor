@@ -8,6 +8,8 @@ import android.content.IntentFilter
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.Lifecycle
@@ -70,6 +72,7 @@ internal class AndroidStateHandler : StateController {
         onPermissionStatus: (PermissionStatus) -> Unit
     ) = Unit
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun observerLocation(onData: (StateUpdate) -> Boolean) {
         onData(
             StateUpdate.Data(
