@@ -38,7 +38,7 @@ KSensor.registerSensors(
     locationIntervalMillis = 1000L // Optional
 ).collect { sensorUpdate ->
     when (sensorUpdate) {
-        is SensorUpdate.Data -> // Get sensor data here
+        is SensorUpdate.Data -> // println(it.data, it.platformType)
         is SensorUpdate.Error -> // Get errors here
     }
 }
@@ -50,9 +50,9 @@ KSensor.registerSensors(
 KSensor.unregisterSensors(sensors)
 ```
 
-Each `SensorData` has a `platformType` so you know the sensor data comes from Android or iOS.
+Each `SensorUpdate` has a `platformType` so you know the sensor data comes from Android or iOS.
 
-- Sensor Data Models:
+- Sensor Data Models, represents the `sensorUpdate.data`:
 ``` kotlin
 Accelerometer(val x: Float, val y: Float,val z: Float)
 Gyroscope(val x: Float, val y: Float, val z: Float)
@@ -84,7 +84,7 @@ StateType.SCREEN_STATE
 ``` kotlin
 KState.addObserver(types = states).collect{ stateUpdate->
    when(stateUpdate){
-	is StateUpdate.Data-> // Get state data here
+	is StateUpdate.Data-> // println(it.data, it.platformType)
 	is StateUpdate.Error-> // Get errors here
    }
 }
@@ -96,9 +96,9 @@ KState.addObserver(types = states).collect{ stateUpdate->
 KState.removeObserver(states)
 ```
 
-Each `StateData` has a `platformType` so you know the state data comes from Android or iOS.
+Each `StateUpdate` has a `platformType` so you know the state data comes from Android or iOS.
 
-- State Data Models:
+- State Data Models, represent the `StateUpdate.data`:
 ``` kotlin
 AppVisibilityStatus(val isAppVisible: Boolean)
 LocationStatus(val isLocationOn: Boolean)
