@@ -27,7 +27,8 @@ SensorType.STEP_COUNTER,
 SensorType.LOCATION,
 SensorType.DEVICE_ORIENTATION,
 SensorType.PROXIMITY,
-SensorType.LIGHT)
+SensorType.LIGHT,
+SensorType.BATTERY)
 ```
 
 - Register sensors for observation.
