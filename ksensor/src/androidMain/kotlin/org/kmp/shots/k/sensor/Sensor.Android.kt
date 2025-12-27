@@ -2,7 +2,6 @@ package org.kmp.shots.k.sensor
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -14,9 +13,8 @@ import android.location.LocationManager
 import android.view.OrientationEventListener
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.kmp.shots.k.sensor.SensorData.Accelerometer
 import org.kmp.shots.k.sensor.SensorData.Barometer
 import org.kmp.shots.k.sensor.SensorData.Gyroscope
@@ -38,31 +36,36 @@ internal actual class SensorHandler : SensorController {
 
     private val activeSensorListeners = mutableMapOf<SensorType, Any>()
 
+    actual override val sensorUpdates: MutableStateFlow<SensorUpdate?>
+        get() = super.sensorUpdates
+
     actual override fun registerSensors(
         types: List<SensorType>,
         locationIntervalMillis: SensorTimeInterval
-    ): Flow<SensorUpdate> = callbackFlow {
-
+    ) {
         types.forEach { sensorType ->
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
 
             when (sensorType) {
-                SensorType.ACCELEROMETER -> registerAccelerometer { trySend(it).isSuccess }
-                SensorType.GYROSCOPE -> registerGyroscope { trySend(it).isSuccess }
-                SensorType.MAGNETOMETER -> registerMagnetometer { trySend(it).isSuccess }
-                SensorType.BAROMETER -> registerBarometer { trySend(it).isSuccess }
-                SensorType.STEP_COUNTER -> registerStepCounter { trySend(it).isSuccess }
-                SensorType.LOCATION -> registerLocation(locationIntervalMillis) { trySend(it).isSuccess }
-                SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
-                SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
-                SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
-                SensorType.TOUCH_GESTURES -> registerTouchGestures { trySend(it).isSuccess }
+                SensorType.ACCELEROMETER -> registerAccelerometer { sensorUpdates.value = it }
+                SensorType.GYROSCOPE -> registerGyroscope { sensorUpdates.value = it }
+                SensorType.MAGNETOMETER -> registerMagnetometer { sensorUpdates.value = it }
+                SensorType.BAROMETER -> registerBarometer { sensorUpdates.value = it }
+                SensorType.STEP_COUNTER -> registerStepCounter { sensorUpdates.value = it }
+                SensorType.LOCATION -> registerLocation(locationIntervalMillis) {
+                    sensorUpdates.value = it
+                }
+
+                SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation {
+                    sensorUpdates.value = it
+                }
+
+                SensorType.PROXIMITY -> registerProximity { sensorUpdates.value = it }
+                SensorType.LIGHT -> registerLight { sensorUpdates.value = it }
+                SensorType.TOUCH_GESTURES -> registerTouchGestures { sensorUpdates.value = it }
             }.also {
                 println("Sensor registered for $sensorType on Android")
             }
-        }
-        awaitClose {
-            unregisterSensors(types)
         }
     }
 
@@ -89,7 +92,7 @@ internal actual class SensorHandler : SensorController {
         PermissionsManager().askPermission(permission, onPermissionStatus)
     }
 
-    private fun registerAccelerometer(onData: (SensorUpdate) -> Boolean) {
+    private fun registerAccelerometer(onData: (SensorUpdate) -> Unit) {
         val maximumRange =
             sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.maximumRange ?: 0F
         val listener = object : SensorEventListener {
@@ -115,7 +118,7 @@ internal actual class SensorHandler : SensorController {
         } ?: println("ACCELEROMETER not available")
     }
 
-    private fun registerGyroscope(onData: (SensorUpdate) -> Boolean) {
+    private fun registerGyroscope(onData: (SensorUpdate) -> Unit) {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
@@ -138,7 +141,7 @@ internal actual class SensorHandler : SensorController {
         } ?: println("GYROSCOPE not available")
     }
 
-    private fun registerMagnetometer(onData: (SensorUpdate) -> Boolean) {
+    private fun registerMagnetometer(onData: (SensorUpdate) -> Unit) {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
@@ -162,7 +165,7 @@ internal actual class SensorHandler : SensorController {
         } ?: println("MAGNETOMETER not available")
     }
 
-    private fun registerBarometer(onData: (SensorUpdate) -> Boolean) {
+    private fun registerBarometer(onData: (SensorUpdate) -> Unit) {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
@@ -183,7 +186,7 @@ internal actual class SensorHandler : SensorController {
         } ?: println("BAROMETER not available")
     }
 
-    private fun registerStepCounter(onData: (SensorUpdate) -> Boolean) {
+    private fun registerStepCounter(onData: (SensorUpdate) -> Unit) {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
@@ -208,7 +211,7 @@ internal actual class SensorHandler : SensorController {
     @SuppressLint("MissingPermission")
     private fun registerLocation(
         locationIntervalMillis: SensorTimeInterval,
-        onData: (SensorUpdate) -> Boolean
+        onData: (SensorUpdate) -> Unit
     ) {
         val listener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
@@ -218,11 +221,13 @@ internal actual class SensorHandler : SensorController {
                         SensorData.Location(
                             latitude = location.latitude,
                             longitude = location.longitude,
-                            altitude = location.altitude),
+                            altitude = location.altitude
+                        ),
                         PlatformType.Android
                     )
                 )
             }
+
             override fun onProviderEnabled(provider: String) {}
             override fun onProviderDisabled(provider: String) {}
         }
@@ -240,7 +245,7 @@ internal actual class SensorHandler : SensorController {
         )
     }
 
-    private fun registerDeviceOrientation(onData: (SensorUpdate) -> Boolean) {
+    private fun registerDeviceOrientation(onData: (SensorUpdate) -> Unit) {
         val listener = object : OrientationEventListener(context) {
             override fun onOrientationChanged(orientation: Int) {
                 val newOrientation = when (orientation) {
@@ -291,7 +296,7 @@ internal actual class SensorHandler : SensorController {
         activeSensorListeners[SensorType.DEVICE_ORIENTATION] = listener
     }
 
-    private fun registerProximity(onData: (SensorUpdate) -> Boolean) {
+    private fun registerProximity(onData: (SensorUpdate) -> Unit) {
         val proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
@@ -316,7 +321,7 @@ internal actual class SensorHandler : SensorController {
         } ?: println("Proximity sensor not available")
     }
 
-    private fun registerLight(onData: (SensorUpdate) -> Boolean) {
+    private fun registerLight(onData: (SensorUpdate) -> Unit) {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
@@ -338,11 +343,17 @@ internal actual class SensorHandler : SensorController {
         } ?: println("Light sensor not available")
     }
 
-    private fun registerTouchGestures(onData: (SensorUpdate) -> Boolean){
+    private fun registerTouchGestures(onData: (SensorUpdate) -> Unit) {
         touchGestureMonitor.registerObserver(onData)
         activeSensorListeners[SensorType.TOUCH_GESTURES] = touchGestureMonitor
     }
 }
+
+
+
+
+
+
 
 @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
 inline fun requestLocationUpdatesSafely(

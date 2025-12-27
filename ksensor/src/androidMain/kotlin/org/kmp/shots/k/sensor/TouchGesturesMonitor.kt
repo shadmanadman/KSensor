@@ -16,12 +16,16 @@ internal object TouchGesturesMonitor {
 
     val app = context.applicationContext as Application
 
+    @Volatile
+    private var observer: ((SensorUpdate) -> Unit)? = null
 
-    fun registerObserver(onData: (SensorUpdate) -> Boolean) {
+    fun registerObserver(onData: (SensorUpdate) -> Unit) {
+        observer = onData
         app.registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks)
     }
 
     fun removeObserver(){
+        observer = null
         app.unregisterActivityLifecycleCallbacks(ActivityLifecycleCallbacks)
     }
 
@@ -33,7 +37,7 @@ internal object TouchGesturesMonitor {
             window.callback = TouchInterceptingCallback(
                 originalCallback,
                 onData = {
-
+                    observer?.invoke(it)
                 }
             )
         }

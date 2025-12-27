@@ -39,6 +39,7 @@ kotlin {
                 implementation(libs.kotlin.test)
             }
         }
+
         androidInstrumentedTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.androidx.test.junit)
@@ -62,6 +63,7 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
         testOptions.targetSdk = libs.versions.android.targetSdk.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
@@ -99,29 +101,29 @@ mavenPublishing {
         version = tag ?: "1.220.10-SNAPSHOT"
     )
 
-            pom {
-                name = "KSensor"
-                description = "A KMP library that provides Sensors info for both Android and iOS"
-                url = "https://github.com/shadmanadman/KSensor"
-                licenses {
-                    license {
-                        name = "Apache License, Version 2.0"
-                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-                    }
-                }
-                developers {
-                    developer {
-                        id = "shadmanadman"
-                        name = "Shadman Adman"
-                        email = "adman.shadman@gmail.com"
-                    }
-                }
-                scm {
-                    connection = "scm:git:https://github.com/shadmanadman/KSensor"
-                    developerConnection = "scm:git:github.com/shadmanadman/KSensor.git"
-                    url = "https://github.com/shadmanadman/KSensor"
-                }
+    pom {
+        name = "KSensor"
+        description = "A KMP library that provides Sensors info for both Android and iOS"
+        url = "https://github.com/shadmanadman/KSensor"
+        licenses {
+            license {
+                name = "Apache License, Version 2.0"
+                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
             }
+        }
+        developers {
+            developer {
+                id = "shadmanadman"
+                name = "Shadman Adman"
+                email = "adman.shadman@gmail.com"
+            }
+        }
+        scm {
+            connection = "scm:git:https://github.com/shadmanadman/KSensor"
+            developerConnection = "scm:git:github.com/shadmanadman/KSensor.git"
+            url = "https://github.com/shadmanadman/KSensor"
+        }
+    }
 }
 
 signing {
