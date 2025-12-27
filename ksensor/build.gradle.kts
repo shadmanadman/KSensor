@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
@@ -34,11 +31,6 @@ kotlin {
             implementation(libs.androidx.startup)
 
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotlin.test)
-            }
-        }
 
         androidInstrumentedTest.dependencies {
             implementation(libs.kotlin.test)
@@ -52,6 +44,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material)
             implementation(compose.ui)
+            implementation(libs.kotlin.test)
         }
     }
 }
