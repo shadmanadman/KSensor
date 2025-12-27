@@ -9,6 +9,10 @@ enum class DeviceOrientation {
     PORTRAIT, LANDSCAPE, UNKNOWN
 }
 
+enum class TouchGestureType{
+    ACTION_DOWN,ACTION_UP,ACTION_MOVE
+}
+
 enum class SensorType {
     ACCELEROMETER,
     GYROSCOPE,
@@ -18,7 +22,8 @@ enum class SensorType {
     LOCATION,
     DEVICE_ORIENTATION,
     PROXIMITY,
-    LIGHT
+    LIGHT,
+    TOUCH_GESTURES
 }
 
 sealed class SensorData() {
@@ -58,4 +63,6 @@ sealed class SensorData() {
     data class LightIlluminance(
         val illuminance: Float
     ): SensorData()
+
+    data class TouchGestures(val x: Float,val y: Float,val type: TouchGestureType): SensorData()
 }
