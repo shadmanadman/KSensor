@@ -2,6 +2,7 @@ package org.kmp.shots.k.sensor
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -10,7 +11,6 @@ import android.hardware.SensorManager.SENSOR_DELAY_NORMAL
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Bundle
 import android.view.OrientationEventListener
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
@@ -34,6 +34,8 @@ internal actual class SensorHandler : SensorController {
     private val locationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
+    private val touchGestureMonitor = TouchGesturesMonitor
+
     private val activeSensorListeners = mutableMapOf<SensorType, Any>()
 
     actual override fun registerSensors(
@@ -54,6 +56,7 @@ internal actual class SensorHandler : SensorController {
                 SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
                 SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
                 SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
+                SensorType.TOUCH_GESTURES -> registerTouchGestures { trySend(it).isSuccess }
             }.also {
                 println("Sensor registered for $sensorType on Android")
             }
@@ -70,6 +73,7 @@ internal actual class SensorHandler : SensorController {
                 is LocationListener -> locationManager.removeUpdates(listener)
                 is OrientationEventListener -> listener.disable()
                 is ScreenStateReceiver -> context.unregisterReceiver(listener)
+                is TouchGesturesMonitor -> touchGestureMonitor.removeObserver()
                 else -> println("Sensor type not found for $sensorType on Android")
             }.also {
                 println("Unregistered sensor for $sensorType on Android")
@@ -219,14 +223,6 @@ internal actual class SensorHandler : SensorController {
                     )
                 )
             }
-
-            override fun onStatusChanged(
-                provider: String?,
-                status: Int,
-                extras: Bundle?
-            ) {
-            }
-
             override fun onProviderEnabled(provider: String) {}
             override fun onProviderDisabled(provider: String) {}
         }
@@ -340,6 +336,11 @@ internal actual class SensorHandler : SensorController {
             sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
             activeSensorListeners[SensorType.LIGHT] = listener
         } ?: println("Light sensor not available")
+    }
+
+    private fun registerTouchGestures(onData: (SensorUpdate) -> Boolean){
+        touchGestureMonitor.registerObserver(onData)
+        activeSensorListeners[SensorType.TOUCH_GESTURES] = touchGestureMonitor
     }
 }
 
