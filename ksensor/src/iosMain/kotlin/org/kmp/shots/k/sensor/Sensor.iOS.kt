@@ -5,6 +5,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import org.kmp.shots.k.sensor.SensorData.Accelerometer
 import org.kmp.shots.k.sensor.SensorData.Barometer
@@ -44,35 +46,39 @@ internal actual class SensorHandler : SensorController {
     private val pedometer = if (CMPedometer.isStepCountingAvailable()) CMPedometer() else null
 
     private val locationManager = CLLocationManager()
+    private val touchGesturesMonitor = TouchGesturesMonitor
     private var orientationObserver: NSObject? = null
 
     private var proximityObserver: NSObject? = null
 
     private var timer: NSTimer? = null
 
+    actual override val sensorUpdates: MutableStateFlow<SensorUpdate?>
+        get() = super.sensorUpdates
+
     @OptIn(ExperimentalForeignApi::class)
     actual override fun registerSensors(
         types: List<SensorType>,
         locationIntervalMillis: Long
-    ): Flow<SensorUpdate> = callbackFlow {
+    ) {
         types.forEach { sensorType ->
             when (sensorType) {
-                SensorType.ACCELEROMETER -> registerAccelerometer { trySend(it).isSuccess }
-                SensorType.GYROSCOPE -> registerGyroscope { trySend(it).isSuccess }
-                SensorType.MAGNETOMETER -> registerMagnetometer { trySend(it).isSuccess }
-                SensorType.BAROMETER -> registerBarometer { trySend(it).isSuccess }
-                SensorType.STEP_COUNTER -> registerStepCounter { trySend(it).isSuccess }
-                SensorType.LOCATION -> registerLocation { trySend(it).isSuccess }
-                SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it).isSuccess }
-                SensorType.PROXIMITY -> registerProximity { trySend(it).isSuccess }
-                SensorType.LIGHT -> registerLight { trySend(it).isSuccess }
+                SensorType.ACCELEROMETER -> registerAccelerometer { sensorUpdates.value = it }
+                SensorType.GYROSCOPE -> registerGyroscope { sensorUpdates.value = it }
+                SensorType.MAGNETOMETER -> registerMagnetometer { sensorUpdates.value = it }
+                SensorType.BAROMETER -> registerBarometer { sensorUpdates.value = it }
+                SensorType.STEP_COUNTER -> registerStepCounter { sensorUpdates.value = it }
+                SensorType.LOCATION -> registerLocation { sensorUpdates.value = it }
+                SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation {
+                    sensorUpdates.value = it
+                }
+
+                SensorType.PROXIMITY -> registerProximity { sensorUpdates.value = it }
+                SensorType.LIGHT -> registerLight { sensorUpdates.value = it }
+                SensorType.TOUCH_GESTURES -> registerTouchGestures { sensorUpdates.value = it }
             }.also {
                 println("Sensor registered for $sensorType on iOS")
             }
-        }
-
-        awaitClose {
-            unregisterSensors(types)
         }
     }
 
@@ -103,6 +109,8 @@ internal actual class SensorHandler : SensorController {
                     timer?.invalidate()
                     timer = null
                 }
+
+                SensorType.TOUCH_GESTURES -> touchGesturesMonitor.removeObserver()
             }.also {
                 println("Sensor unregistered for $types on iOS")
             }
@@ -118,7 +126,7 @@ internal actual class SensorHandler : SensorController {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun registerAccelerometer(onData: (SensorUpdate) -> Boolean) {
+    private fun registerAccelerometer(onData: (SensorUpdate) -> Unit) {
         if (motionManager.accelerometerAvailable) {
             motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
                 data?.let {
@@ -142,7 +150,7 @@ internal actual class SensorHandler : SensorController {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun registerGyroscope(onData: (SensorUpdate) -> Boolean) {
+    private fun registerGyroscope(onData: (SensorUpdate) -> Unit) {
         if (motionManager.gyroAvailable) {
             motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
                 data?.let {
@@ -166,7 +174,7 @@ internal actual class SensorHandler : SensorController {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun registerMagnetometer(onData: (SensorUpdate) -> Boolean) {
+    private fun registerMagnetometer(onData: (SensorUpdate) -> Unit) {
         if (motionManager.magnetometerAvailable) {
             motionManager.startMagnetometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
                 data?.let {
@@ -189,7 +197,7 @@ internal actual class SensorHandler : SensorController {
             println("Magnetometer not available")
     }
 
-    private fun registerBarometer(onData: (SensorUpdate) -> Boolean) {
+    private fun registerBarometer(onData: (SensorUpdate) -> Unit) {
         altimeter?.startRelativeAltitudeUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.let {
                 val pressure = it.pressure.doubleValue.toFloat()
@@ -204,7 +212,7 @@ internal actual class SensorHandler : SensorController {
         }
     }
 
-    private fun registerStepCounter(onData: (SensorUpdate) -> Boolean) {
+    private fun registerStepCounter(onData: (SensorUpdate) -> Unit) {
         pedometer?.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
             data?.let {
                 val steps = it.numberOfSteps.intValue
@@ -220,7 +228,7 @@ internal actual class SensorHandler : SensorController {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun registerLocation(onData: (SensorUpdate) -> Boolean) {
+    private fun registerLocation(onData: (SensorUpdate) -> Unit) {
         locationManager.delegate =
             object : NSObject(), CLLocationManagerDelegateProtocol {
                 override fun locationManager(
@@ -263,7 +271,7 @@ internal actual class SensorHandler : SensorController {
         locationManager.startUpdatingLocation()
     }
 
-    private fun registerDeviceOrientation(onData: (SensorUpdate) -> Boolean) {
+    private fun registerDeviceOrientation(onData: (SensorUpdate) -> Unit) {
         UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
 
         // Send current orientation immediately
@@ -273,7 +281,8 @@ internal actual class SensorHandler : SensorController {
             Data(
                 type = SensorType.DEVICE_ORIENTATION,
                 Orientation(
-                    orientation = initialOrientation),
+                    orientation = initialOrientation
+                ),
                 PlatformType.iOS
             )
         )
@@ -305,7 +314,7 @@ internal actual class SensorHandler : SensorController {
         } as NSObject?
     }
 
-    private fun registerProximity(onData: (SensorUpdate) -> Boolean) {
+    private fun registerProximity(onData: (SensorUpdate) -> Unit) {
         val device = UIDevice.currentDevice
         device.proximityMonitoringEnabled = true
         proximityObserver = NSNotificationCenter.defaultCenter.addObserverForName(
@@ -329,7 +338,7 @@ internal actual class SensorHandler : SensorController {
         ) as NSObject?
     }
 
-    private fun registerLight(onData: (SensorUpdate) -> Boolean) {
+    private fun registerLight(onData: (SensorUpdate) -> Unit) {
         timer = NSTimer.scheduledTimerWithTimeInterval(
             0.5,
             repeats = true,
@@ -349,5 +358,9 @@ internal actual class SensorHandler : SensorController {
             }
         )
         NSRunLoop.mainRunLoop.addTimer(timer!!, NSRunLoopCommonModes)
+    }
+
+    private fun registerTouchGestures(onData: (SensorUpdate) -> Unit) {
+        touchGesturesMonitor.registerObserver(onData)
     }
 }
