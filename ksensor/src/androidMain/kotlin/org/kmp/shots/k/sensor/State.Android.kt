@@ -32,6 +32,7 @@ internal class AndroidStateHandler : StateController {
     private lateinit var connectivityMonitor: ConnectivityMonitor
     private val activeStateObservers = mutableMapOf<StateType, Any>()
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         types.forEach { stateType ->
             if (activeStateObservers.contains(stateType)) return@forEach
