@@ -1,4 +1,5 @@
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.runBlocking
 import org.kmp.shots.k.sensor.SensorHandler
 import org.kmp.shots.k.sensor.SensorType
@@ -50,13 +51,19 @@ class SensorManagerIosTest {
         assertSensorCallback(SensorType.LIGHT)
     }
 
+    @Test
+    fun testTouchGestures(){
+        assertSensorCallback(SensorType.TOUCH_GESTURES)
+    }
+
     private fun assertSensorCallback(sensorType: SensorType) = runBlocking {
         val sensorHandler = SensorHandler()
         var called = false
 
         sensorHandler.registerSensors(
             types = listOf(sensorType)
-        ).collect { senorUpdate ->
+        )
+        sensorHandler.sensorUpdates.collectLatest { senorUpdate ->
             when (senorUpdate) {
                 is SensorUpdate.Data -> {
                     println("SensorUpdate : ${senorUpdate.data}")
@@ -65,6 +72,8 @@ class SensorManagerIosTest {
 
                 is SensorUpdate.Error -> {
                 }
+
+                null -> {}
             }
         }
 
