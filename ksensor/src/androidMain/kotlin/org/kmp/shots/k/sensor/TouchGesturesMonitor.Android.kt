@@ -10,18 +10,26 @@ import android.view.Menu
 import android.view.MotionEvent
 import android.view.Window
 import androidx.annotation.RequiresApi
+import java.util.Collections
 
+/**
+ * On Android the TouchGesturesMonitor attaches window callbacks
+ * lazily to currently active Activities and future Activities.
+ */
 internal object TouchGesturesMonitor {
     private val context: Context by lazy { AppContext.get() }
 
-    val app = context.applicationContext as Application
-
+    private val app = context.applicationContext as Application
     @Volatile
     private var observer: ((SensorUpdate) -> Unit)? = null
 
+    /** Start tracking Activity lifecycles immediately on startup
+    This ensures the first Activity is caught **/
+    fun init() {
+        app.registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks)
+    }
     fun registerObserver(onData: (SensorUpdate) -> Unit) {
         observer = onData
-        app.registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks)
     }
 
     fun removeObserver(){
@@ -29,19 +37,16 @@ internal object TouchGesturesMonitor {
         app.unregisterActivityLifecycleCallbacks(ActivityLifecycleCallbacks)
     }
 
-    private object ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
-        private fun hookWindowCallback(activity: Activity) {
-            val window = activity.window
-            val originalCallback = window.callback
+    private fun hookWindowCallback(activity: Activity) {
+        val window = activity.window
+        if (window.callback is TouchInterceptingCallback) return
 
-            window.callback = TouchInterceptingCallback(
-                originalCallback,
-                onData = {
-                    observer?.invoke(it)
-                }
-            )
+        val originalCallback = window.callback
+        window.callback = TouchInterceptingCallback(originalCallback) {
+            observer?.invoke(it)
         }
-
+    }
+    private object ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
         override fun onActivityCreated(
             activity: Activity,
             savedInstanceState: Bundle?
@@ -58,9 +63,7 @@ internal object TouchGesturesMonitor {
         override fun onActivitySaveInstanceState(
             activity: Activity,
             outState: Bundle
-        ) {
-        }
-
+        ) {}
         override fun onActivityStarted(activity: Activity) {}
 
         override fun onActivityStopped(activity: Activity) {}
@@ -84,8 +87,8 @@ internal class TouchInterceptingCallback(
             SensorUpdate.Data(
                 type = SensorType.TOUCH_GESTURES,
                 data = SensorData.TouchGestures(
-                    x,
-                    y,
+                    x = x,
+                    y = y,
                     type = type
                 ), platformType = PlatformType.Android
             )
