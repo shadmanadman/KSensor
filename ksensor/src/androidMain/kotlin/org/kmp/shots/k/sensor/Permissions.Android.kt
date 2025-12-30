@@ -7,6 +7,7 @@ import android.provider.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -44,7 +45,7 @@ internal actual class PermissionsManager : PermissionHandler {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun LocationPermission(onPermissionStatus: (PermissionStatus) -> Unit) {
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val coarseLocationPermissionState =

@@ -18,7 +18,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "ComposeApp"
+            baseName = "ksensor"
             isStatic = true
         }
     }
@@ -41,80 +41,56 @@ kotlin {
         }
         commonMain.dependencies {
             implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
             implementation(libs.kotlin.test)
         }
     }
 }
 
 android {
-    namespace = "org.kmp.shots.k.sensor"
+    namespace = providers.gradleProperty("ANDROID_NAMESPACE").get()
     compileSdk = libs.versions.android.compileSdk.get().toInt()
-
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
         testOptions.targetSdk = libs.versions.android.targetSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
 }
 
-dependencies {
-    debugImplementation(compose.uiTooling)
-}
-
-
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    val tag: String? = System.getenv("GITHUB_REF")?.split("/")?.lastOrNull()
+    val tag = System.getenv("GITHUB_REF")?.substringAfterLast("/") ?: libs.versions.snapshotVersion.get()
 
     coordinates(
         groupId = libs.versions.groupId.get(),
         artifactId = libs.versions.artifactId.get(),
-        version = tag ?: "1.220.10-SNAPSHOT"
+        version = tag
     )
 
     pom {
-        name = "KSensor"
-        description = "A KMP library that provides Sensors info for both Android and iOS"
-        url = "https://github.com/shadmanadman/KSensor"
+        name.set(providers.gradleProperty("POM_NAME").get())
+        description.set(providers.gradleProperty("POM_DESCRIPTION").get())
+        url.set(providers.gradleProperty("POM_URL").get())
         licenses {
             license {
-                name = "Apache License, Version 2.0"
-                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                name.set(providers.gradleProperty("POM_LICENSE_NAME").get())
+                url.set(providers.gradleProperty("POM_LICENSE_URL").get())
             }
         }
         developers {
             developer {
-                id = "shadmanadman"
-                name = "Shadman Adman"
-                email = "adman.shadman@gmail.com"
+                id.set(providers.gradleProperty("POM_DEVELOPER_ID").get())
+                name.set(providers.gradleProperty("POM_DEVELOPER_NAME").get())
+                email.set(providers.gradleProperty("POM_DEVELOPER_EMAIL").get())
             }
         }
         scm {
-            connection = "scm:git:https://github.com/shadmanadman/KSensor"
-            developerConnection = "scm:git:github.com/shadmanadman/KSensor.git"
-            url = "https://github.com/shadmanadman/KSensor"
+            connection.set(providers.gradleProperty("SCM_CONNECTION").get())
+            developerConnection.set(providers.gradleProperty("SCM_DEVELOPER_CONNECTION").get())
+            url.set(providers.gradleProperty("POM_URL").get())
         }
     }
 }
