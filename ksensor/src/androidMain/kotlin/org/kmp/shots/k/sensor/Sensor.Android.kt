@@ -13,8 +13,11 @@ import android.location.LocationManager
 import android.view.OrientationEventListener
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import org.kmp.shots.k.sensor.SensorData.Accelerometer
 import org.kmp.shots.k.sensor.SensorData.Barometer
 import org.kmp.shots.k.sensor.SensorData.Gyroscope
@@ -36,36 +39,31 @@ internal actual class SensorHandler : SensorController {
 
     private val activeSensorListeners = mutableMapOf<SensorType, Any>()
 
-    actual override val sensorUpdates: MutableStateFlow<SensorUpdate?>
-        get() = super.sensorUpdates
-
     actual override fun registerSensors(
         types: List<SensorType>,
         locationIntervalMillis: SensorTimeInterval
-    ) {
+    ): Flow<SensorUpdate> = callbackFlow {
         types.forEach { sensorType ->
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
 
             when (sensorType) {
-                SensorType.ACCELEROMETER -> registerAccelerometer { sensorUpdates.value = it }
-                SensorType.GYROSCOPE -> registerGyroscope { sensorUpdates.value = it }
-                SensorType.MAGNETOMETER -> registerMagnetometer { sensorUpdates.value = it }
-                SensorType.BAROMETER -> registerBarometer { sensorUpdates.value = it }
-                SensorType.STEP_COUNTER -> registerStepCounter { sensorUpdates.value = it }
-                SensorType.LOCATION -> registerLocation(locationIntervalMillis) {
-                    sensorUpdates.value = it
-                }
-
-                SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation {
-                    sensorUpdates.value = it
-                }
-
-                SensorType.PROXIMITY -> registerProximity { sensorUpdates.value = it }
-                SensorType.LIGHT -> registerLight { sensorUpdates.value = it }
-                SensorType.TOUCH_GESTURES -> registerTouchGestures { sensorUpdates.value = it }
+                SensorType.ACCELEROMETER -> registerAccelerometer { trySend(it) }
+                SensorType.GYROSCOPE -> registerGyroscope { trySend(it) }
+                SensorType.MAGNETOMETER -> registerMagnetometer { trySend(it) }
+                SensorType.BAROMETER -> registerBarometer { trySend(it) }
+                SensorType.STEP_COUNTER -> registerStepCounter { trySend(it) }
+                SensorType.LOCATION -> registerLocation(locationIntervalMillis) { trySend(it) }
+                SensorType.DEVICE_ORIENTATION -> registerDeviceOrientation { trySend(it) }
+                SensorType.PROXIMITY -> registerProximity { trySend(it) }
+                SensorType.LIGHT -> registerLight { trySend(it) }
+                SensorType.TOUCH_GESTURES -> registerTouchGestures { trySend(it) }
             }.also {
                 println("Sensor registered for $sensorType on Android")
             }
+        }
+
+        awaitClose {
+            unregisterSensors(types)
         }
     }
 

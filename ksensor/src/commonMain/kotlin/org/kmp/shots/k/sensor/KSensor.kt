@@ -7,9 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 object KSensor : SensorController {
     private val sensorHandler: SensorHandler = SensorHandler()
 
-    override val sensorUpdates: MutableStateFlow<SensorUpdate?>
-        get() = super.sensorUpdates
-
     override fun registerSensors(
         types: List<SensorType>,
         locationIntervalMillis: SensorTimeInterval
