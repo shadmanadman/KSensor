@@ -62,8 +62,7 @@ class SensorManagerIosTest {
 
         sensorHandler.registerSensors(
             types = listOf(sensorType)
-        )
-        sensorHandler.sensorUpdates.collectLatest { senorUpdate ->
+        ).collect { senorUpdate ->
             when (senorUpdate) {
                 is SensorUpdate.Data -> {
                     println("SensorUpdate : ${senorUpdate.data}")
@@ -72,9 +71,8 @@ class SensorManagerIosTest {
 
                 is SensorUpdate.Error -> {
                 }
-
-                null -> {}
             }
+
         }
 
         delay(WAIT_FOR_SENSOR_DATA)

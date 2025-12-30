@@ -79,8 +79,7 @@ class SensorManagerAndroidTest {
         val sensorHandler = SensorHandler()
         var called = false
 
-        sensorHandler.registerSensors(types = listOf(sensorType))
-        sensorHandler.sensorUpdates.collectLatest { senorUpdate ->
+        sensorHandler.registerSensors(types = listOf(sensorType)).collect {senorUpdate ->
             when (senorUpdate) {
                 is SensorUpdate.Data -> {
                     println(senorUpdate.data.toString())
@@ -90,8 +89,6 @@ class SensorManagerAndroidTest {
                 is SensorUpdate.Error -> {
                     println(senorUpdate.exception)
                 }
-
-                null -> {}
             }
         }
 
