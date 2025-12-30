@@ -15,7 +15,7 @@ Add it in your `commonMain.dependencies` :
 
 ### Sensors Observation
 
-- Create a list of sensors that you need.
+- Create a list of sensors you need to observe.
 
 ``` kotlin
 val sensors = listof(
@@ -27,7 +27,8 @@ SensorType.STEP_COUNTER,
 SensorType.LOCATION,
 SensorType.DEVICE_ORIENTATION,
 SensorType.PROXIMITY,
-SensorType.LIGHT)
+SensorType.LIGHT,
+SensorType.TOUCH_GESTURES)
 ```
 
 - Register sensors for observation.
@@ -63,6 +64,7 @@ Location(val lat: Double? = null, val lon: Double? = null, val alt: Double? = nu
 Orientation(val orientation: DeviceOrientation,val orientationInt: Int = 0)
 Proximity(val distanceInCM: Float, val isNear: Boolean)
 LightIlluminance(val illuminance: Float)
+TouchGestures(val x: Float,val y: Float,val type: TouchGestureType)
 ```
 
 ### States Observation
