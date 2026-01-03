@@ -10,13 +10,13 @@ import android.hardware.SensorManager.SENSOR_DELAY_NORMAL
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Handler
+import android.os.HandlerThread
 import android.view.OrientationEventListener
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import org.kmp.shots.k.sensor.SensorData.Accelerometer
 import org.kmp.shots.k.sensor.SensorData.Barometer
@@ -39,12 +39,17 @@ internal actual class SensorHandler : SensorController {
 
     private val activeSensorListeners = mutableMapOf<SensorType, Any>()
 
+    private val sensorListenerThread = HandlerThread("SensorListenerThread")
+    private val sensorListenerHandler = Handler(sensorListenerThread.looper)
+
     actual override fun registerSensors(
         types: List<SensorType>,
         locationIntervalMillis: SensorTimeInterval
     ): Flow<SensorUpdate> = callbackFlow {
         types.forEach { sensorType ->
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
+
+            sensorListenerThread.start()
 
             when (sensorType) {
                 SensorType.ACCELEROMETER -> registerAccelerometer { trySend(it) }
@@ -111,7 +116,7 @@ internal actual class SensorHandler : SensorController {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
-            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
             activeSensorListeners[SensorType.ACCELEROMETER] = listener
         } ?: println("ACCELEROMETER not available")
     }
@@ -134,7 +139,7 @@ internal actual class SensorHandler : SensorController {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
         sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE).also {
-            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
             activeSensorListeners[SensorType.GYROSCOPE] = listener
         } ?: println("GYROSCOPE not available")
     }
@@ -158,7 +163,7 @@ internal actual class SensorHandler : SensorController {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
         sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD).also {
-            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
             activeSensorListeners[SensorType.MAGNETOMETER] = listener
         } ?: println("MAGNETOMETER not available")
     }
@@ -179,7 +184,7 @@ internal actual class SensorHandler : SensorController {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
         sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).also {
-            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
             activeSensorListeners[SensorType.BAROMETER] = listener
         } ?: println("BAROMETER not available")
     }
@@ -201,7 +206,7 @@ internal actual class SensorHandler : SensorController {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
         sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER).also {
-            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
             activeSensorListeners[SensorType.STEP_COUNTER] = listener
         } ?: println("Step counter not available")
     }
@@ -314,7 +319,7 @@ internal actual class SensorHandler : SensorController {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
         sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY).also {
-            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
             activeSensorListeners[SensorType.PROXIMITY] = listener
         } ?: println("Proximity sensor not available")
     }
@@ -336,7 +341,7 @@ internal actual class SensorHandler : SensorController {
         }
 
         sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).also {
-            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
             activeSensorListeners[SensorType.LIGHT] = listener
         } ?: println("Light sensor not available")
     }
@@ -346,11 +351,6 @@ internal actual class SensorHandler : SensorController {
         activeSensorListeners[SensorType.TOUCH_GESTURES] = touchGestureMonitor
     }
 }
-
-
-
-
-
 
 
 @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
