@@ -40,7 +40,10 @@ internal actual class SensorHandler : SensorController {
     private val activeSensorListeners = mutableMapOf<SensorType, Any>()
 
     private val sensorListenerThread = HandlerThread("SensorListenerThread")
-    private val sensorListenerHandler = Handler(sensorListenerThread.looper)
+    private val sensorListenerHandler: Handler by lazy {
+        sensorListenerThread.start()
+        Handler(sensorListenerThread.looper)
+    }
 
     actual override fun registerSensors(
         types: List<SensorType>,
@@ -48,8 +51,6 @@ internal actual class SensorHandler : SensorController {
     ): Flow<SensorUpdate> = callbackFlow {
         types.forEach { sensorType ->
             if (activeSensorListeners.containsKey(sensorType)) return@forEach
-
-            sensorListenerThread.start()
 
             when (sensorType) {
                 SensorType.ACCELEROMETER -> registerAccelerometer { trySend(it) }
