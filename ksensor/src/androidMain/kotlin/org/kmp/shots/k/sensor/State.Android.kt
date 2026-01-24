@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.location.LocationManager
+import android.media.AudioManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -19,7 +20,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-actual fun createController(): StateController  = AndroidStateHandler()
+actual fun createController(): StateController = AndroidStateHandler()
 
 internal class AndroidStateHandler : StateController {
     private val context: Context by lazy { AppContext.get() }
@@ -42,7 +43,7 @@ internal class AndroidStateHandler : StateController {
                 StateType.APP_VISIBILITY -> observerAppVisibility { trySend(it).isSuccess }
                 StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
                 StateType.LOCATION -> observerLocation { trySend(it).isSuccess }
-                StateType.VOLUME -> TODO()
+                StateType.VOLUME -> observeVolume { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on Android")
             }
@@ -60,7 +61,7 @@ internal class AndroidStateHandler : StateController {
                 is ConnectivityManager -> connectivityManager.unregisterNetworkCallback(
                     connectivityMonitor
                 )
-
+                is VolumeReceiver -> context.unregisterReceiver(listener)
                 else -> println("Observer not found for $stateType on Android")
             }.also {
                 println("Observer removed for $stateType on Android")
@@ -73,6 +74,21 @@ internal class AndroidStateHandler : StateController {
         permission: PermissionType,
         onPermissionStatus: (PermissionStatus) -> Unit
     ) = Unit
+
+    private fun observeVolume(onData: (StateUpdate) -> Unit) {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val volumeReceiver = VolumeReceiver(audioManager) {
+            onData(
+                StateUpdate.Data(
+                    type = StateType.VOLUME,
+                    data = StateData.VolumeStatus(it),
+                    platformType = PlatformType.Android
+                )
+            )
+        }
+        context.registerReceiver(volumeReceiver, IntentFilter(VOLUME_CHANGED_ACTION))
+        activeStateObservers[StateType.VOLUME] = volumeReceiver
+    }
 
     @RequiresApi(Build.VERSION_CODES.P)
     private fun observerLocation(onData: (StateUpdate) -> Boolean) {
