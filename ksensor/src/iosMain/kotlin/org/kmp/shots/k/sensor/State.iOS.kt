@@ -29,6 +29,7 @@ internal class IOSStateHandler : StateController {
                 StateType.APP_VISIBILITY -> observerAppVisibility { trySend(it).isSuccess }
                 StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
                 StateType.LOCATION -> observeLocation { trySend(it).isSuccess }
+                StateType.VOLUME -> TODO()
             }.also {
                 println("Observer added for $stateType on iOS")
             }
@@ -54,6 +55,7 @@ internal class IOSStateHandler : StateController {
                 )
 
                 StateType.LOCATION -> locationProviderReceiver.dispose()
+                StateType.VOLUME -> TODO()
             }.also {
                 println("Observer removed for $stateType on iOS")
             }

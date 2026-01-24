@@ -1,18 +1,14 @@
 package org.kmp.shots.k.sensor
 
 
-enum class StateType{
+enum class StateType {
     SCREEN,
     APP_VISIBILITY,
     CONNECTIVITY,
     ACTIVE_NETWORK,
-    LOCATION
+    LOCATION,
+    VOLUME
 }
-
-
-
-
-
 
 
 sealed class StateData {
@@ -28,13 +24,15 @@ sealed class StateData {
         val isScreenOn: Boolean,
     ) : StateData()
 
-    data class CurrentActiveNetwork(val activeNetwork: ActiveNetwork) : StateData(){
-        enum class ActiveNetwork{
+    data class CurrentActiveNetwork(val activeNetwork: ActiveNetwork) : StateData() {
+        enum class ActiveNetwork {
             WIFI,
             CELLULAR,
             NONE
         }
     }
+
+    data class VolumeStatus(val volumePercentage: Int): StateData()
     data class ConnectivityStatus(
         val isConnected: Boolean,
     ) : StateData()

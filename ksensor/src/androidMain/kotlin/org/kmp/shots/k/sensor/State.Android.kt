@@ -42,6 +42,7 @@ internal class AndroidStateHandler : StateController {
                 StateType.APP_VISIBILITY -> observerAppVisibility { trySend(it).isSuccess }
                 StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
                 StateType.LOCATION -> observerLocation { trySend(it).isSuccess }
+                StateType.VOLUME -> TODO()
             }.also {
                 println("Observer added for $stateType on Android")
             }
