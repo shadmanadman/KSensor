@@ -61,6 +61,7 @@ internal class AndroidStateHandler : StateController {
                 is ConnectivityManager -> connectivityManager.unregisterNetworkCallback(
                     connectivityMonitor
                 )
+
                 is VolumeReceiver -> context.unregisterReceiver(listener)
                 else -> println("Observer not found for $stateType on Android")
             }.also {
@@ -86,6 +87,14 @@ internal class AndroidStateHandler : StateController {
                 )
             )
         }
+        // Send current volume for first time
+        onData(
+            StateUpdate.Data(
+                type = StateType.VOLUME,
+                data = StateData.VolumeStatus(volumeReceiver.getCurrentVolume()),
+                platformType = PlatformType.Android
+            )
+        )
         context.registerReceiver(volumeReceiver, IntentFilter(VOLUME_CHANGED_ACTION))
         activeStateObservers[StateType.VOLUME] = volumeReceiver
     }

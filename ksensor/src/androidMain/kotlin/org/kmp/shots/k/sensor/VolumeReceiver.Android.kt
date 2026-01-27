@@ -15,4 +15,8 @@ class VolumeReceiver(val audioManager: AudioManager, val onVolumeChange: (Int) -
         if (intent?.action == VOLUME_CHANGED_ACTION)
             onVolumeChange(audioManager.getStreamVolume(streamType))
     }
+
+    fun getCurrentVolume():Int{
+        return audioManager.getStreamVolume(streamType)
+    }
 }

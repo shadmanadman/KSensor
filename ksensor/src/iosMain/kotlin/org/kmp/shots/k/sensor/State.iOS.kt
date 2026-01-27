@@ -81,6 +81,7 @@ internal class IOSStateHandler : StateController {
     }
 
     private fun observeVolume(onData: (StateUpdate) -> Unit) {
+        // Send current volume for first time
         onData(
             Data(
                 type = StateType.VOLUME,
