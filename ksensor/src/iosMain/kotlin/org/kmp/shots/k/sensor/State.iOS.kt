@@ -22,6 +22,7 @@ internal class IOSStateHandler : StateController {
 
     private lateinit var locationProviderReceiver: LocationProviderReceiver
     private val connectivityMonitor = ConnectivityMonitor
+    private val volumeReceiver = VolumeReceiver()
     override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         types.forEach { stateType ->
             when (stateType) {
@@ -29,7 +30,7 @@ internal class IOSStateHandler : StateController {
                 StateType.APP_VISIBILITY -> observerAppVisibility { trySend(it).isSuccess }
                 StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
                 StateType.LOCATION -> observeLocation { trySend(it).isSuccess }
-                StateType.VOLUME -> TODO()
+                StateType.VOLUME -> observeVolume { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on iOS")
             }
@@ -55,7 +56,7 @@ internal class IOSStateHandler : StateController {
                 )
 
                 StateType.LOCATION -> locationProviderReceiver.dispose()
-                StateType.VOLUME -> TODO()
+                StateType.VOLUME -> volumeReceiver.removeObserver()
             }.also {
                 println("Observer removed for $stateType on iOS")
             }
@@ -79,10 +80,28 @@ internal class IOSStateHandler : StateController {
         }
     }
 
+    private fun observeVolume(onData: (StateUpdate) -> Unit) {
+        onData(
+            Data(
+                type = StateType.VOLUME,
+                data = StateData.VolumeStatus(volumeReceiver.getCurrentVolume()),
+                platformType = PlatformType.iOS
+            )
+        )
+
+        volumeReceiver.registerObserver {
+            Data(
+                type = StateType.VOLUME,
+                data = StateData.VolumeStatus(it),
+                platformType = PlatformType.iOS
+            )
+        }
+    }
+
     private fun observeConnectivity(onData: (StateUpdate) -> Boolean) {
         connectivityMonitor.register(monitor, isConnected = {
             onData(
-                StateUpdate.Data(
+                Data(
                     type = StateType.CONNECTIVITY,
                     data = StateData.ConnectivityStatus(isConnected = it),
                     platformType = PlatformType.iOS
@@ -90,7 +109,7 @@ internal class IOSStateHandler : StateController {
             )
         }, currentActiveNetwork = {
             onData(
-                StateUpdate.Data(
+                Data(
                     type = StateType.ACTIVE_NETWORK,
                     data = StateData.CurrentActiveNetwork(it),
                     platformType = PlatformType.iOS
@@ -101,7 +120,7 @@ internal class IOSStateHandler : StateController {
 
     private fun observerAppVisibility(onData: (StateUpdate) -> Boolean) {
         onData(
-            StateUpdate.Data(
+            Data(
                 type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
                     false
                 ),
@@ -130,7 +149,7 @@ internal class IOSStateHandler : StateController {
             queue = NSOperationQueue.mainQueue()
         ) {
             onData(
-                StateUpdate.Data(
+                Data(
                     type = StateType.APP_VISIBILITY, StateData.AppVisibilityStatus(
                         false
                     ),
