@@ -21,6 +21,9 @@ kotlin {
             baseName = "ksensor"
             isStatic = true
         }
+        iosTarget.compilations.getByName("main") {
+            val nskeyvalueobserving by cinterops.creating
+        }
     }
 
     sourceSets {

@@ -14,7 +14,7 @@ accompanist-permissions = "0.32.0"
 vanniktech-publish = "0.34.0"
 groupId = "io.github.shadmanadman"
 artifactId = "KSensor"
-snapshotVersion = "1.299.10-SNAPSHOT"
+snapshotVersion = "2.0.13-SNAPSHOT"
 [libraries]
 androidx-core = { module = "androidx.test:core", version.ref = "core" }
 androidx-rules = { module = "androidx.test:rules", version.ref = "core" }

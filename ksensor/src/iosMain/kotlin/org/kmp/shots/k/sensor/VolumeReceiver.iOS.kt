@@ -1,39 +1,67 @@
 package org.kmp.shots.k.sensor
 
+import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.AVAudioSessionCategoryAmbient
 import platform.AVFAudio.outputVolume
 import platform.AVFAudio.setActive
-import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSKeyValueChangeNewKey
+import platform.Foundation.NSKeyValueObservingOptionNew
+import platform.Foundation.addObserver
+import platform.Foundation.removeObserver
+import platform.darwin.NSObject
+import platform.foundation.NSKeyValueObservingProtocol
 
 @OptIn(ExperimentalForeignApi::class)
 class VolumeReceiver {
-    val session = AVAudioSession.sharedInstance()
+    private val session = AVAudioSession.sharedInstance()
+    private var observer: VolumeObserver? = null
+    private val volumeKey = "outputVolume"
 
-    fun registerObserver(onVolumeChange: (Int) -> Unit) {
-        session.setActive(true, null)
-
-        NSNotificationCenter.defaultCenter.addObserverForName(
-            name = "SystemVolumeDidChange",
-            `object` = null,
-            queue = null
-        ) { notification ->
-            val volume =
-                notification?.userInfo?.get("AVSystemController_AudioVolumeNotificationParameter") as? Float
-            volume?.let { onVolumeChange(it.toInt()) }
+    private inner class VolumeObserver(val onVolumeChange: (Int) -> Unit) : NSObject(),
+        NSKeyValueObservingProtocol {
+        override fun observeValueForKeyPath(
+            keyPath: String?,
+            ofObject: Any?,
+            change: Map<Any?, *>?,
+            context: COpaquePointer?
+        ) {
+            if (keyPath == volumeKey) {
+                val volume = change?.get(NSKeyValueChangeNewKey) as? Float ?: return
+                onVolumeChange((volume * 100).toInt())
+            }
         }
     }
 
-    fun removeObserver() {
-        session.setActive(false, null)
-        NSNotificationCenter.defaultCenter.removeObserver(
-            observer = {},
-            name = "SystemVolumeDidChange",
-            `object` = null
+    init {
+        session.setCategory(
+            AVAudioSessionCategoryAmbient,
+            error = null
+        )
+        session.setActive(true, error = null)
+    }
+
+    fun registerObserver(onVolumeChange: (Int) -> Unit) {
+        val newObserver = VolumeObserver(onVolumeChange)
+        observer = newObserver
+
+        session.addObserver(
+            observer = newObserver,
+            forKeyPath = volumeKey,
+            options = NSKeyValueObservingOptionNew,
+            context = null
         )
     }
 
+    fun removeObserver() {
+        observer?.let {
+            session.removeObserver(it, volumeKey)
+            observer = null
+        }
+    }
+
     fun getCurrentVolume(): Int {
-        return AVAudioSession.sharedInstance().outputVolume.toInt()
+        return (session.outputVolume * 100).toInt()
     }
 }
