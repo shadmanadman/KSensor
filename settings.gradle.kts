@@ -29,3 +29,6 @@ dependencyResolutionManagement {
 }
 
 include(":ksensor")
+include(":sensor")
+include(":state")
+include(":permission")
