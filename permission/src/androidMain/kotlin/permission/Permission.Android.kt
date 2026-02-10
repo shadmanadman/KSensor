@@ -12,19 +12,18 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
-import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 
 
-expect fun createHanlder () = AndroidPermissionHanlder()
+actual fun createHanlder(): PermissionHandler = AndroidPermissionHandler()
 
-internal class AndroidPermissionHanlder : PermissionHandler {
+internal class AndroidPermissionHandler : PermissionHandler {
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
-    actual override fun askPermission(
+    override fun askPermission(
         permission: PermissionType,
         permissionStatus: (PermissionStatus) -> Unit
     ) {
@@ -34,7 +33,7 @@ internal class AndroidPermissionHanlder : PermissionHandler {
     }
 
     @Composable
-    actual override fun launchSettings() {
+    override fun launchSettings() {
         val context = LocalContext.current
         Intent(
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

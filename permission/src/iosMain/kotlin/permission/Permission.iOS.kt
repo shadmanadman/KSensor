@@ -1,34 +1,31 @@
-package org.kmp.shots.k.sensor
+package permission
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import permission.PermissionHandler
-import permission.PermissionStatus
-import permission.PermissionType
 import platform.CoreLocation.CLAuthorizationStatus
 import platform.CoreLocation.CLLocationManager
+import platform.CoreLocation.CLLocationManagerDelegateProtocol
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.CoreLocation.kCLAuthorizationStatusDenied
 import platform.CoreLocation.kCLAuthorizationStatusNotDetermined
 import platform.CoreLocation.kCLAuthorizationStatusRestricted
 import platform.Foundation.NSURL
-import platform.CoreLocation.CLLocationManagerDelegateProtocol
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.darwin.NSObject
 
-expect fun createHanlder() = iOSPermissionHanlder()
+actual fun createHanlder() : PermissionHandler = iOSPermissionHanlder()
 private val locationManager = CLLocationManager()
 
-internal actual class iOSPermissionHanlder : PermissionHandler {
+internal class iOSPermissionHanlder : PermissionHandler {
     @Composable
-    actual override fun askPermission(
+    override fun askPermission(
         permission: PermissionType,
         permissionStatus: (PermissionStatus) -> Unit
     ) {
         when(permission) {
-            permission.PermissionType.LOCATION -> {
+            PermissionType.LOCATION -> {
                 val status =
                     remember { locationManager.authorizationStatus() }
                 askLocationPermission(status, permissionStatus)
@@ -37,7 +34,7 @@ internal actual class iOSPermissionHanlder : PermissionHandler {
     }
 
     @Composable
-    actual override fun launchSettings() {
+    override fun launchSettings() {
         NSURL.URLWithString(UIApplicationOpenSettingsURLString)?.let {
             UIApplication.sharedApplication.openURL(it)
         }
