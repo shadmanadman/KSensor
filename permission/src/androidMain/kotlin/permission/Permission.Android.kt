@@ -18,7 +18,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 
 
-actual fun createHanlder(): PermissionHandler = AndroidPermissionHandler()
+actual fun createPermissionHandler(): PermissionHandler = AndroidPermissionHandler()
 
 internal class AndroidPermissionHandler : PermissionHandler {
     @OptIn(ExperimentalPermissionsApi::class)

@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import sensor.SensorUpdate.*
 import sensor.SensorData.*
 import kotlinx.coroutines.flow.callbackFlow
+import permission.PermissionStatus
+import permission.PermissionType
+import permission.createPermissionHandler
 import platform.CoreLocation.CLLocation
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.CLLocationManagerDelegateProtocol
@@ -33,6 +36,7 @@ import platform.darwin.NSObject
 actual fun createController() :SensorController = iOSSensorController()
 internal class iOSSensorController : SensorController {
 
+    private val permissionHandler = createPermissionHandler()
     private val motionManager = CMMotionManager()
     private val altimeter = if (CMAltimeter.isRelativeAltitudeAvailable()) CMAltimeter() else null
     private val pedometer = if (CMPedometer.isStepCountingAvailable()) CMPedometer() else null
@@ -110,7 +114,7 @@ internal class iOSSensorController : SensorController {
         permission: PermissionType,
         onPermissionStatus: (PermissionStatus) -> Unit
     ) {
-        PermissionsManager().askPermission(permission, onPermissionStatus)
+        permissionHandler.askPermission(permission, onPermissionStatus)
     }
 
     @OptIn(ExperimentalForeignApi::class)

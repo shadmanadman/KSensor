@@ -15,7 +15,7 @@ import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.darwin.NSObject
 
-actual fun createHanlder() : PermissionHandler = iOSPermissionHanlder()
+actual fun createPermissionHandler() : PermissionHandler = iOSPermissionHanlder()
 private val locationManager = CLLocationManager()
 
 internal class iOSPermissionHanlder : PermissionHandler {

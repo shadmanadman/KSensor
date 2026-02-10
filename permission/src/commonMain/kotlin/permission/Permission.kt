@@ -11,7 +11,7 @@ interface PermissionHandler {
 
 }
 
-expect fun createHandler(): PermissionHandler
+expect fun createPermissionHandler(): PermissionHandler
 
 enum class PermissionType {
     LOCATION

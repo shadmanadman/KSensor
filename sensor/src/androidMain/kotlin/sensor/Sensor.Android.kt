@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import permission.PermissionStatus
+import permission.PermissionType
+import permission.createPermissionHandler
 import sensor.SensorData.Accelerometer
 import sensor.SensorData.Barometer
 import sensor.SensorData.Gyroscope
@@ -31,6 +34,7 @@ actual fun createController() : SensorController = AndroidSensorHandler()
 internal class AndroidSensorHandler : SensorController {
     private val context: Context by lazy { AppContext.get() }
 
+    private val permissionHandler = createPermissionHandler()
     private val sensorManager =
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val locationManager =
@@ -90,11 +94,11 @@ internal class AndroidSensorHandler : SensorController {
     }
 
     @Composable
-    fun HandelPermissions(
+    fun AskPermissions(
         permission: PermissionType,
         onPermissionStatus: (PermissionStatus) -> Unit
     ) {
-        PermissionsManager().askPermission(permission, onPermissionStatus)
+        permissionHandler.askPermission(permission, onPermissionStatus)
     }
 
     private fun registerAccelerometer(onData: (SensorUpdate) -> Unit) {
