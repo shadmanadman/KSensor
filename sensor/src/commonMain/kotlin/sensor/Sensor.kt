@@ -3,9 +3,10 @@ package sensor
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import permission.PermissionStatus
+import permission.PermissionType
+import permission.createPermissionHandler
 
 const val DEFAULT_INTERVAL_MILLIS = 1000L
 typealias SensorTimeInterval = Long
@@ -23,11 +24,18 @@ interface SensorController {
     ): Flow<SensorUpdate>
 
     fun unregisterSensors(types: List<SensorType>)
+
+    @Composable
+    fun AskPermission(permissionType: PermissionType,permissionStatus: (PermissionStatus)-> Unit)
+    @Composable
+    fun OpenSettingsForPermission()
 }
 
 expect fun createController() : SensorController
 
 internal class FakeSensorController : SensorController {
+    private val permissionHandler = createPermissionHandler()
+
     val registeredSensors = mutableListOf<SensorType>()
 
     override fun registerSensors(
@@ -40,5 +48,18 @@ internal class FakeSensorController : SensorController {
 
     override fun unregisterSensors(types: List<SensorType>) {
         types.forEach { registeredSensors.remove(it) }
+    }
+
+    @Composable
+    override fun AskPermission(
+        permissionType: PermissionType,
+        permissionStatus: (PermissionStatus) -> Unit
+    ) {
+        permissionHandler.AskPermission(permissionType,permissionStatus)
+    }
+
+    @Composable
+    override fun OpenSettingsForPermission() {
+        permissionHandler.OpenSettingsForPermission()
     }
 }

@@ -21,9 +21,6 @@ kotlin {
             baseName = "ksensor"
             isStatic = true
         }
-        iosTarget.compilations.getByName("main") {
-            val nskeyvalueobserving by cinterops.creating
-        }
     }
 
     sourceSets {
@@ -43,6 +40,8 @@ kotlin {
             implementation(libs.androidx.espresso.core)
         }
         commonMain.dependencies {
+            implementation(project(":sensor"))
+            implementation(project(":state"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(libs.kotlin.test)

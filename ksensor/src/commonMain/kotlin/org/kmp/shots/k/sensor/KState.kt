@@ -2,6 +2,11 @@ package org.kmp.shots.k.sensor
 
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.Flow
+import permission.PermissionStatus
+import permission.PermissionType
+import state.StateType
+import state.StateUpdate
+import state.createController
 
 object KState  {
     private val controller = createController()
@@ -9,10 +14,4 @@ object KState  {
     suspend fun addObserver(types: List<StateType>): Flow<StateUpdate> = controller.addObserver(types)
 
     suspend fun removeObserver(types: List<StateType>)  = controller.removeObserver(types)
-
-    @Composable
-   fun HandelPermissions(
-        permission: PermissionType,
-        onPermissionStatus: (PermissionStatus) -> Unit
-    ) =  controller.HandelPermissions(permission,onPermissionStatus)
 }

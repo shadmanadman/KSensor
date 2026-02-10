@@ -16,6 +16,7 @@ import android.os.HandlerThread
 import android.view.OrientationEventListener
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -35,6 +36,7 @@ internal class AndroidSensorHandler : SensorController {
     private val context: Context by lazy { AppContext.get() }
 
     private val permissionHandler = createPermissionHandler()
+    private val permissionStatus = mutableStateOf(PermissionStatus.DENIED)
     private val sensorManager =
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val locationManager =
@@ -94,11 +96,16 @@ internal class AndroidSensorHandler : SensorController {
     }
 
     @Composable
-    fun AskPermissions(
-        permission: PermissionType,
-        onPermissionStatus: (PermissionStatus) -> Unit
+    override fun AskPermission(
+        permissionType: PermissionType,
+        permissionStatus: (PermissionStatus) -> Unit
     ) {
-        permissionHandler.askPermission(permission, onPermissionStatus)
+        permissionHandler.AskPermission(permissionType,permissionStatus)
+    }
+
+    @Composable
+    override fun OpenSettingsForPermission() {
+        permissionHandler.OpenSettingsForPermission()
     }
 
     private fun registerAccelerometer(onData: (SensorUpdate) -> Unit) {
@@ -216,6 +223,7 @@ internal class AndroidSensorHandler : SensorController {
             activeSensorListeners[SensorType.STEP_COUNTER] = listener
         } ?: println("Step counter not available")
     }
+
 
     @SuppressLint("MissingPermission")
     private fun registerLocation(
