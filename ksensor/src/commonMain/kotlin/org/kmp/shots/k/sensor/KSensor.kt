@@ -1,8 +1,6 @@
 package org.kmp.shots.k.sensor
 
 import androidx.compose.runtime.Composable
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import permission.PermissionStatus
 import permission.PermissionType
 import sensor.SensorController

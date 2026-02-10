@@ -42,6 +42,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":sensor"))
             implementation(project(":state"))
+            implementation(project(":permission"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(libs.kotlin.test)
