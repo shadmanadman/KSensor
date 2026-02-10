@@ -20,7 +20,7 @@ private val locationManager = CLLocationManager()
 
 internal class iOSPermissionHanlder : PermissionHandler {
     @Composable
-    override fun askPermission(
+    override fun AskPermission(
         permission: PermissionType,
         permissionStatus: (PermissionStatus) -> Unit
     ) {
@@ -34,7 +34,7 @@ internal class iOSPermissionHanlder : PermissionHandler {
     }
 
     @Composable
-    override fun launchSettings() {
+    override fun OpenSettingsForPermission() {
         NSURL.URLWithString(UIApplicationOpenSettingsURLString)?.let {
             UIApplication.sharedApplication.openURL(it)
         }

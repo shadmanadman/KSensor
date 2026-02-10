@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 
 interface PermissionHandler {
     @Composable
-    fun askPermission(permission: PermissionType, permissionStatus: (PermissionStatus) -> Unit)
+    fun AskPermission(permission: PermissionType, permissionStatus: (PermissionStatus) -> Unit)
 
     @Composable
-    fun launchSettings()
+    fun OpenSettingsForPermission()
 
 }
 
@@ -20,5 +20,6 @@ enum class PermissionType {
 enum class PermissionStatus {
     GRANTED,
     DENIED,
-    SHOW_RATIONAL
+    SHOW_RATIONAL,
+    UNKNOWN
 }

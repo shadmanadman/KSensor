@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
@@ -23,7 +24,7 @@ actual fun createPermissionHandler(): PermissionHandler = AndroidPermissionHandl
 internal class AndroidPermissionHandler : PermissionHandler {
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
-    override fun askPermission(
+    override fun AskPermission(
         permission: PermissionType,
         permissionStatus: (PermissionStatus) -> Unit
     ) {
@@ -33,7 +34,7 @@ internal class AndroidPermissionHandler : PermissionHandler {
     }
 
     @Composable
-    override fun launchSettings() {
+    override fun OpenSettingsForPermission() {
         val context = LocalContext.current
         Intent(
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -49,7 +50,7 @@ internal class AndroidPermissionHandler : PermissionHandler {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun LocationPermission(onPermissionStatus: (PermissionStatus) -> Unit) {
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val coarseLocationPermissionState =
