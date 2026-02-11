@@ -110,12 +110,14 @@ internal class iOSSensorController : SensorController {
     }
 
     @Composable
-     fun HandelPermissions(
-        permission: PermissionType,
-        onPermissionStatus: (PermissionStatus) -> Unit
-    ) {
-        permissionHandler.askPermission(permission, onPermissionStatus)
-    }
+    override fun AskPermission(
+        permissionType: PermissionType,
+        permissionStatus: (PermissionStatus) -> Unit
+    ) = permissionHandler.AskPermission(permissionType, permissionStatus)
+
+
+    @Composable
+    override fun OpenSettingsForPermission()  = permissionHandler.OpenSettingsForPermission()
 
     @OptIn(ExperimentalForeignApi::class)
     private fun registerAccelerometer(onData: (SensorUpdate) -> Unit) {
