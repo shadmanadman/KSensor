@@ -21,14 +21,31 @@ kotlin {
             baseName = "ksensor"
             isStatic = true
         }
+        iosTarget.compilations.getByName("main") {
+            val nskeyvalueobserving by cinterops.creating
+        }
     }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.accompanist.permissions)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.lifecycle)
+            implementation(libs.androidx.startup)
+
+        }
+
+        androidInstrumentedTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.androidx.test.junit)
+            implementation(libs.androidx.core)
+            implementation(libs.androidx.rules)
+            implementation(libs.androidx.espresso.core)
+        }
         commonMain.dependencies {
-            implementation(project(":sensor"))
-            implementation(project(":state"))
-            implementation(project(":permission"))
             implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(libs.kotlin.test)
         }
     }
 }
