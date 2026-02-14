@@ -41,7 +41,6 @@ internal class LocaleReceiver(
         val locale = NSLocale.currentLocale
         val languageCode = locale.languageCode
 
-        // Detect RTL using iOS Foundation API
         val direction = NSLocale.characterDirectionForLanguage(languageCode)
         val isRtl = direction == NSLocaleLanguageDirectionRightToLeft
 

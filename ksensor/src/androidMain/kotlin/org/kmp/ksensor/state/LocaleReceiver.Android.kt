@@ -21,14 +21,9 @@ internal class LocaleReceiver(
     }
 
     fun getCurrentLocale(): StateData.LocaleInfo {
-        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        val locale =
             context.resources.configuration.locales[0]
-        } else {
-            @Suppress("DEPRECATION")
-            context.resources.configuration.locale
-        }
 
-        // Detect RTL using Android's standard API
         val isRtl = locale.layoutDirection == View.LAYOUT_DIRECTION_RTL
 
         return StateData.LocaleInfo(

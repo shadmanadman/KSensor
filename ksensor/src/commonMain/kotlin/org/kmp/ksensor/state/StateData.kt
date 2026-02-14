@@ -43,10 +43,10 @@ sealed class StateData {
     ) : StateData()
 
     data class LocaleInfo(
-        val languageCode: String,      // ISO 639 (e.g., "en", "ar", "he")
-        val countryCode: String,       // ISO 3166 (e.g., "US", "SA", "IL")
-        val fullLocaleString: String,  // Complete identifier (e.g., "en_US", "ar_SA")
-        val displayName: String,       // Human-readable (e.g., "English (United States)")
-        val isRTL: Boolean             // Right-to-left layout (true for Arabic, Hebrew, etc.)
+        val languageCode: String,
+        val countryCode: String,
+        val fullLocaleString: String,
+        val displayName: String,
+        val isRTL: Boolean
     ) : StateData()
 }
