@@ -45,6 +45,7 @@ internal class AndroidStateHandler : StateController {
                 StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
                 StateType.LOCATION -> observerLocation { trySend(it).isSuccess }
                 StateType.VOLUME -> observeVolume { trySend(it).isSuccess }
+                StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on Android")
             }
@@ -64,11 +65,40 @@ internal class AndroidStateHandler : StateController {
                 )
 
                 is VolumeReceiver -> context.unregisterReceiver(listener)
+                is LocaleReceiver -> context.unregisterReceiver(listener)
                 else -> println("Observer not found for $stateType on Android")
             }.also {
                 println("Observer removed for $stateType on Android")
             }
         }
+    }
+
+    private fun observeLocale(onData: (StateUpdate) -> Unit) {
+        val localeReceiver = LocaleReceiver(context) { localeInfo ->
+            onData(
+                StateUpdate.Data(
+                    type = StateType.LOCALE,
+                    data = localeInfo,
+                    platformType = PlatformType.Android
+                )
+            )
+        }
+
+        // Send current locale immediately
+        onData(
+            StateUpdate.Data(
+                type = StateType.LOCALE,
+                data = localeReceiver.getCurrentLocale(),
+                platformType = PlatformType.Android
+            )
+        )
+
+        // Register for future changes
+        context.registerReceiver(
+            localeReceiver,
+            IntentFilter(Intent.ACTION_LOCALE_CHANGED)
+        )
+        activeStateObservers[StateType.LOCALE] = localeReceiver
     }
 
     private fun observeVolume(onData: (StateUpdate) -> Unit) {

@@ -21,6 +21,7 @@ internal class IOSStateHandler : StateController {
     private lateinit var locationProviderReceiver: LocationProviderReceiver
     private val connectivityMonitor = ConnectivityMonitor
     private val volumeReceiver = VolumeReceiver()
+    private var localeReceiver: LocaleReceiver? = null
     override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         types.forEach { stateType ->
             when (stateType) {
@@ -29,6 +30,7 @@ internal class IOSStateHandler : StateController {
                 StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
                 StateType.LOCATION -> observeLocation { trySend(it).isSuccess }
                 StateType.VOLUME -> observeVolume { trySend(it).isSuccess }
+                StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on iOS")
             }
@@ -55,10 +57,35 @@ internal class IOSStateHandler : StateController {
 
                 StateType.LOCATION -> locationProviderReceiver.dispose()
                 StateType.VOLUME -> volumeReceiver.removeObserver()
+                StateType.LOCALE -> localeReceiver?.removeObserver()
             }.also {
                 println("Observer removed for $stateType on iOS")
             }
         }
+    }
+
+    private fun observeLocale(onData: (StateUpdate) -> Unit) {
+        val receiver = LocaleReceiver { localeInfo ->
+            onData(
+                Data(
+                    type = StateType.LOCALE,
+                    data = localeInfo,
+                    platformType = PlatformType.iOS
+                )
+            )
+        }
+
+        // Send current locale immediately
+        onData(
+            Data(
+                type = StateType.LOCALE,
+                data = receiver.getCurrentLocale(),
+                platformType = PlatformType.iOS
+            )
+        )
+
+        receiver.registerObserver()
+        localeReceiver = receiver
     }
 
     private fun observeLocation(onData: (StateUpdate) -> Boolean) {
