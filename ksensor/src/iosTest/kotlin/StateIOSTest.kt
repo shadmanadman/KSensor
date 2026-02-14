@@ -26,6 +26,12 @@ class StateIOSTest {
     fun testActiveNetworkState(){
         assertStateObserver(StateType.ACTIVE_NETWORK)
     }
+
+    @Test
+    fun testLocalState(){
+        assertStateObserver(StateType.LOCALE)
+    }
+
     private fun assertStateObserver(stateType: StateType) = runBlocking {
         val stateHandler = IOSStateHandler()
         var called = false

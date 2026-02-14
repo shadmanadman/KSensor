@@ -33,6 +33,11 @@ class StateHandlerTest {
         assertObservingState(StateType.LOCATION)
         assertObserverRemoved(StateType.LOCATION)
     }
+    @Test
+    fun testLocalState(){
+        assertObservingState(StateType.LOCALE)
+        assertObserverRemoved(StateType.LOCALE)
+    }
     private fun assertObservingState(stateType: StateType) = runBlocking{
         val fake = FakeStateHandler()
         fake.addObserver(listOf(stateType)).collect{}
