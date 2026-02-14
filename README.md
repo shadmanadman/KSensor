@@ -78,7 +78,8 @@ StateType.CONNECTIVITY,
 StateType.ACTIVE_NETWORK,
 StateType.LOCATION,
 StateType.SCREEN_STATE
-StateType.VOLUME)
+StateType.VOLUME,
+StateType.LOCALE)
 ```
 
 - Add observers.
@@ -108,6 +109,13 @@ ScreenStatus(val isScreenOn: Boolean)
 CurrentActiveNetwork(val activeNetwork: ActiveNetwork)
 ConnectivityStatus(val isConnected: Boolean)
 VolumeStatus(val volumePercentage: Int)
+LocaleInfo(
+val languageCode: String,
+val countryCode: String,
+val fullLocaleString: String,
+val displayName: String,
+val isRTL: Boolean
+) 
 ```
 
 
