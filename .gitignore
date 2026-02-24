@@ -7,6 +7,8 @@ xcuserdata
 local.properties
 .idea
 .DS_Store
+.vscode
+.fleet
 captures
 .externalNativeBuild
 .cxx
