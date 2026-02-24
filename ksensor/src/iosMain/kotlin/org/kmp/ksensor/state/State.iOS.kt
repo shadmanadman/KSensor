@@ -21,6 +21,7 @@ internal class IOSStateHandler : StateController {
     private lateinit var locationProviderReceiver: LocationProviderReceiver
     private val connectivityMonitor = ConnectivityMonitor
     private val volumeReceiver = VolumeReceiver()
+    private val batteryStateReceiver = BatteryStateReceiver()
     private var localeReceiver: LocaleReceiver? = null
     override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         types.forEach { stateType ->
@@ -31,6 +32,7 @@ internal class IOSStateHandler : StateController {
                 StateType.LOCATION -> observeLocation { trySend(it).isSuccess }
                 StateType.VOLUME -> observeVolume { trySend(it).isSuccess }
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
+                StateType.BATTERY -> observeBattery { trySend(it) }
             }.also {
                 println("Observer added for $stateType on iOS")
             }
@@ -58,10 +60,15 @@ internal class IOSStateHandler : StateController {
                 StateType.LOCATION -> locationProviderReceiver.dispose()
                 StateType.VOLUME -> volumeReceiver.removeObserver()
                 StateType.LOCALE -> localeReceiver?.removeObserver()
+                StateType.BATTERY -> batteryStateReceiver.removeObserver()
             }.also {
                 println("Observer removed for $stateType on iOS")
             }
         }
+    }
+
+    private fun observeBattery(onData: (StateUpdate) -> Unit) {
+        batteryStateReceiver.registerObserver(onData)
     }
 
     private fun observeLocale(onData: (StateUpdate) -> Unit) {
@@ -75,7 +82,6 @@ internal class IOSStateHandler : StateController {
             )
         }
 
-        // Send current locale immediately
         onData(
             Data(
                 type = StateType.LOCALE,
@@ -100,7 +106,6 @@ internal class IOSStateHandler : StateController {
     }
 
     private fun observeVolume(onData: (StateUpdate) -> Unit) {
-        // Send current volume for first time
         onData(
             Data(
                 type = StateType.VOLUME,
