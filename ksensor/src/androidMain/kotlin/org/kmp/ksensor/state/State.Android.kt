@@ -46,6 +46,7 @@ internal class AndroidStateHandler : StateController {
                 StateType.LOCATION -> observerLocation { trySend(it).isSuccess }
                 StateType.VOLUME -> observeVolume { trySend(it).isSuccess }
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
+                StateType.BATTERY -> observeBattery { trySend(it) }
             }.also {
                 println("Observer added for $stateType on Android")
             }
@@ -66,6 +67,7 @@ internal class AndroidStateHandler : StateController {
 
                 is VolumeReceiver -> context.unregisterReceiver(listener)
                 is LocaleReceiver -> context.unregisterReceiver(listener)
+                is BatteryStateReceiver -> context.unregisterReceiver(listener)
                 else -> println("Observer not found for $stateType on Android")
             }.also {
                 println("Observer removed for $stateType on Android")
@@ -84,7 +86,6 @@ internal class AndroidStateHandler : StateController {
             )
         }
 
-        // Send current locale immediately
         onData(
             StateUpdate.Data(
                 type = StateType.LOCALE,
@@ -93,7 +94,6 @@ internal class AndroidStateHandler : StateController {
             )
         )
 
-        // Register for future changes
         context.registerReceiver(
             localeReceiver,
             IntentFilter(Intent.ACTION_LOCALE_CHANGED)
@@ -112,7 +112,7 @@ internal class AndroidStateHandler : StateController {
                 )
             )
         }
-        // Send current volume for first time
+
         onData(
             StateUpdate.Data(
                 type = StateType.VOLUME,
@@ -122,6 +122,13 @@ internal class AndroidStateHandler : StateController {
         )
         context.registerReceiver(volumeReceiver, IntentFilter(VOLUME_CHANGED_ACTION))
         activeStateObservers[StateType.VOLUME] = volumeReceiver
+    }
+
+    private fun observeBattery(onData: (StateUpdate) -> Unit) {
+        val batteryStateReceiver = BatteryStateReceiver(onData)
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        context.registerReceiver(batteryStateReceiver, filter)
+        activeStateObservers[StateType.BATTERY] = batteryStateReceiver
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
