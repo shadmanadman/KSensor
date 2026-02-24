@@ -16,7 +16,7 @@ import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
 internal class LocaleReceiver(
-    val onLocaleChanged: (StateData.LocaleInfo) -> Unit
+    val onLocaleChanged: (StateData.LocaleStatus) -> Unit
 ) {
     private var observer: NSObject? = null
 
@@ -37,14 +37,14 @@ internal class LocaleReceiver(
         }
     }
 
-    fun getCurrentLocale(): StateData.LocaleInfo {
+    fun getCurrentLocale(): StateData.LocaleStatus {
         val locale = NSLocale.currentLocale
         val languageCode = locale.languageCode
 
         val direction = NSLocale.characterDirectionForLanguage(languageCode)
         val isRtl = direction == NSLocaleLanguageDirectionRightToLeft
 
-        return StateData.LocaleInfo(
+        return StateData.LocaleStatus(
             languageCode = languageCode,
             countryCode = locale.countryCode ?: "",
             fullLocaleString = locale.localeIdentifier,

@@ -3,13 +3,12 @@ package org.kmp.ksensor.state
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.view.View
 import androidx.core.text.layoutDirection
 
 internal class LocaleReceiver(
     private val context: Context,
-    val onLocaleChanged: (StateData.LocaleInfo) -> Unit
+    val onLocaleChanged: (StateData.LocaleStatus) -> Unit
 ) : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -20,13 +19,13 @@ internal class LocaleReceiver(
         }
     }
 
-    fun getCurrentLocale(): StateData.LocaleInfo {
+    fun getCurrentLocale(): StateData.LocaleStatus {
         val locale =
             context.resources.configuration.locales[0]
 
         val isRtl = locale.layoutDirection == View.LAYOUT_DIRECTION_RTL
 
-        return StateData.LocaleInfo(
+        return StateData.LocaleStatus(
             languageCode = locale.language,
             countryCode = locale.country,
             fullLocaleString = locale.toString(),
