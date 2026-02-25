@@ -79,7 +79,8 @@ StateType.ACTIVE_NETWORK,
 StateType.LOCATION,
 StateType.SCREEN_STATE
 StateType.VOLUME,
-StateType.LOCALE)
+StateType.LOCALE,
+StateType.BATTERY)
 ```
 
 - Add observers.
@@ -103,19 +104,28 @@ Each `StateUpdate` has a `platformType` so you know the state data comes from An
 
 - State Data Models, represent the `StateUpdate.data`:
 ``` kotlin
-AppVisibilityStatus(val isAppVisible: Boolean)
-LocationStatus(val isLocationOn: Boolean)
-ScreenStatus(val isScreenOn: Boolean)
-CurrentActiveNetwork(val activeNetwork: ActiveNetwork)
-ConnectivityStatus(val isConnected: Boolean)
-VolumeStatus(val volumePercentage: Int)
-LocaleInfo(
-val languageCode: String,
-val countryCode: String,
-val fullLocaleString: String,
-val displayName: String,
-val isRTL: Boolean
-) 
+- AppVisibilityStatus(val isAppVisible: Boolean)
+- LocationStatus(val isLocationOn: Boolean)
+- ScreenStatus(val isScreenOn: Boolean)
+- CurrentActiveNetwork(val activeNetwork: ActiveNetwork)
+- ConnectivityStatus(val isConnected: Boolean)
+- VolumeStatus(val volumePercentage: Int)
+- LocaleInfo(
+        val languageCode: String,
+        val countryCode: String,
+        val fullLocaleString: String,
+        val displayName: String,
+        val isRTL: Boolean
+)
+- data class BatteryStatus(
+        val levelPercent: Int?,
+        val chargingState: ChargingState,
+        val health: BatteryHealth?,
+        val temperatureC: Float?
+    ){
+        enum class ChargingState { UNKNOWN, DISCHARGING, CHARGING, FULL }
+        enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
+  }
 ```
 
 
