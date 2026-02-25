@@ -34,6 +34,11 @@ class StateAndroidTest {
     fun testLocalState(){
         assertStateObserver(StateType.LOCALE)
     }
+    @Test
+    fun testBatteryState(){
+        assertStateObserver(StateType.BATTERY)
+    }
+
     private fun assertStateObserver(stateType: StateType) = runBlocking {
         val stateHandler = AndroidStateHandler()
         var called = false

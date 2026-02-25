@@ -32,6 +32,11 @@ class StateIOSTest {
         assertStateObserver(StateType.LOCALE)
     }
 
+    @Test
+    fun testBatteryState(){
+        assertStateObserver(StateType.BATTERY)
+    }
+
     private fun assertStateObserver(stateType: StateType) = runBlocking {
         val stateHandler = IOSStateHandler()
         var called = false
