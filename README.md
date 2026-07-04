@@ -38,9 +38,10 @@ For Android, you must add the permissions to the `Manifest` file manually.
 The foundation of the library. It is required for all plugins.
 
 Dependency:
+`version = 4.90.3`
 
 ```kotlin
-implementation("io.github.shadadman:ksensor-core:2.0.0")
+implementation("io.github.shadadman:ksensor-core:version")
 ```
 
 ## Motion Sensors Plugin
@@ -49,7 +50,7 @@ Provides access to hardware sensors for tracking movement.
 
 Dependency:
 ```kotlin
-implementation("io.github.shadadman:ksensor-sensors-motion:2.0.0")
+implementation("io.github.shadadman:ksensor-sensors-motion:version")
 ```
 
 Required Permissions:
@@ -69,7 +70,7 @@ Provides data from sensors that monitor the ambient environment.
 
 Dependency:
 ```kotlin
-implementation("io.github.shadadman:ksensor-sensors-environment:2.0.0")
+implementation("io.github.shadadman:ksensor-sensors-environment:version")
 ```
 
 Required Permissions: None
@@ -86,7 +87,7 @@ Provides location services and spatial orientation data.
 
 Dependency:
 ```kotlin
-implementation("io.github.shadadman:ksensor-sensors-positioning:2.0.0")
+implementation("io.github.shadadman:ksensor-sensors-positioning:version")
 ```
 
 Required Permissions:
@@ -105,7 +106,7 @@ Provides high-level data related to user input gestures.
 
 Dependency:
 ```kotlin
-implementation("io.github.shadadman:ksensor-sensors-interaction:2.0.0")
+implementation("io.github.shadadman:ksensor-sensors-interaction:version")
 ```
 
 Required Permissions: None
@@ -120,7 +121,7 @@ Provides information about the network connectivity of the device.
 
 Dependency:
 ```kotlin
-implementation("io.github.shadadman:ksensor-states-network:2.0.0")
+implementation("io.github.shadadman:ksensor-states-network:version")
 ```
 
 Required Permissions: None
@@ -136,7 +137,7 @@ Provides access to general device system states like battery and volume.
 
 Dependency:
 ```kotlin
-implementation("io.github.shadadman:ksensor-states-system:2.0.0")
+implementation("io.github.shadadman:ksensor-states-system:version")
 ```
 
 Required Permissions: None
@@ -148,6 +149,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Locale: `LocaleStatus(languageCode: String, countryCode: String, fullLocaleString: String, displayName: String, isRTL: Boolean)`
 - Screen: `ScreenStatus(isScreenOn: Boolean)`
 - Lock: `LockStatus(isDeviceLocked: Boolean)`
+- Power Save: `PowerSaveStatus(isPowerSaveMode: Boolean)`
 
 ## Bluetooth States Plugin
 
@@ -155,7 +157,7 @@ Provides monitoring for BLE connection and discovery events.
 
 Dependency:
 ```kotlin
-implementation("io.github.shadadman:ksensor-states-bluetooth:2.0.0")
+implementation("io.github.shadadman:ksensor-states-bluetooth:version")
 ```
 
 Required Permissions:
@@ -173,7 +175,7 @@ Tracks the visibility and lifecycle state of the application.
 
 Dependency:
 ```kotlin
-implementation("io.github.shadadman:ksensor-states-lifecycle:2.0.0")
+implementation("io.github.shadadman:ksensor-states-lifecycle:version")
 ```
 
 Required Permissions: None

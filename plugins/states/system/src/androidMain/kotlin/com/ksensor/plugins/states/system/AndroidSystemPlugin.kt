@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
+import android.os.PowerManager
 import com.ksensor.core.Permission
 import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
@@ -140,6 +141,26 @@ class AndroidSystemPlugin : SystemPlugin {
     }
 
     override fun lock(): StatePlugin<StateData.LockStatus> = lockPlugin
+
+    private val powerSaveFlow by lazy {
+        callbackFlow {
+            val receiver = PowerSaveReceiver { trySend(KSensorResponse(it)) }
+            context.registerReceiver(receiver, IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED))
+            trySend(KSensorResponse(PowerSaveReceiver.getCurrentStatus(context))) // initial value
+            awaitClose { context.unregisterReceiver(receiver) }
+        }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+    }
+
+    private val powerSavePlugin = object : StatePlugin<StateData.PowerSaveStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.PowerSaveStatus>
+            get() = KSensorResponse(PowerSaveReceiver.getCurrentStatus(context))
+
+        override fun observe(): Flow<KSensorResponse<StateData.PowerSaveStatus>> = powerSaveFlow
+    }
+
+    override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = powerSavePlugin
 }
 
 actual fun createSystemPlugin(): SystemPlugin = AndroidSystemPlugin()

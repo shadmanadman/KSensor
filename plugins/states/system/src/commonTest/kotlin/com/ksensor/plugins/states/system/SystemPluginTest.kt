@@ -60,6 +60,14 @@ class FakeSystemPlugin : SystemPlugin {
             MutableSharedFlow<KSensorResponse<StateData.LockStatus>>().asTrackedFlow("lock")
     }
 
+    override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = object : StatePlugin<StateData.PowerSaveStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.PowerSaveStatus> = TODO()
+        override fun observe(): Flow<KSensorResponse<StateData.PowerSaveStatus>> =
+            MutableSharedFlow<KSensorResponse<StateData.PowerSaveStatus>>().asTrackedFlow("powerSave")
+    }
+
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
         return this.onStart { activeObservers.add(name) }
             .onCompletion { activeObservers.remove(name) }
@@ -116,5 +124,14 @@ class SystemPluginTest {
         assertTrue(fake.activeObservers.contains("lock"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("lock"))
+    }
+
+    @Test
+    fun testPowerSave() = runBlocking {
+        val fake = FakeSystemPlugin()
+        val job = launch { fake.powerSave().observe().collect {} }
+        assertTrue(fake.activeObservers.contains("powerSave"))
+        job.cancelAndJoin()
+        assertFalse(fake.activeObservers.contains("powerSave"))
     }
 }

@@ -98,6 +98,20 @@ class IosSystemPlugin : SystemPlugin {
             }
         }
     }
+
+    override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = object : StatePlugin<StateData.PowerSaveStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        private val receiver = PowerSaveReceiver {}
+        override val currentState: KSensorResponse<StateData.PowerSaveStatus>
+            get() = KSensorResponse(receiver.getCurrentStatus())
+
+        override fun observe(): Flow<KSensorResponse<StateData.PowerSaveStatus>> = callbackFlow {
+            val obs = PowerSaveReceiver { trySend(KSensorResponse(it)) }
+            obs.register()
+            awaitClose { obs.unregister() }
+        }
+    }
 }
 
 actual fun createSystemPlugin(): SystemPlugin = IosSystemPlugin()

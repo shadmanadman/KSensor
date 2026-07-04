@@ -10,6 +10,7 @@ interface SystemPlugin : KSensorPlugin {
     fun locale(): StatePlugin<StateData.LocaleStatus>
     fun screen(): StatePlugin<StateData.ScreenStatus>
     fun lock(): StatePlugin<StateData.LockStatus>
+    fun powerSave(): StatePlugin<StateData.PowerSaveStatus>
 }
 
 expect fun createSystemPlugin(): SystemPlugin

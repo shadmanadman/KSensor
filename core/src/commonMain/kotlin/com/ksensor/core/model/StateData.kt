@@ -12,6 +12,7 @@ enum class StateType {
     LOCALE,
     BATTERY,
     LOCK,
+    POWER_SAVE,
     BLE_CONNECTIONS,
     BLE_DISCOVERS
 }
@@ -34,6 +35,10 @@ sealed class StateData {
     data class LockStatus(
         val isDeviceLocked:Boolean
     ):StateData()
+
+    data class PowerSaveStatus(
+        val isPowerSaveMode: Boolean,
+    ) : StateData()
 
     data class CurrentActiveNetwork(val activeNetwork: ActiveNetwork) : StateData() {
         enum class ActiveNetwork {
