@@ -7,7 +7,7 @@ import android.content.IntentFilter
 import android.media.AudioManager
 import android.os.PowerManager
 import com.ksensor.core.Permission
-import com.ksensor.core.PluginId
+import com.ksensor.core.model.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse

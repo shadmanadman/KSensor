@@ -6,7 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import com.ksensor.core.Permission
-import com.ksensor.core.PluginId
+import com.ksensor.core.model.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse

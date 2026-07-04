@@ -4,7 +4,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.ksensor.core.Permission
-import com.ksensor.core.PluginId
+import com.ksensor.core.model.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData

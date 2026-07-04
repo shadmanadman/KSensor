@@ -2,7 +2,7 @@ package com.ksensor.plugins.states.bluetooth
 
 import android.content.Context
 import com.ksensor.core.Permission
-import com.ksensor.core.PluginId
+import com.ksensor.core.model.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse

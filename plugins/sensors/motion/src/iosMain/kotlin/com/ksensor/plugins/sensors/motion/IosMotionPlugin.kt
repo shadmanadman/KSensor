@@ -1,7 +1,7 @@
 package com.ksensor.plugins.sensors.motion
 
 import com.ksensor.core.Permission
-import com.ksensor.core.PluginId
+import com.ksensor.core.model.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
@@ -15,7 +15,6 @@ import platform.CoreMotion.CMMotionManager
 import platform.CoreMotion.CMPedometer
 import platform.Foundation.NSDate
 import platform.Foundation.NSOperationQueue
-import platform.Foundation.timeIntervalSince1970
 
 class IosMotionPlugin : MotionPlugin {
     override val id: PluginId = PluginId.MOTION

@@ -1,4 +1,4 @@
-package com.ksensor.core
+package com.ksensor.core.model
 
 /**
  * Unique identifiers for KSensor plugins.
@@ -12,5 +12,4 @@ enum class PluginId {
     SYSTEM,
     BLUETOOTH,
     LIFECYCLE,
-    CUSTOM // For third-party or one-off plugins
 }

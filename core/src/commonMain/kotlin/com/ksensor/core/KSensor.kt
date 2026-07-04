@@ -1,5 +1,7 @@
 package com.ksensor.core
 
+import com.ksensor.core.model.PluginId
+
 /**
  * Main entry point for KSensor. Handles plugin registration and discovery.
  */

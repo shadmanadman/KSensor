@@ -1,6 +1,7 @@
 package com.ksensor.core
 
 import com.ksensor.core.model.KSensorResponse
+import com.ksensor.core.model.PluginId
 import kotlinx.coroutines.flow.Flow
 
 /**

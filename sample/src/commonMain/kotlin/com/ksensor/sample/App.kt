@@ -12,12 +12,11 @@ import androidx.compose.ui.unit.dp
 import com.ksensor.core.KSensor
 import com.ksensor.core.Permission
 import com.ksensor.core.PermissionStatus
-import com.ksensor.core.PluginId
+import com.ksensor.core.model.PluginId
 import com.ksensor.plugins.sensors.positioning.PositioningPlugin
 import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
 import com.ksensor.plugins.states.bluetooth.BluetoothPlugin
 import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
-import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
 fun App() {

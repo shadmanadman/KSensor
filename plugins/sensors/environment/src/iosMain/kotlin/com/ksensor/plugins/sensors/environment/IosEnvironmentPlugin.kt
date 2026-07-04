@@ -1,7 +1,7 @@
 package com.ksensor.plugins.sensors.environment
 
 import com.ksensor.core.Permission
-import com.ksensor.core.PluginId
+import com.ksensor.core.model.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
@@ -17,7 +17,6 @@ import platform.Foundation.NSTimer
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceProximityStateDidChangeNotification
 import platform.UIKit.UIScreen
-import platform.darwin.NSObject
 
 class IosEnvironmentPlugin : EnvironmentPlugin {
     override val id: PluginId = PluginId.ENVIRONMENT
