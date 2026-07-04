@@ -127,7 +127,7 @@ class SystemPluginTest {
     }
 
     @Test
-    fun testPowerSave() = runBlocking {
+    fun testPowerSave() = runTest {
         val fake = FakeSystemPlugin()
         val job = launch { fake.powerSave().observe().collect {} }
         assertTrue(fake.activeObservers.contains("powerSave"))
