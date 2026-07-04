@@ -21,6 +21,7 @@ class JvmSystemPlugin : SystemPlugin {
     override fun locale(): StatePlugin<StateData.LocaleStatus> = noopState(StateData.LocaleStatus("", "", "", "", false))
     override fun screen(): StatePlugin<StateData.ScreenStatus> = noopState(StateData.ScreenStatus(true))
     override fun lock(): StatePlugin<StateData.LockStatus> = noopState(StateData.LockStatus(false))
+    override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = noopState(StateData.PowerSaveStatus(false))
 }
 
 private fun <T> noopState(value: T): StatePlugin<T> = object : StatePlugin<T> {
