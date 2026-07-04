@@ -38,7 +38,6 @@ For Android, you must add the permissions to the `Manifest` file manually.
 The foundation of the library. It is required for all plugins.
 
 Dependency:
-`version = 4.90.3`
 
 ```kotlin
 implementation("io.github.shadadman:ksensor-core:version")
