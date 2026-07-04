@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancelAndJoin
 import kotlin.test.Test
@@ -43,36 +44,40 @@ class FakeMotionPlugin : MotionPlugin {
 class MotionPluginTest {
 
     @Test
-    fun testAccelerometer() = runBlocking {
+    fun testAccelerometer() = runTest {
         val fake = FakeMotionPlugin()
         val job = launch { fake.accelerometer().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("accelerometer"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("accelerometer"))
     }
 
     @Test
-    fun testGyroscope() = runBlocking {
+    fun testGyroscope() = runTest {
         val fake = FakeMotionPlugin()
         val job = launch { fake.gyroscope().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("gyroscope"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("gyroscope"))
     }
 
     @Test
-    fun testStepCounter() = runBlocking {
+    fun testStepCounter() = runTest {
         val fake = FakeMotionPlugin()
         val job = launch { fake.stepCounter().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("stepCounter"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("stepCounter"))
     }
 
     @Test
-    fun testStepDetector() = runBlocking {
+    fun testStepDetector() = runTest {
         val fake = FakeMotionPlugin()
         val job = launch { fake.stepDetector().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("stepDetector"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("stepDetector"))

@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancelAndJoin
 import kotlin.test.Test
@@ -23,10 +24,10 @@ class FakeEnvironmentPlugin : EnvironmentPlugin {
     val activeObservers = mutableSetOf<String>()
 
     override fun barometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Barometer>> =
-        MutableSharedFlow<KSensorResponse<SensorData.Barometer>>().asTrackedFlow("Barometer")
+        MutableSharedFlow<KSensorResponse<SensorData.Barometer>>().asTrackedFlow("barometer")
 
     override fun light(config: SensorConfig): Flow<KSensorResponse<SensorData.LightIlluminance>> =
-        MutableSharedFlow<KSensorResponse<SensorData.LightIlluminance>>().asTrackedFlow("lightIlluminance")
+        MutableSharedFlow<KSensorResponse<SensorData.LightIlluminance>>().asTrackedFlow("light")
 
     override fun proximity(config: SensorConfig): Flow<KSensorResponse<SensorData.Proximity>> =
         MutableSharedFlow<KSensorResponse<SensorData.Proximity>>().asTrackedFlow("proximity")
@@ -40,27 +41,30 @@ class FakeEnvironmentPlugin : EnvironmentPlugin {
 class EnvironmentPluginTest {
 
     @Test
-    fun testBarometer() = runBlocking {
+    fun testBarometer() = runTest {
         val fake = FakeEnvironmentPlugin()
         val job = launch { fake.barometer().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("barometer"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("barometer"))
     }
 
     @Test
-    fun testLight() = runBlocking {
+    fun testLight() = runTest {
         val fake = FakeEnvironmentPlugin()
         val job = launch { fake.light().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("light"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("light"))
     }
 
     @Test
-    fun testProximity() = runBlocking {
+    fun testProximity() = runTest {
         val fake = FakeEnvironmentPlugin()
         val job = launch { fake.proximity().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("proximity"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("proximity"))

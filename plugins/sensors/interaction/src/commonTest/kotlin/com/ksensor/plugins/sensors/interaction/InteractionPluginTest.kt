@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancelAndJoin
 import kotlin.test.Test
@@ -34,9 +35,10 @@ class FakeInteractionPlugin : InteractionPlugin {
 class InteractionPluginTest {
 
     @Test
-    fun testTouchGestures() = runBlocking {
+    fun testTouchGestures() = runTest {
         val fake = FakeInteractionPlugin()
         val job = launch { fake.touchGestures().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("touchGestures"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("touchGestures"))

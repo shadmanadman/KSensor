@@ -1,3 +1,5 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
 import com.vanniktech.maven.publish.KotlinMultiplatform
 
 plugins {
@@ -38,7 +40,18 @@ kotlin {
         }
     }
 
+    jvm()
+
+    wasmJs {
+        browser()
+    }
+
     sourceSets {
+        commonTest {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
         commonMain {
             dependencies {
                 implementation(libs.kotlin.test)

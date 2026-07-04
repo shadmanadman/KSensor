@@ -6,7 +6,8 @@ import com.ksensor.core.StatePlugin
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancelAndJoin
 import kotlin.test.Test
@@ -22,7 +23,7 @@ class FakeLifecyclePlugin : LifecyclePlugin {
     override fun appVisibility(): StatePlugin<StateData.AppVisibilityStatus> = object : StatePlugin<StateData.AppVisibilityStatus> {
         override val id: PluginId = PluginId.LIFECYCLE
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.AppVisibilityStatus> = TODO()
+        override val currentState: KSensorResponse<StateData.AppVisibilityStatus> get() = TODO()
         override fun observe(): Flow<KSensorResponse<StateData.AppVisibilityStatus>> = 
             MutableSharedFlow<KSensorResponse<StateData.AppVisibilityStatus>>().asTrackedFlow("appVisibility")
     }
@@ -36,9 +37,10 @@ class FakeLifecyclePlugin : LifecyclePlugin {
 class LifecyclePluginTest {
 
     @Test
-    fun testAppVisibility() = runBlocking {
+    fun testAppVisibility() = runTest {
         val fake = FakeLifecyclePlugin()
         val job = launch { fake.appVisibility().observe().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("appVisibility"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("appVisibility"))

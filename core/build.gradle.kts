@@ -1,3 +1,5 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
 import com.vanniktech.maven.publish.KotlinMultiplatform
 
 plugins {
@@ -44,6 +46,12 @@ kotlin {
         binaries.framework {
             baseName = xcfName
         }
+    }
+
+    jvm()
+
+    wasmJs {
+        browser()
     }
 
     sourceSets {

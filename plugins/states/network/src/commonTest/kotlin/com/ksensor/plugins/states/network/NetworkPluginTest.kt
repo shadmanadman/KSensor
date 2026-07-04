@@ -6,7 +6,8 @@ import com.ksensor.core.StatePlugin
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancelAndJoin
 import kotlin.test.Test
@@ -22,7 +23,7 @@ class FakeNetworkPlugin : NetworkPlugin {
     override fun connectivity(): StatePlugin<StateData.ConnectivityStatus> = object : StatePlugin<StateData.ConnectivityStatus> {
         override val id: PluginId = PluginId.NETWORK
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.ConnectivityStatus> = TODO()
+        override val currentState: KSensorResponse<StateData.ConnectivityStatus> get() = TODO()
         override fun observe(): Flow<KSensorResponse<StateData.ConnectivityStatus>> = 
             MutableSharedFlow<KSensorResponse<StateData.ConnectivityStatus>>().asTrackedFlow("connectivity")
     }
@@ -30,7 +31,7 @@ class FakeNetworkPlugin : NetworkPlugin {
     override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> = object : StatePlugin<StateData.CurrentActiveNetwork> {
         override val id: PluginId = PluginId.NETWORK
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.CurrentActiveNetwork> = TODO()
+        override val currentState: KSensorResponse<StateData.CurrentActiveNetwork> get() = TODO()
         override fun observe(): Flow<KSensorResponse<StateData.CurrentActiveNetwork>> = 
             MutableSharedFlow<KSensorResponse<StateData.CurrentActiveNetwork>>().asTrackedFlow("activeNetwork")
     }
@@ -44,18 +45,20 @@ class FakeNetworkPlugin : NetworkPlugin {
 class NetworkPluginTest {
 
     @Test
-    fun testConnectivity() = runBlocking {
+    fun testConnectivity() = runTest {
         val fake = FakeNetworkPlugin()
         val job = launch { fake.connectivity().observe().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("connectivity"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("connectivity"))
     }
 
     @Test
-    fun testActiveNetwork() = runBlocking {
+    fun testActiveNetwork() = runTest {
         val fake = FakeNetworkPlugin()
         val job = launch { fake.activeNetwork().observe().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("activeNetwork"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("activeNetwork"))

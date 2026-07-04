@@ -8,7 +8,8 @@ import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancelAndJoin
 import kotlin.test.Test
@@ -33,7 +34,7 @@ class FakePositioningPlugin : PositioningPlugin {
     override fun locationStatus(): StatePlugin<StateData.LocationStatus> = object : StatePlugin<StateData.LocationStatus> {
         override val id: PluginId = PluginId.POSITIONING
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.LocationStatus> = TODO()
+        override val currentState: KSensorResponse<StateData.LocationStatus> get() = TODO()
         override fun observe(): Flow<KSensorResponse<StateData.LocationStatus>> = 
             MutableSharedFlow<KSensorResponse<StateData.LocationStatus>>().asTrackedFlow("locationStatus")
     }
@@ -47,36 +48,40 @@ class FakePositioningPlugin : PositioningPlugin {
 class PositioningPluginTest {
 
     @Test
-    fun testLocation() = runBlocking {
+    fun testLocation() = runTest {
         val fake = FakePositioningPlugin()
         val job = launch { fake.location().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("location"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("location"))
     }
 
     @Test
-    fun testMagnetometer() = runBlocking {
+    fun testMagnetometer() = runTest {
         val fake = FakePositioningPlugin()
         val job = launch { fake.magnetometer().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("magnetometer"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("magnetometer"))
     }
 
     @Test
-    fun testOrientation() = runBlocking {
+    fun testOrientation() = runTest {
         val fake = FakePositioningPlugin()
         val job = launch { fake.orientation().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("orientation"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("orientation"))
     }
 
     @Test
-    fun testLocationStatus() = runBlocking {
+    fun testLocationStatus() = runTest {
         val fake = FakePositioningPlugin()
         val job = launch { fake.locationStatus().observe().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("locationStatus"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("locationStatus"))

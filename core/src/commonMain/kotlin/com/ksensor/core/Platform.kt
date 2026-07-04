@@ -2,7 +2,9 @@ package com.ksensor.core
 
 enum class PlatformType {
     iOS,
-    Android
+    Android,
+    Desktop,
+    Web
 }
 
 expect fun currentPlatform(): PlatformType
