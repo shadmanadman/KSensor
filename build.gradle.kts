@@ -17,6 +17,7 @@ plugins {
 subprojects {
     pluginManager.withPlugin("com.vanniktech.maven.publish") {
         val props = project.providers
+        val artifactIdProp = props.gradleProperty("POM_ARTIFACT_ID").orNull
         val snapshotVersion = props.gradleProperty("PROJECT_VERSION_NAME").get()
         val computedVersion = System.getenv("GITHUB_REF")
             ?.takeIf { it.startsWith("refs/tags/") }
@@ -30,6 +31,10 @@ subprojects {
 
             publishToMavenCentral()
             signAllPublications()
+
+            artifactIdProp?.let{
+                coordinates(project.group.toString(), artifactIdProp, project.version.toString())
+            }
 
             pom {
                 name.set(props.gradleProperty("POM_NAME"))
