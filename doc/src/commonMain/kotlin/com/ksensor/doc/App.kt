@@ -15,9 +15,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ksensorlib.doc.generated.resources.Res
+import ksensorlib.doc.generated.resources.ksensor_poster
 import org.jetbrains.compose.resources.painterResource
-import com.ksensor.doc.Res
-import com.ksensor.doc.ksensor_poster
 
 @Composable
 fun App() {
