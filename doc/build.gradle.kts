@@ -1,3 +1,6 @@
+
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
@@ -5,9 +8,10 @@ plugins {
 }
 
 kotlin {
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+
+    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "doc"
+        outputModuleName = "doc"
         browser {
             commonWebpackConfig {
                 outputFileName = "doc.js"
@@ -27,12 +31,4 @@ kotlin {
             }
         }
     }
-}
-
-compose.experimental {
-    web.application()
-}
-
-compose.resources {
-    packageOfRes = "com.ksensor.doc"
 }
