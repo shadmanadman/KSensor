@@ -69,8 +69,11 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
             }
             SidebarSubSection("Positioning") {
                 SidebarItem("Location") { onPageSelected(DocPage.Plugin("Sensors", "Location", "Provides geographic location coordinates.", "Latitude, Longitude, Altitude (Double)", "KSensor.get<PositioningPlugin>(PluginId.POSITIONING)?.location()?.collect { response -> \n    val lat = response.data.latitude\n}")) }
-                SidebarItem("Magnetometer") { onPageSelected(DocPage.Plugin("Sensors", "Magnetometer", "Measures the ambient geomagnetic field for all three physical axes (x, y, z) in μT.", "X, Y, Z (Float)", "KSensor.get<PositioningPlugin>(PluginId.POSITIONING)?.magnetometer()?.collect { response -> \n    val x = response.data.x\n}")) }
+                SidebarItem("Magnetometer") { onPageSelected(DocPage.Plugin("Sensors", "Magnetometer", "Measures the ambient geomagnetic field for all three physical axes (x, y, z) in μT.", "X, Y, Z (Float)", "KSensor.get<PositioningPlugin>(PluginId.POSITIONING)?.magnetometer()?.collect { response -> \n    val x = response.data.values.x\n}")) }
                 SidebarItem("Orientation") { onPageSelected(DocPage.Plugin("Sensors", "Orientation", "Calculates the device's orientation based on the accelerometer and magnetometer.", "Azimuth, Pitch, Roll (Float)", "KSensor.get<PositioningPlugin>(PluginId.POSITIONING)?.orientation()?.collect { response -> \n    val azimuth = response.data.azimuth\n}")) }
+            }
+            SidebarSubSection("Interaction") {
+                SidebarItem("Touch Gestures") { onPageSelected(DocPage.Plugin("Sensors", "Touch Gestures", "Monitors touch events on the screen.", "X, Y, Type (Enum)", "KSensor.get<InteractionPlugin>(PluginId.INTERACTION)?.touchGestures()?.collect { response -> \n    val x = response.data.x\n}")) }
             }
         }
 
@@ -80,6 +83,15 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
             SidebarSubSection("Network") {
                 SidebarItem("Connectivity") { onPageSelected(DocPage.Plugin("States", "Connectivity", "Monitors the network connectivity status.", "Status (Boolean)", "KSensor.get<NetworkPlugin>(PluginId.NETWORK)?.connectivity()?.observe()?.collect { status -> \n    val isConnected = status.isConnected\n}")) }
                 SidebarItem("Active Network") { onPageSelected(DocPage.Plugin("States", "Active Network", "Provides information about the currently active network (WiFi, Cellular, etc.).", "Network Type (Enum)", "KSensor.get<NetworkPlugin>(PluginId.NETWORK)?.activeNetwork()?.observe()?.collect { network -> \n    val type = network.type\n}")) }
+            }
+            SidebarSubSection("Bluetooth") {
+                SidebarItem("Connections") { onPageSelected(DocPage.Plugin("States", "Connections", "Monitors connected BLE devices.", "List of Devices", "KSensor.get<BluetoothPlugin>(PluginId.BLUETOOTH)?.connections()?.observe()?.collect { status -> \n    val devices = status.connectedDevices\n}")) }
+                SidebarItem("Discoveries") { onPageSelected(DocPage.Plugin("States", "Discoveries", "Monitors discovered BLE devices.", "List of Devices", "KSensor.get<BluetoothPlugin>(PluginId.BLUETOOTH)?.discoveries()?.observe()?.collect { status -> \n    val devices = status.discoveredDevices\n}")) }
+            }
+            SidebarSubSection("System") {
+                SidebarItem("Battery") { onPageSelected(DocPage.Plugin("States", "Battery", "Monitors battery level and state.", "Level, IsCharging", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.battery()?.observe()?.collect { status -> \n    val level = status.level\n}")) }
+                SidebarItem("Volume") { onPageSelected(DocPage.Plugin("States", "Volume", "Monitors system volume changes.", "Volume Level", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.volume()?.observe()?.collect { status -> \n    val volume = status.volume\n}")) }
+                SidebarItem("Screen") { onPageSelected(DocPage.Plugin("States", "Screen", "Monitors screen on/off state.", "IsOn (Boolean)", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.screen()?.observe()?.collect { status -> \n    val isOn = status.isOn\n}")) }
             }
             SidebarSubSection("Lifecycle") {
                 SidebarItem("App Visibility") { onPageSelected(DocPage.Plugin("States", "App Visibility", "Monitors whether the app is in the foreground or background.", "Status (Enum)", "KSensor.get<LifecyclePlugin>(PluginId.LIFECYCLE)?.appVisibility()?.observe()?.collect { status -> \n    // handle visibility\n}")) }
