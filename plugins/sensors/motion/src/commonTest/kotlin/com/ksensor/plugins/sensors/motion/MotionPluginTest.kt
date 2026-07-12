@@ -32,8 +32,8 @@ class FakeMotionPlugin : MotionPlugin {
     override fun stepCounter(config: SensorConfig): Flow<KSensorResponse<SensorData.StepCounter>> =
         MutableSharedFlow<KSensorResponse<SensorData.StepCounter>>().asTrackedFlow("stepCounter")
 
-    override fun stepDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.StepDetector>> =
-        MutableSharedFlow<KSensorResponse<SensorData.StepDetector>>().asTrackedFlow("stepDetector")
+    override fun motionDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.MotionDetector>> =
+        MutableSharedFlow<KSensorResponse<SensorData.MotionDetector>>().asTrackedFlow("motionDetector")
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
         return this.onStart { activeObservers.add(name) }
@@ -74,12 +74,12 @@ class MotionPluginTest {
     }
 
     @Test
-    fun testStepDetector() = runTest {
+    fun testMotionDetector() = runTest {
         val fake = FakeMotionPlugin()
-        val job = launch { fake.stepDetector().collect {} }
+        val job = launch { fake.motionDetector().collect {} }
         runCurrent()
-        assertTrue(fake.activeObservers.contains("stepDetector"))
+        assertTrue(fake.activeObservers.contains("motionDetector"))
         job.cancelAndJoin()
-        assertFalse(fake.activeObservers.contains("stepDetector"))
+        assertFalse(fake.activeObservers.contains("motionDetector"))
     }
 }
