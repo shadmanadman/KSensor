@@ -34,6 +34,7 @@ kotlin {
             implementation(projects.core)
             implementation(projects.plugins.sensors.positioning)
             implementation(projects.plugins.states.bluetooth)
+            implementation(projects.plugins.sensors.motion)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

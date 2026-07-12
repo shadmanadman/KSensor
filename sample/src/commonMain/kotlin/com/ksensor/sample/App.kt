@@ -13,6 +13,8 @@ import com.ksensor.core.KSensor
 import com.ksensor.core.Permission
 import com.ksensor.core.PermissionStatus
 import com.ksensor.core.model.PluginId
+import com.ksensor.plugins.sensors.motion.MotionPlugin
+import com.ksensor.plugins.sensors.motion.createMotionPlugin
 import com.ksensor.plugins.sensors.positioning.PositioningPlugin
 import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
 import com.ksensor.plugins.states.bluetooth.BluetoothPlugin
@@ -22,35 +24,36 @@ import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
 fun App() {
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            var permissionGranted by remember {
-                mutableStateOf(
-                    KSensor.permissionHandler.hasPermission(
-                        Permission.BLUETOOTH
-                    )
-                )
+            val permissions = listOf(Permission.BLUETOOTH, Permission.ACTIVITY_RECOGNITION)
+            var grantedPermissions by remember {
+                mutableStateOf(permissions.filter { KSensor.permissionHandler.hasPermission(it) }.toSet())
             }
 
-            if (!permissionGranted) {
+            val remainingPermissions = permissions.filter { it !in grantedPermissions }
+
+            if (remainingPermissions.isNotEmpty()) {
+                val nextPermission = remainingPermissions.first()
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
                 ) {
-                    Text("Bluetooth Permission Required")
+                    Text("$nextPermission Permission Required")
                     Button(onClick = { /* Trigger permission request handled by AskPermission */ }) {
                         Text("Grant Permission")
                     }
 
-                    KSensor.permissionHandler.AskPermission(Permission.BLUETOOTH) { status ->
+                    KSensor.permissionHandler.AskPermission(nextPermission) { status ->
                         if (status == PermissionStatus.GRANTED) {
-                            permissionGranted = true
+                            grantedPermissions = grantedPermissions + nextPermission
                         }
                     }
                 }
             } else {
-                BluetoothSample()
-                OrientationSampleUsingEffect()
-                OrientationSampleUsingState()
+//                BluetoothSample()
+//                OrientationSampleUsingEffect()
+//                OrientationSampleUsingState()
+                MotionSampleUsingState()
             }
         }
     }
@@ -117,4 +120,17 @@ fun OrientationSampleUsingState() {
     val orientation by plugin.orientation().collectAsState(null)
 
     println("OrientationData as state: ${orientation?.data}")
+}
+
+@Composable
+fun MotionSampleUsingState() {
+    val plugin = remember {
+        KSensor.get<MotionPlugin>(PluginId.MOTION)
+            ?: createMotionPlugin().also { KSensor.register(it) }
+    }
+
+    // Use state
+    val motion by plugin.motionDetector().collectAsState(null)
+
+    println("MotionDetectionData as state: ${motion?.data}")
 }
