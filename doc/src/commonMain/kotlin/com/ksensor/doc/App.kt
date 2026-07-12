@@ -1,0 +1,191 @@
+package com.ksensor.doc
+
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ksensorlib.doc.generated.resources.Res
+import ksensorlib.doc.generated.resources.ksensor_poster
+import org.jetbrains.compose.resources.painterResource
+
+@Composable
+fun App() {
+    var currentPage by remember { mutableStateOf<DocPage>(DocPage.Intro) }
+
+    MaterialTheme {
+        Row(modifier = Modifier.fillMaxSize()) {
+            Sidebar(onPageSelected = { currentPage = it })
+            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            Box(modifier = Modifier.fillMaxHeight().weight(1f).padding(32.dp).verticalScroll(rememberScrollState())) {
+                Content(currentPage)
+            }
+        }
+    }
+}
+
+sealed class DocPage {
+    object Intro : DocPage()
+    data class Plugin(val category: String, val name: String, val description: String, val data: String, val code: String) : DocPage()
+}
+
+@Composable
+fun Sidebar(onPageSelected: (DocPage) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(280.dp)
+            .background(Color(0xFFF8F9FA))
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            "KSensor",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFF3F51B5),
+            modifier = Modifier.clickable { onPageSelected(DocPage.Intro) }.padding(bottom = 24.dp)
+        )
+
+        SidebarSection("Sensors", Icons.Default.Sensors) {
+            SidebarSubSection("Environment") {
+                SidebarItem("Barometer") { onPageSelected(DocPage.Plugin("Sensors", "Barometer", "Measures the ambient air pressure in hPa (millibars).", "Pressure (Float)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.barometer()?.collect { response -> \n    val pressure = response.data.pressure\n}")) }
+                SidebarItem("Light") { onPageSelected(DocPage.Plugin("Sensors", "Light", "Measures the ambient light level (illuminance) in lx.", "Illuminance (Float)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.light()?.collect { response -> \n    val lux = response.data.illuminance\n}")) }
+                SidebarItem("Proximity") { onPageSelected(DocPage.Plugin("Sensors", "Proximity", "Measures the proximity of an object in cm relative to the view screen of a device.", "Distance (Float)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.proximity()?.collect { response -> \n    val distance = response.data.distance\n}")) }
+            }
+            SidebarSubSection("Motion") {
+                SidebarItem("Accelerometer") { onPageSelected(DocPage.Plugin("Sensors", "Accelerometer", "Measures the acceleration force in m/s² that is applied to a device on all three physical axes (x, y, and z).", "X, Y, Z (Float)", "KSensor.get<MotionPlugin>(PluginId.MOTION)?.accelerometer()?.collect { response -> \n    val x = response.data.x\n}")) }
+                SidebarItem("Gyroscope") { onPageSelected(DocPage.Plugin("Sensors", "Gyroscope", "Measures a device's rate of rotation in rad/s around each of the three physical axes (x, y, and z).", "X, Y, Z (Float)", "KSensor.get<MotionPlugin>(PluginId.MOTION)?.gyroscope()?.collect { response -> \n    val rotationX = response.data.x\n}")) }
+            }
+            SidebarSubSection("Positioning") {
+                SidebarItem("Location") { onPageSelected(DocPage.Plugin("Sensors", "Location", "Provides geographic location coordinates.", "Latitude, Longitude, Altitude (Double)", "KSensor.get<PositioningPlugin>(PluginId.POSITIONING)?.location()?.collect { response -> \n    val lat = response.data.latitude\n}")) }
+                SidebarItem("Magnetometer") { onPageSelected(DocPage.Plugin("Sensors", "Magnetometer", "Measures the ambient geomagnetic field for all three physical axes (x, y, z) in μT.", "X, Y, Z (Float)", "KSensor.get<PositioningPlugin>(PluginId.POSITIONING)?.magnetometer()?.collect { response -> \n    val x = response.data.x\n}")) }
+                SidebarItem("Orientation") { onPageSelected(DocPage.Plugin("Sensors", "Orientation", "Calculates the device's orientation based on the accelerometer and magnetometer.", "Azimuth, Pitch, Roll (Float)", "KSensor.get<PositioningPlugin>(PluginId.POSITIONING)?.orientation()?.collect { response -> \n    val azimuth = response.data.azimuth\n}")) }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SidebarSection("States", Icons.Default.Info) {
+            SidebarSubSection("Network") {
+                SidebarItem("Connectivity") { onPageSelected(DocPage.Plugin("States", "Connectivity", "Monitors the network connectivity status.", "Status (Boolean)", "KSensor.get<NetworkPlugin>(PluginId.NETWORK)?.connectivity()?.observe()?.collect { status -> \n    val isConnected = status.isConnected\n}")) }
+                SidebarItem("Active Network") { onPageSelected(DocPage.Plugin("States", "Active Network", "Provides information about the currently active network (WiFi, Cellular, etc.).", "Network Type (Enum)", "KSensor.get<NetworkPlugin>(PluginId.NETWORK)?.activeNetwork()?.observe()?.collect { network -> \n    val type = network.type\n}")) }
+            }
+            SidebarSubSection("Lifecycle") {
+                SidebarItem("App Visibility") { onPageSelected(DocPage.Plugin("States", "App Visibility", "Monitors whether the app is in the foreground or background.", "Status (Enum)", "KSensor.get<LifecyclePlugin>(PluginId.LIFECYCLE)?.appVisibility()?.observe()?.collect { status -> \n    // handle visibility\n}")) }
+            }
+        }
+    }
+}
+
+@Composable
+fun SidebarSection(title: String, icon: ImageVector, content: @Composable ColumnScope.() -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(title, fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 14.sp)
+        }
+        Column(modifier = Modifier.padding(start = 12.dp), content = content)
+    }
+}
+
+@Composable
+fun SidebarSubSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    var expanded by remember { mutableStateOf(true) }
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Text(
+            title,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(vertical = 4.dp, horizontal = 8.dp)
+        )
+        if (expanded) {
+            Column(modifier = Modifier.padding(start = 12.dp), content = content)
+        }
+    }
+}
+
+@Composable
+fun SidebarItem(title: String, onClick: () -> Unit) {
+    Text(
+        title,
+        fontSize = 13.sp,
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(vertical = 4.dp, horizontal = 8.dp),
+        color = Color(0xFF555555)
+    )
+}
+
+@Composable
+fun Content(page: DocPage) {
+    when (page) {
+        is DocPage.Intro -> IntroPage()
+        is DocPage.Plugin -> PluginPage(page)
+    }
+}
+
+@Composable
+fun IntroPage() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        Text("Welcome to KSensor", fontSize = 40.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+        Image(
+            painter = painterResource(Res.drawable.ksensor_poster),
+            contentDescription = "KSensor Poster",
+            modifier = Modifier.fillMaxWidth(0.6f).aspectRatio(16f/9f)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            "KSensor is a Kotlin Multiplatform library that provides a unified API for accessing device sensors and states across Android and iOS (and soon more!).",
+            fontSize = 18.sp,
+            lineHeight = 28.sp
+        )
+    }
+}
+
+@Composable
+fun PluginPage(page: DocPage.Plugin) {
+    Column {
+        Text("${page.category} > ${page.name}", color = Color.Gray, fontSize = 14.sp)
+        Text(page.name, fontSize = 36.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text("Description", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+        Text(page.description, fontSize = 16.sp, modifier = Modifier.padding(top = 8.dp))
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Text("Data Provided", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+        Card(elevation = 0.dp, backgroundColor = Color(0xFFF0F0F0), modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Text(page.data, modifier = Modifier.padding(16.dp), fontFamily = FontFamily.Monospace)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("Sample Code", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+        Card(
+            elevation = 0.dp,
+            backgroundColor = Color(0xFF2B2B2B),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+        ) {
+            Text(
+                page.code,
+                color = Color(0xFFA9B7C6),
+                modifier = Modifier.padding(16.dp),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 14.sp
+            )
+        }
+    }
+}

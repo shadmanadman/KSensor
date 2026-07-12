@@ -50,3 +50,4 @@ include(":plugins:states:bluetooth")
 //include(":bundles:all")
 
 include(":sample")
+include(":doc")
