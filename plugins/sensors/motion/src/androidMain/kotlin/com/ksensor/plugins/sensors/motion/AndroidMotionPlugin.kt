@@ -1,10 +1,15 @@
 package com.ksensor.plugins.sensors.motion
 
+import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
+import com.google.android.gms.location.ActivityRecognition
 import com.ksensor.core.Permission
 import com.ksensor.core.model.PluginId
 import com.ksensor.core.SensorConfig
@@ -19,6 +24,9 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import java.util.concurrent.ConcurrentHashMap
 
@@ -26,15 +34,20 @@ class AndroidMotionPlugin : MotionPlugin {
     override val id: PluginId = PluginId.MOTION
     override val requiredPermissions: List<Permission> = listOf(Permission.ACTIVITY_RECOGNITION)
 
+    private val context: Context by lazy { KSensorContext.get() }
     private val sensorManager: SensorManager by lazy {
-        KSensorContext.get().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    }
+
+    private val activityRecognitionClient by lazy {
+        ActivityRecognition.getClient(context)
     }
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val accelerometerFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.Accelerometer>>>()
     private val gyroscopeFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.Gyroscope>>>()
     private val stepCounterFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.StepCounter>>>()
-    private val stepDetectorFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.StepDetector>>>()
+    private val motionDetectorFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.MotionDetector>>>()
 
     override fun accelerometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Accelerometer>> =
         accelerometerFlows.getOrPut(config) {
@@ -114,25 +127,39 @@ class AndroidMotionPlugin : MotionPlugin {
             }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 
-    override fun stepDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.StepDetector>> =
-        stepDetectorFlows.getOrPut(config) {
+    @SuppressLint("MissingPermission")
+    override fun motionDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.MotionDetector>> =
+        motionDetectorFlows.getOrPut(config) {
             callbackFlow {
-                val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
-                if (sensor == null) {
-                    close()
-                    return@callbackFlow
+                val intent = Intent(context, ActivityRecognitionReceiver::class.java)
+                val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                } else {
+                    PendingIntent.FLAG_UPDATE_CURRENT
                 }
+                
+                val pendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    0,
+                    intent,
+                    flags
+                )
 
-                val listener = object : SensorEventListener {
-                    override fun onSensorChanged(event: SensorEvent) {
-                        trySend(KSensorResponse(SensorData.StepDetector))
+                activityRecognitionClient.requestActivityUpdates(
+                    config.samplingIntervalMs,
+                    pendingIntent
+                )
+
+                val job = ActivityRecognitionReceiver.motionEvents
+                    .onEach { type ->
+                        trySend(KSensorResponse(SensorData.MotionDetector(type)))
                     }
+                    .launchIn(scope)
 
-                    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+                awaitClose {
+                    job.cancel()
+                    activityRecognitionClient.removeActivityUpdates(pendingIntent)
                 }
-
-                sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
-                awaitClose { sensorManager.unregisterListener(listener) }
             }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 }

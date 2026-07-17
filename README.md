@@ -61,7 +61,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Accelerometer: `Accelerometer(values: Vector3)`
 - Gyroscope: `Gyroscope(values: Vector3)`
 - Step Counter: `StepCounter(steps: Int)`
-- Step Detector: `StepDetector` (data object)
+- Motion Detector: `MotionDetector(type: MotionType)` (Detects Walking, Running, Cycling, etc.)
 
 ## Environment Sensors Plugin
 

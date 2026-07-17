@@ -61,6 +61,9 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
             }
         }
+        androidMain.dependencies {
+            implementation(libs.google.play.services.location)
+        }
         getByName("androidDeviceTest") {
             dependencies {
                 implementation(libs.kotlin.test)

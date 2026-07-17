@@ -11,6 +11,7 @@ import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import platform.CoreMotion.CMMotionActivityManager
 import platform.CoreMotion.CMMotionManager
 import platform.CoreMotion.CMPedometer
 import platform.Foundation.NSDate
@@ -22,6 +23,7 @@ class IosMotionPlugin : MotionPlugin {
 
     private val motionManager = CMMotionManager()
     private val pedometer = if (CMPedometer.isStepCountingAvailable()) CMPedometer() else null
+    private val activityManager = CMMotionActivityManager()
 
     @OptIn(ExperimentalForeignApi::class)
     override fun accelerometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Accelerometer>> = callbackFlow {
@@ -75,19 +77,27 @@ class IosMotionPlugin : MotionPlugin {
         awaitClose { pedometer.stopPedometerUpdates() }
     }
 
-    override fun stepDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.StepDetector>> = callbackFlow {
-        if (pedometer == null) {
+    override fun motionDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.MotionDetector>> = callbackFlow {
+        if (!CMMotionActivityManager.isActivityAvailable()) {
             close()
             return@callbackFlow
         }
 
-        pedometer.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
-            if (data != null) {
-                trySend(KSensorResponse(SensorData.StepDetector))
+        activityManager.startActivityUpdatesToQueue(NSOperationQueue.mainQueue()) { activity ->
+            activity?.let {
+                val type = when {
+                    it.running -> SensorData.MotionType.RUNNING
+                    it.cycling -> SensorData.MotionType.CYCLING
+                    it.walking -> SensorData.MotionType.WALKING
+                    it.automotive -> SensorData.MotionType.AUTOMOTIVE
+                    it.stationary -> SensorData.MotionType.STATIONARY
+                    else -> SensorData.MotionType.UNKNOWN
+                }
+                trySend(KSensorResponse(SensorData.MotionDetector(type)))
             }
         }
 
-        awaitClose { pedometer.stopPedometerUpdates() }
+        awaitClose { activityManager.stopActivityUpdates() }
     }
 }
 

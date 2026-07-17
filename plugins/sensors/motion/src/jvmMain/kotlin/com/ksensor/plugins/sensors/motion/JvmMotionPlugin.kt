@@ -19,7 +19,7 @@ class JvmMotionPlugin : MotionPlugin {
     override fun accelerometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Accelerometer>> = emptyFlow()
     override fun gyroscope(config: SensorConfig): Flow<KSensorResponse<SensorData.Gyroscope>> = emptyFlow()
     override fun stepCounter(config: SensorConfig): Flow<KSensorResponse<SensorData.StepCounter>> = emptyFlow()
-    override fun stepDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.StepDetector>> = emptyFlow()
+    override fun motionDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.MotionDetector>> = emptyFlow()
 }
 
 actual fun createMotionPlugin(): MotionPlugin = JvmMotionPlugin()
