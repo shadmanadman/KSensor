@@ -18,6 +18,7 @@ class WasmBluetoothPlugin : BluetoothPlugin {
 
     override fun connections(): StatePlugin<StateData.BleConnectionStatus> = noopState(StateData.BleConnectionStatus(emptyList()))
     override fun discoveries(): StatePlugin<StateData.BleDiscoversStatus> = noopState(StateData.BleDiscoversStatus(emptyList()))
+    override fun audioDevices(): StatePlugin<StateData.BleConnectionStatus> = noopState(StateData.BleConnectionStatus(emptyList()))
 }
 
 private fun <T> noopState(value: T): StatePlugin<T> = object : StatePlugin<T> {

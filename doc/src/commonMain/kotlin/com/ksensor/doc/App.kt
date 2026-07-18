@@ -86,6 +86,7 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
             }
             SidebarSubSection("Bluetooth") {
                 SidebarItem("Connections") { onPageSelected(DocPage.Plugin("States", "Connections", "Monitors connected BLE devices.", "List of Devices", "KSensor.get<BluetoothPlugin>(PluginId.BLUETOOTH)?.connections()?.observe()?.collect { status -> \n    val devices = status.connectedDevices\n}")) }
+                SidebarItem("Audio Devices") { onPageSelected(DocPage.Plugin("States", "Audio Devices", "Monitors connected Bluetooth audio devices.", "List of Devices", "KSensor.get<BluetoothPlugin>(PluginId.BLUETOOTH)?.audioDevices()?.observe()?.collect { status -> \n    val devices = status.connectedDevices\n}")) }
                 SidebarItem("Discoveries") { onPageSelected(DocPage.Plugin("States", "Discoveries", "Monitors discovered BLE devices.", "List of Devices", "KSensor.get<BluetoothPlugin>(PluginId.BLUETOOTH)?.discoveries()?.observe()?.collect { status -> \n    val devices = status.discoveredDevices\n}")) }
             }
             SidebarSubSection("System") {

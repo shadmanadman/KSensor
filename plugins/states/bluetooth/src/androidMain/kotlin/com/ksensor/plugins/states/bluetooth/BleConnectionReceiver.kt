@@ -111,6 +111,8 @@ internal class BleConnectionReceiver(
     @SuppressLint("MissingPermission")
     fun emitCurrentState() {
         val connectedDevices = mutableSetOf<BluetoothDevice>()
+        val audioDevices = mutableSetOf<String>()
+
         if (bluetoothAdapter?.isEnabled == true) {
             // 1. Check GATT and GATT_SERVER via BluetoothManager
             try {
@@ -121,9 +123,14 @@ internal class BleConnectionReceiver(
             } catch (_: Exception) {}
 
             // 2. Check all proxies
-            proxies.values.forEach { proxy ->
+            proxies.forEach { (profile, proxy) ->
                 try {
-                    proxy.connectedDevices.forEach { connectedDevices.add(it) }
+                    proxy.connectedDevices.forEach { device ->
+                        connectedDevices.add(device)
+                        if (profile == BluetoothProfile.A2DP || profile == BluetoothProfile.HEADSET) {
+                            audioDevices.add(device.address)
+                        }
+                    }
                 } catch (_: Exception) {}
             }
 
@@ -142,7 +149,8 @@ internal class BleConnectionReceiver(
             
             BleDevice(
                 id = device.address,
-                name = name
+                name = name,
+                isAudio = audioDevices.contains(device.address)
             )
         }
 
