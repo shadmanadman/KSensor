@@ -52,6 +52,7 @@ class AndroidSystemPlugin : SystemPlugin {
         callbackFlow {
             val receiver = VolumeReceiver(audioManager) { trySend(KSensorResponse(StateData.VolumeStatus(it))) }
             context.registerReceiver(receiver, IntentFilter(VOLUME_CHANGED_ACTION))
+            trySend(KSensorResponse(StateData.VolumeStatus(audioManager.getVolumePercentage(STREAM_TYPE))))
             awaitClose { context.unregisterReceiver(receiver) }
         }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
     }
@@ -61,7 +62,7 @@ class AndroidSystemPlugin : SystemPlugin {
         override val requiredPermissions: List<Permission> = emptyList()
         private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         override val currentState: KSensorResponse<StateData.VolumeStatus>
-            get() = KSensorResponse(StateData.VolumeStatus(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)))
+            get() = KSensorResponse(StateData.VolumeStatus(audioManager.getVolumePercentage(STREAM_TYPE)))
 
         override fun observe(): Flow<KSensorResponse<StateData.VolumeStatus>> = volumeFlow
     }
