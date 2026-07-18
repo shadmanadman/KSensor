@@ -6,7 +6,7 @@ import android.content.Intent
 import android.media.AudioManager
 
 internal const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
-private const val STREAM_TYPE = AudioManager.STREAM_MUSIC
+internal const val STREAM_TYPE = AudioManager.STREAM_MUSIC
 
 internal class VolumeReceiver(
     private val audioManager: AudioManager,
@@ -15,11 +15,13 @@ internal class VolumeReceiver(
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action == VOLUME_CHANGED_ACTION) {
-            onVolumeChange(getCurrentVolume())
+            onVolumeChange(audioManager.getVolumePercentage(STREAM_TYPE))
         }
     }
+}
 
-    fun getCurrentVolume(): Int {
-        return audioManager.getStreamVolume(STREAM_TYPE)
-    }
+internal fun AudioManager.getVolumePercentage(streamType: Int): Int {
+    val current = getStreamVolume(streamType)
+    val max = getStreamMaxVolume(streamType)
+    return if (max != 0) (current * 100) / max else 0
 }
