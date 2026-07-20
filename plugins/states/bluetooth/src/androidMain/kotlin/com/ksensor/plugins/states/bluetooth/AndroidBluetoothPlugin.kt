@@ -53,9 +53,23 @@ class AndroidBluetoothPlugin : BluetoothPlugin {
         override fun observe(): Flow<KSensorResponse<StateData.BleDiscoversStatus>> = discoveriesFlow
     }
 
+    private val audioDevicesPlugin = object : StatePlugin<StateData.BleConnectionStatus> {
+        override val id: PluginId = PluginId.BLUETOOTH
+        override val requiredPermissions: List<Permission> = listOf(Permission.BLUETOOTH)
+        override val currentState: KSensorResponse<StateData.BleConnectionStatus>
+            get() = KSensorResponse(StateData.BleConnectionStatus(connectionPlugin.currentState.data.connectedDevices.filter { it.isAudio }))
+
+        override fun observe(): Flow<KSensorResponse<StateData.BleConnectionStatus>> =
+            connectionsFlow.map { response ->
+                KSensorResponse(StateData.BleConnectionStatus(response.data.connectedDevices.filter { it.isAudio }))
+            }
+    }
+
     override fun connections(): StatePlugin<StateData.BleConnectionStatus> = connectionPlugin
 
     override fun discoveries(): StatePlugin<StateData.BleDiscoversStatus> = discoveriesPlugin
+
+    override fun audioDevices(): StatePlugin<StateData.BleConnectionStatus> = audioDevicesPlugin
 }
 
 actual fun createBluetoothPlugin(): BluetoothPlugin = AndroidBluetoothPlugin()

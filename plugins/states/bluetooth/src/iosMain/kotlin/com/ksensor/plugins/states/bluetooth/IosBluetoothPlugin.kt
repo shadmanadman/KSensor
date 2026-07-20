@@ -8,6 +8,7 @@ import com.ksensor.core.model.StateData
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 
 class IosBluetoothPlugin : BluetoothPlugin {
     override val id: PluginId = PluginId.BLUETOOTH
@@ -35,6 +36,17 @@ class IosBluetoothPlugin : BluetoothPlugin {
             receiver.register()
             awaitClose { receiver.unregister() }
         }
+    }
+
+    override fun audioDevices(): StatePlugin<StateData.BleConnectionStatus> = object : StatePlugin<StateData.BleConnectionStatus> {
+        override val id: PluginId = PluginId.BLUETOOTH
+        override val requiredPermissions: List<Permission> = listOf(Permission.BLUETOOTH)
+        override val currentState: KSensorResponse<StateData.BleConnectionStatus> = KSensorResponse(StateData.BleConnectionStatus(emptyList()))
+
+        override fun observe(): Flow<KSensorResponse<StateData.BleConnectionStatus>> =
+            connections().observe().map { response ->
+                KSensorResponse(StateData.BleConnectionStatus(response.data.connectedDevices.filter { it.isAudio }))
+            }
     }
 }
 

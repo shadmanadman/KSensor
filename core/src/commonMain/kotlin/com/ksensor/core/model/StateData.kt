@@ -17,7 +17,7 @@ enum class StateType {
     BLE_DISCOVERS
 }
 
-data class BleDevice(val id: String, val name: String)
+data class BleDevice(val id: String, val name: String, val isAudio: Boolean = false)
 
 sealed class StateData {
     data class AppVisibilityStatus(
