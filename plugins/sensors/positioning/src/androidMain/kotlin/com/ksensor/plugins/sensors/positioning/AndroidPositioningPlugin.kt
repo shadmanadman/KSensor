@@ -10,6 +10,7 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Looper
 import android.view.OrientationEventListener
 import com.ksensor.core.Permission
 import com.ksensor.core.model.PluginId
@@ -61,9 +62,10 @@ class AndroidPositioningPlugin : PositioningPlugin {
                 try {
                     locationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER,
-                        config.samplingIntervalMs,
+                        config.intervalMs,
                         1f,
-                        listener
+                        listener,
+                        Looper.getMainLooper()
                     )
                 } catch (e: SecurityException) {
                     close(e)

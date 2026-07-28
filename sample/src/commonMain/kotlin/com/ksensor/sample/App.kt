@@ -24,7 +24,7 @@ import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
 fun App() {
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            val permissions = listOf(Permission.BLUETOOTH, Permission.ACTIVITY_RECOGNITION)
+            val permissions = listOf(Permission.BLUETOOTH, Permission.ACTIVITY_RECOGNITION, Permission.LOCATION)
             var grantedPermissions by remember {
                 mutableStateOf(permissions.filter { KSensor.permissionHandler.hasPermission(it) }.toSet())
             }
@@ -53,7 +53,8 @@ fun App() {
 //                BluetoothSample()
 //                OrientationSampleUsingEffect()
 //                OrientationSampleUsingState()
-                MotionSampleUsingState()
+//                MotionSampleUsingState()
+                LocationSample()
             }
         }
     }
@@ -134,3 +135,26 @@ fun MotionSampleUsingState() {
 
     println("MotionDetectionData as state: ${motion?.data}")
 }
+
+@Composable
+fun LocationSample() {
+    val plugin = remember {
+        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
+            ?: createPositioningPlugin().also { KSensor.register(it) }
+    }
+
+    // Use state
+    val location by plugin.location().collectAsState(null)
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Location Plugin Sample", style = MaterialTheme.typography.h5)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Current Location:", style = MaterialTheme.typography.h6)
+        Text("Latitude: ${location?.data?.latitude ?: "N/A"}")
+        Text("Longitude: ${location?.data?.longitude ?: "N/A"}")
+        Text("Altitude: ${location?.data?.altitude ?: "N/A"}")
+    }
+}
+
+
