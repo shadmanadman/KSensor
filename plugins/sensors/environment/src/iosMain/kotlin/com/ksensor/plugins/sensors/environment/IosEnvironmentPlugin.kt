@@ -40,7 +40,7 @@ class IosEnvironmentPlugin : EnvironmentPlugin {
 
     override fun light(config: SensorConfig): Flow<KSensorResponse<SensorData.LightIlluminance>> = callbackFlow {
         val timer = NSTimer.scheduledTimerWithTimeInterval(
-            config.samplingIntervalMs / 1000.0,
+            config.intervalMs / 1000.0,
             repeats = true,
             block = {
                 val brightness = UIScreen.mainScreen.brightness.toFloat()

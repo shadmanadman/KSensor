@@ -61,7 +61,7 @@ class IosPositioningPlugin : PositioningPlugin {
             close()
             return@callbackFlow
         }
-        motionManager.magnetometerUpdateInterval = config.samplingIntervalMs / 1000.0
+        motionManager.magnetometerUpdateInterval = config.intervalMs / 1000.0
         motionManager.startMagnetometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.magneticField?.useContents {
                 val sensorData = SensorData.Magnetometer(Vector3(x.toFloat(), y.toFloat(), z.toFloat()))

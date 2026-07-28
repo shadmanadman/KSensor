@@ -32,7 +32,7 @@ class IosMotionPlugin : MotionPlugin {
             return@callbackFlow
         }
 
-        motionManager.accelerometerUpdateInterval = config.samplingIntervalMs / 1000.0
+        motionManager.accelerometerUpdateInterval = config.intervalMs / 1000.0
         motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.acceleration?.useContents {
                 val sensorData = SensorData.Accelerometer(Vector3(x.toFloat(), y.toFloat(), z.toFloat()))
@@ -50,7 +50,7 @@ class IosMotionPlugin : MotionPlugin {
             return@callbackFlow
         }
 
-        motionManager.gyroUpdateInterval = config.samplingIntervalMs / 1000.0
+        motionManager.gyroUpdateInterval = config.intervalMs / 1000.0
         motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.rotationRate?.useContents {
                 val sensorData = SensorData.Gyroscope(Vector3(x.toFloat(), y.toFloat(), z.toFloat()))

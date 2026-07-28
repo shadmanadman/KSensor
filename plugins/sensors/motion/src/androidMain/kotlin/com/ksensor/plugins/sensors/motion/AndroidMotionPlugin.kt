@@ -24,7 +24,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
@@ -146,7 +145,7 @@ class AndroidMotionPlugin : MotionPlugin {
                 )
 
                 activityRecognitionClient.requestActivityUpdates(
-                    config.samplingIntervalMs,
+                    config.intervalMs,
                     pendingIntent
                 )
 
