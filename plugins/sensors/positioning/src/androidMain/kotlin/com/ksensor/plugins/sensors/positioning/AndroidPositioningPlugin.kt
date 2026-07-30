@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.positioning
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.IntentFilter
+import android.hardware.GeomagneticField
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -48,6 +49,7 @@ class AndroidPositioningPlugin : PositioningPlugin {
     private val locationFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.Location>>>()
     private val magnetometerFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.Magnetometer>>>()
     private val orientationFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.Orientation>>>()
+    private val headingFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.Heading>>>()
 
     @SuppressLint("MissingPermission")
     override fun location(config: SensorConfig): Flow<KSensorResponse<SensorData.Location>> =
@@ -113,6 +115,99 @@ class AndroidPositioningPlugin : PositioningPlugin {
                 }
                 listener.enable()
                 awaitClose { listener.disable() }
+            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+        }
+
+    @SuppressLint("MissingPermission")
+    override fun heading(config: SensorConfig): Flow<KSensorResponse<SensorData.Heading>> =
+        headingFlows.getOrPut(config) {
+            callbackFlow {
+                var lastLocation: Location? = null
+                var lastMagneticHeading = 0.0
+                var lastTrueHeading = 0.0
+                var lastDeviceHeading = 0.0
+                var lastCourseOverGround = 0.0
+
+                fun sendHeading() {
+                    trySend(KSensorResponse(SensorData.Heading(
+                        magneticHeading = lastMagneticHeading,
+                        trueHeading = lastTrueHeading,
+                        deviceHeading = lastDeviceHeading,
+                        courseOverGround = lastCourseOverGround
+                    )))
+                }
+
+                val locationListener = object : LocationListener {
+                    override fun onLocationChanged(location: Location) {
+                        lastLocation = location
+                        if (location.hasBearing()) {
+                            lastCourseOverGround = location.bearing.toDouble()
+                        }
+                        lastLocation?.let {
+                            val geomagField = GeomagneticField(
+                                it.latitude.toFloat(),
+                                it.longitude.toFloat(),
+                                it.altitude.toFloat(),
+                                it.time
+                            )
+                            lastTrueHeading = (lastMagneticHeading + geomagField.declination + 360) % 360
+                        }
+                        sendHeading()
+                    }
+                }
+
+                val sensorListener = object : SensorEventListener {
+                    private val rotationMatrix = FloatArray(9)
+                    private val orientationValues = FloatArray(3)
+
+                    override fun onSensorChanged(event: SensorEvent) {
+                        if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+                            SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                            SensorManager.getOrientation(rotationMatrix, orientationValues)
+
+                            val azimuth = Math.toDegrees(orientationValues[0].toDouble())
+                            lastMagneticHeading = (azimuth + 360) % 360
+                            lastDeviceHeading = lastMagneticHeading
+
+                            lastLocation?.let {
+                                val geomagField = GeomagneticField(
+                                    it.latitude.toFloat(),
+                                    it.longitude.toFloat(),
+                                    it.altitude.toFloat(),
+                                    it.time
+                                )
+                                lastTrueHeading = (lastMagneticHeading + geomagField.declination + 360) % 360
+                            } ?: run {
+                                lastTrueHeading = lastMagneticHeading
+                            }
+                            sendHeading()
+                        }
+                    }
+
+                    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+                }
+
+                try {
+                    locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER,
+                        config.intervalMs,
+                        0f,
+                        locationListener,
+                        Looper.getMainLooper()
+                    )
+                } catch (e: SecurityException) {
+                    // Ignore or log
+                }
+
+                val rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+                if (rotationSensor != null) {
+                    sensorManager.registerListener(sensorListener, rotationSensor, SensorManager.SENSOR_DELAY_NORMAL)
+                }
+
+                awaitClose {
+                    locationManager.removeUpdates(locationListener)
+                    sensorManager.unregisterListener(sensorListener)
+                }
             }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 
