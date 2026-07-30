@@ -31,6 +31,9 @@ class FakePositioningPlugin : PositioningPlugin {
     override fun orientation(config: SensorConfig): Flow<KSensorResponse<SensorData.Orientation>> = 
         MutableSharedFlow<KSensorResponse<SensorData.Orientation>>().asTrackedFlow("orientation")
 
+    override fun heading(config: SensorConfig): Flow<KSensorResponse<SensorData.Heading>> =
+        MutableSharedFlow<KSensorResponse<SensorData.Heading>>().asTrackedFlow("heading")
+
     override fun locationStatus(): StatePlugin<StateData.LocationStatus> = object : StatePlugin<StateData.LocationStatus> {
         override val id: PluginId = PluginId.POSITIONING
         override val requiredPermissions: List<Permission> = emptyList()
@@ -75,6 +78,16 @@ class PositioningPluginTest {
         assertTrue(fake.activeObservers.contains("orientation"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("orientation"))
+    }
+
+    @Test
+    fun testHeading() = runTest {
+        val fake = FakePositioningPlugin()
+        val job = launch { fake.heading().collect {} }
+        runCurrent()
+        assertTrue(fake.activeObservers.contains("heading"))
+        job.cancelAndJoin()
+        assertFalse(fake.activeObservers.contains("heading"))
     }
 
     @Test
