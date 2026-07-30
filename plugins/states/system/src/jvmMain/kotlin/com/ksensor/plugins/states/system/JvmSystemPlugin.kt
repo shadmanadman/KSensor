@@ -7,6 +7,7 @@ import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlin.time.Duration
 
 /**
  * No-op SystemPlugin for the desktop (JVM) target. KSensor has no desktop (JVM) sensor
@@ -22,6 +23,7 @@ class JvmSystemPlugin : SystemPlugin {
     override fun screen(): StatePlugin<StateData.ScreenStatus> = noopState(StateData.ScreenStatus(true))
     override fun lock(): StatePlugin<StateData.LockStatus> = noopState(StateData.LockStatus(false))
     override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = noopState(StateData.PowerSaveStatus(false))
+    override fun storage(interval: Duration): StatePlugin<StateData.StorageStatus> = noopState(StateData.StorageStatus(0, 0, 0))
 }
 
 private fun <T> noopState(value: T): StatePlugin<T> = object : StatePlugin<T> {
