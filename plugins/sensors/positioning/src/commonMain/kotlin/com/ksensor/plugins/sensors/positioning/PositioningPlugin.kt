@@ -12,6 +12,7 @@ interface PositioningPlugin : KSensorPlugin {
     fun location(config: SensorConfig = SensorConfig.Default): Flow<KSensorResponse<SensorData.Location>>
     fun magnetometer(config: SensorConfig = SensorConfig.Default): Flow<KSensorResponse<SensorData.Magnetometer>>
     fun orientation(config: SensorConfig = SensorConfig.Default): Flow<KSensorResponse<SensorData.Orientation>>
+    fun heading(config: SensorConfig = SensorConfig.Default): Flow<KSensorResponse<SensorData.Heading>>
     fun locationStatus(): StatePlugin<StateData.LocationStatus>
 }
 
