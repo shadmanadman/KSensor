@@ -6,13 +6,17 @@ import com.ksensor.core.StatePlugin
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSOperationQueue
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationProtectedDataDidBecomeAvailable
 import platform.UIKit.UIApplicationProtectedDataWillBecomeUnavailable
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class IosSystemPlugin : SystemPlugin {
     override val id: PluginId = PluginId.SYSTEM
@@ -110,6 +114,20 @@ class IosSystemPlugin : SystemPlugin {
             val obs = PowerSaveReceiver { trySend(KSensorResponse(it)) }
             obs.register()
             awaitClose { obs.unregister() }
+        }
+    }
+
+    override fun storage(interval: Duration): StatePlugin<StateData.StorageStatus> = object : StatePlugin<StateData.StorageStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.StorageStatus>
+            get() = KSensorResponse(StorageProvider.getCurrentStatus())
+
+        override fun observe(): Flow<KSensorResponse<StateData.StorageStatus>> = flow {
+            while (true) {
+                emit(KSensorResponse(StorageProvider.getCurrentStatus()))
+                delay(interval)
+            }
         }
     }
 }
