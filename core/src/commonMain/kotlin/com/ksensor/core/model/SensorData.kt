@@ -20,7 +20,8 @@ enum class SensorType {
     DEVICE_ORIENTATION,
     PROXIMITY,
     LIGHT,
-    TOUCH_GESTURES
+    TOUCH_GESTURES,
+    HEADING
 }
 
 sealed class SensorData {
@@ -57,4 +58,11 @@ sealed class SensorData {
     ): SensorData()
 
     data class TouchGestures(val x: Float,val y: Float,val type: TouchGestureType): SensorData()
+
+    data class Heading(
+        val magneticHeading: Double,
+        val trueHeading: Double,
+        val deviceHeading: Double,
+        val courseOverGround: Double
+    ) : SensorData()
 }
