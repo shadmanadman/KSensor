@@ -16,10 +16,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.shareIn
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.isActive
 
 class AndroidSystemPlugin : SystemPlugin {
     override val id: PluginId = PluginId.SYSTEM
@@ -162,6 +168,25 @@ class AndroidSystemPlugin : SystemPlugin {
     }
 
     override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = powerSavePlugin
+
+    private val storageFlows = ConcurrentHashMap<Duration, Flow<KSensorResponse<StateData.StorageStatus>>>()
+
+    override fun storage(interval: Duration): StatePlugin<StateData.StorageStatus> = object : StatePlugin<StateData.StorageStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.StorageStatus>
+            get() = KSensorResponse(StorageProvider.getCurrentStatus())
+
+        override fun observe(): Flow<KSensorResponse<StateData.StorageStatus>> = 
+            storageFlows.getOrPut(interval) {
+                flow {
+                    while (true) {
+                        emit(KSensorResponse(StorageProvider.getCurrentStatus()))
+                        delay(interval)
+                    }
+                }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+    }
 }
 
 actual fun createSystemPlugin(): SystemPlugin = AndroidSystemPlugin()
