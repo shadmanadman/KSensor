@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancelAndJoin
+import kotlin.time.Duration
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
@@ -23,7 +24,7 @@ class FakeSystemPlugin : SystemPlugin {
     override fun battery(): StatePlugin<StateData.BatteryStatus> = object : StatePlugin<StateData.BatteryStatus> {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.BatteryStatus> get() = TODO()
+        override val currentState: KSensorResponse<StateData.BatteryStatus> get() = KSensorResponse(StateData.BatteryStatus(100, StateData.BatteryStatus.ChargingState.FULL, StateData.BatteryStatus.BatteryHealth.GOOD, 30f))
         override fun observe(): Flow<KSensorResponse<StateData.BatteryStatus>> = 
             MutableSharedFlow<KSensorResponse<StateData.BatteryStatus>>().asTrackedFlow("battery")
     }
@@ -31,7 +32,7 @@ class FakeSystemPlugin : SystemPlugin {
     override fun volume(): StatePlugin<StateData.VolumeStatus> = object : StatePlugin<StateData.VolumeStatus> {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.VolumeStatus> get() = TODO()
+        override val currentState: KSensorResponse<StateData.VolumeStatus> get() = KSensorResponse(StateData.VolumeStatus(50))
         override fun observe(): Flow<KSensorResponse<StateData.VolumeStatus>> = 
             MutableSharedFlow<KSensorResponse<StateData.VolumeStatus>>().asTrackedFlow("volume")
     }
@@ -39,7 +40,7 @@ class FakeSystemPlugin : SystemPlugin {
     override fun locale(): StatePlugin<StateData.LocaleStatus> = object : StatePlugin<StateData.LocaleStatus> {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.LocaleStatus> get() = TODO()
+        override val currentState: KSensorResponse<StateData.LocaleStatus> get() = KSensorResponse(StateData.LocaleStatus("en", "US", "en_US", "English", false))
         override fun observe(): Flow<KSensorResponse<StateData.LocaleStatus>> = 
             MutableSharedFlow<KSensorResponse<StateData.LocaleStatus>>().asTrackedFlow("locale")
     }
@@ -47,7 +48,7 @@ class FakeSystemPlugin : SystemPlugin {
     override fun screen(): StatePlugin<StateData.ScreenStatus> = object : StatePlugin<StateData.ScreenStatus> {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.ScreenStatus> get() = TODO()
+        override val currentState: KSensorResponse<StateData.ScreenStatus> get() = KSensorResponse(StateData.ScreenStatus(true))
         override fun observe(): Flow<KSensorResponse<StateData.ScreenStatus>> = 
             MutableSharedFlow<KSensorResponse<StateData.ScreenStatus>>().asTrackedFlow("screen")
     }
@@ -55,7 +56,7 @@ class FakeSystemPlugin : SystemPlugin {
     override fun lock(): StatePlugin<StateData.LockStatus> = object : StatePlugin<StateData.LockStatus> {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.LockStatus> get() = TODO()
+        override val currentState: KSensorResponse<StateData.LockStatus> get() = KSensorResponse(StateData.LockStatus(false))
         override fun observe(): Flow<KSensorResponse<StateData.LockStatus>> = 
             MutableSharedFlow<KSensorResponse<StateData.LockStatus>>().asTrackedFlow("lock")
     }
@@ -63,9 +64,17 @@ class FakeSystemPlugin : SystemPlugin {
     override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = object : StatePlugin<StateData.PowerSaveStatus> {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.PowerSaveStatus> = TODO()
+        override val currentState: KSensorResponse<StateData.PowerSaveStatus> get() = KSensorResponse(StateData.PowerSaveStatus(false))
         override fun observe(): Flow<KSensorResponse<StateData.PowerSaveStatus>> =
             MutableSharedFlow<KSensorResponse<StateData.PowerSaveStatus>>().asTrackedFlow("powerSave")
+    }
+
+    override fun storage(interval: Duration): StatePlugin<StateData.StorageStatus> = object : StatePlugin<StateData.StorageStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.StorageStatus> get() = KSensorResponse(StateData.StorageStatus(0, 0, 0))
+        override fun observe(): Flow<KSensorResponse<StateData.StorageStatus>> =
+            MutableSharedFlow<KSensorResponse<StateData.StorageStatus>>().asTrackedFlow("storage")
     }
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
@@ -130,8 +139,19 @@ class SystemPluginTest {
     fun testPowerSave() = runTest {
         val fake = FakeSystemPlugin()
         val job = launch { fake.powerSave().observe().collect {} }
+        runCurrent()
         assertTrue(fake.activeObservers.contains("powerSave"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("powerSave"))
+    }
+
+    @Test
+    fun testStorage() = runTest {
+        val fake = FakeSystemPlugin()
+        val job = launch { fake.storage().observe().collect {} }
+        runCurrent()
+        assertTrue(fake.activeObservers.contains("storage"))
+        job.cancelAndJoin()
+        assertFalse(fake.activeObservers.contains("storage"))
     }
 }
