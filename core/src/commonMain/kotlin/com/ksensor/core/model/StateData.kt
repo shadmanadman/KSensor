@@ -14,7 +14,8 @@ enum class StateType {
     LOCK,
     POWER_SAVE,
     BLE_CONNECTIONS,
-    BLE_DISCOVERS
+    BLE_DISCOVERS,
+    STORAGE
 }
 
 data class BleDevice(val id: String, val name: String, val isAudio: Boolean = false)
@@ -74,4 +75,10 @@ sealed class StateData {
     data class BleConnectionStatus(val connectedDevices: List<BleDevice>) : StateData()
 
     data class BleDiscoversStatus(val discoveredDevices: List<BleDevice>) : StateData()
+
+    data class StorageStatus(
+        val totalBytes: Long,
+        val usedBytes: Long,
+        val freeBytes: Long
+    ) : StateData()
 }
