@@ -21,6 +21,7 @@ class WasmPositioningPlugin : PositioningPlugin {
     override fun location(config: SensorConfig): Flow<KSensorResponse<SensorData.Location>> = emptyFlow()
     override fun magnetometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Magnetometer>> = emptyFlow()
     override fun orientation(config: SensorConfig): Flow<KSensorResponse<SensorData.Orientation>> = emptyFlow()
+    override fun heading(config: SensorConfig): Flow<KSensorResponse<SensorData.Heading>> = emptyFlow()
     override fun locationStatus(): StatePlugin<StateData.LocationStatus> = noopState(StateData.LocationStatus(false))
 }
 
