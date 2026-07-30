@@ -14,6 +14,7 @@ import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import platform.CoreLocation.CLHeading
 import platform.CoreLocation.CLLocation
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.CLLocationManagerDelegateProtocol
@@ -92,6 +93,52 @@ class IosPositioningPlugin : PositioningPlugin {
         awaitClose {
             NSNotificationCenter.defaultCenter.removeObserver(observer)
             UIDevice.currentDevice.endGeneratingDeviceOrientationNotifications()
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    override fun heading(config: SensorConfig): Flow<KSensorResponse<SensorData.Heading>> = callbackFlow {
+        val headingManager = CLLocationManager()
+        var lastMagneticHeading = 0.0
+        var lastTrueHeading = 0.0
+        var lastDeviceHeading = 0.0
+        var lastCourseOverGround = 0.0
+
+        fun sendHeading() {
+            trySend(KSensorResponse(SensorData.Heading(
+                magneticHeading = lastMagneticHeading,
+                trueHeading = lastTrueHeading,
+                deviceHeading = lastDeviceHeading,
+                courseOverGround = lastCourseOverGround
+            )))
+        }
+
+        val delegate = object : NSObject(), CLLocationManagerDelegateProtocol {
+            override fun locationManager(manager: CLLocationManager, didUpdateHeading: CLHeading) {
+                lastMagneticHeading = didUpdateHeading.magneticHeading
+                lastTrueHeading = didUpdateHeading.trueHeading
+                lastDeviceHeading = didUpdateHeading.magneticHeading // Azimuth
+                sendHeading()
+            }
+
+            override fun locationManager(manager: CLLocationManager, didUpdateLocations: List<*>) {
+                val loc = didUpdateLocations.lastOrNull() as? CLLocation
+                loc?.let {
+                    if (it.course >= 0) {
+                        lastCourseOverGround = it.course
+                        sendHeading()
+                    }
+                }
+            }
+        }
+
+        headingManager.delegate = delegate
+        headingManager.startUpdatingLocation()
+        headingManager.startUpdatingHeading()
+
+        awaitClose {
+            headingManager.stopUpdatingLocation()
+            headingManager.stopUpdatingHeading()
         }
     }
 
