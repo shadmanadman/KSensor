@@ -19,6 +19,9 @@ import com.ksensor.plugins.sensors.positioning.PositioningPlugin
 import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
 import com.ksensor.plugins.states.bluetooth.BluetoothPlugin
 import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
+import com.ksensor.plugins.states.system.SystemPlugin
+import com.ksensor.plugins.states.system.createSystemPlugin
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun App() {
@@ -54,7 +57,8 @@ fun App() {
 //                OrientationSampleUsingEffect()
 //                OrientationSampleUsingState()
 //                MotionSampleUsingState()
-                LocationSample()
+//                LocationSample()
+                StorageSample()
             }
         }
     }
@@ -155,6 +159,47 @@ fun LocationSample() {
         Text("Longitude: ${location?.data?.longitude ?: "N/A"}")
         Text("Altitude: ${location?.data?.altitude ?: "N/A"}")
     }
+}
+
+@Composable
+fun StorageSample() {
+    val plugin = remember {
+        KSensor.get<SystemPlugin>(PluginId.SYSTEM)
+            ?: createSystemPlugin().also { KSensor.register(it) }
+    }
+
+    val storageResponse by plugin.storage(interval = 2.seconds).observe().collectAsState(null)
+    val storage = storageResponse?.data
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Storage Status Sample", style = MaterialTheme.typography.h5)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (storage != null) {
+            val totalGB = storage.totalBytes / (1024.0 * 1024.0 * 1024.0)
+            val usedGB = storage.usedBytes / (1024.0 * 1024.0 * 1024.0)
+            val freeGB = storage.freeBytes / (1024.0 * 1024.0 * 1024.0)
+
+            Text("Total Storage: ${totalGB.toTwoDecimalString()} GB")
+            Text("Used Storage: ${usedGB.toTwoDecimalString()} GB")
+            Text("Free Storage: ${freeGB.toTwoDecimalString()} GB")
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            LinearProgressIndicator(
+                progress = if (storage.totalBytes > 0) storage.usedBytes.toFloat() / storage.totalBytes else 0f,
+                modifier = Modifier.fillMaxWidth().height(8.dp)
+            )
+        } else {
+            Text("Loading storage data...")
+        }
+    }
+}
+
+private fun Double.toTwoDecimalString(): String {
+    val integerPart = this.toLong()
+    val decimalPart = ((this - integerPart) * 100).toLong()
+    return "$integerPart.${decimalPart.toString().padStart(2, '0')}"
 }
 
 
