@@ -97,6 +97,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Location: `Location(latitude: Double?, longitude: Double?, altitude: Double?)`
 - Magnetometer: `Magnetometer(values: Vector3)`
 - Orientation: `Orientation(orientation: DeviceOrientation, orientationInt: Int)`
+- Heading: `Heading(magneticHeading: Double, trueHeading: Double, deviceHeading: Double, courseOverGround: Double)`
 - Location Status: `LocationStatus(isLocationOn: Boolean)`
 
 ## Interaction Sensors Plugin
@@ -149,6 +150,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Screen: `ScreenStatus(isScreenOn: Boolean)`
 - Lock: `LockStatus(isDeviceLocked: Boolean)`
 - Power Save: `PowerSaveStatus(isPowerSaveMode: Boolean)`
+- Storage: `StorageStatus(totalBytes: Long, usedBytes: Long, freeBytes: Long)`
 
 ## Bluetooth States Plugin
 
