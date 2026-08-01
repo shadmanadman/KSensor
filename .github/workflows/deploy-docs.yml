@@ -3,7 +3,7 @@ name: Deploy Documentation
 on:
   push:
     branches:
-      - feat/doc
+      - main
   workflow_dispatch:
 
 permissions:
