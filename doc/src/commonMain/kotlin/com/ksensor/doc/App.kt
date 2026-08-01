@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ksensorlib.doc.generated.resources.Res
-import ksensorlib.doc.generated.resources.ksensor_poster
+import ksensorlib.doc.generated.resources.ksensor
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -157,7 +157,7 @@ fun IntroPage() {
         Text("Welcome to KSensor", fontSize = 40.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         Image(
-            painter = painterResource(Res.drawable.ksensor_poster),
+            painter = painterResource(Res.drawable.ksensor),
             contentDescription = "KSensor Poster",
             modifier = Modifier.fillMaxWidth(0.6f).aspectRatio(16f/9f)
         )
