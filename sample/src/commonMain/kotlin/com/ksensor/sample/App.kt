@@ -58,7 +58,8 @@ fun App() {
 //                OrientationSampleUsingState()
 //                MotionSampleUsingState()
 //                LocationSample()
-                StorageSample()
+//                StorageSample()
+                HeadingSample()
             }
         }
     }
@@ -192,6 +193,36 @@ fun StorageSample() {
             )
         } else {
             Text("Loading storage data...")
+        }
+    }
+}
+
+@Composable
+fun HeadingSample() {
+    val plugin = remember {
+        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
+            ?: createPositioningPlugin().also { KSensor.register(it) }
+    }
+
+    val headingResponse by plugin.heading().collectAsState(null)
+    val heading = headingResponse?.data
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Heading Plugin Sample", style = MaterialTheme.typography.h5)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (heading != null) {
+            Text("Magnetic Heading: ${heading.magneticHeading.toTwoDecimalString()}°")
+            Text("True Heading: ${heading.trueHeading.toTwoDecimalString()}°")
+            Text("Device Heading: ${heading.deviceHeading.toTwoDecimalString()}°")
+            Text("Course Over Ground: ${heading.courseOverGround.toTwoDecimalString()}°")
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Basic visualization: showing the values is usually enough for a sample, 
+            // but we can add more if needed.
+        } else {
+            Text("Waiting for heading data...")
         }
     }
 }
