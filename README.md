@@ -43,6 +43,12 @@ Dependency:
 implementation("io.github.shadadman:ksensor-core:version")
 ```
 
+---
+
+# Sensors Plugins
+
+These plugins provide access to hardware sensors for monitoring movement, environment, and health.
+
 ## Motion Sensors Plugin
 
 Provides access to hardware sensors for tracking movement.
@@ -115,6 +121,36 @@ Data Models (Wrapped in `KSensorResponse`):
 
 - Touch Gestures: `TouchGestures(x: Float, y: Float, type: TouchGestureType)`
 
+## Health Sensors Plugin
+
+Provides access to health related data.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-sensors-health:version")
+```
+
+Required Permissions:
+- Android: `BODY_SENSORS`, `CAMERA`
+
+Data Models (Wrapped in `KSensorResponse`):
+
+- Heart Rate: `HeartRate(heartRate: Float, source: HeartRateSource, confidence: Float, quality: Float)`
+
+### Fallback Strategy & PPG
+The Health plugin implements a robust fallback strategy for heart rate detection on phones:
+1. **Hardware Sensor**: Uses the dedicated hardware heart rate sensor if available.
+2. **Camera PPG**: If no hardware sensor exists, it falls back to **Photoplethysmography (PPG)**.
+
+**What is PPG?**
+PPG is a non-invasive method that uses a light source (the phone's flash) and a photodetector (the phone's camera) to measure the volumetric variations of blood circulation. By analyzing the "redness" of your finger over the camera lens, KSensor can estimate user heart rate with high precision using an advanced digital signal processing pipeline (Butterworth filters and adaptive peak detection).
+
+---
+
+# States Plugins
+
+These plugins provide monitoring for various device system and connectivity states.
+
 ## Network States Plugin
 
 Provides information about the network connectivity of the device.
@@ -170,30 +206,6 @@ Data Models (Wrapped in `KSensorResponse`):
 - BLE Discoveries: `BleDiscoversStatus(discoveredDevices: List<BleDevice>)`
 - BLE Device: `BleDevice(id: String, name: String)`
 
-## Health Sensors Plugin
-
-Provides access to health related data.
-
-Dependency:
-```kotlin
-implementation("io.github.shadadman:ksensor-sensors-health:version")
-```
-
-Required Permissions:
-- Android: `BODY_SENSORS`, `CAMERA`
-
-Data Models (Wrapped in `KSensorResponse`):
-
-- Heart Rate: `HeartRate(heartRate: Float, source: HeartRateSource, confidence: Float, quality: Float)`
-
-### Fallback Strategy & PPG
-The Health plugin implements a robust fallback strategy for heart rate detection on phones:
-1. **Hardware Sensor**: Uses the dedicated hardware heart rate sensor if available.
-2. **Camera PPG**: If no hardware sensor exists, it falls back to **Photoplethysmography (PPG)**.
-
-**What is PPG?**
-PPG is a non-invasive method that uses a light source (the phone's flash) and a photodetector (the phone's camera) to measure the volumetric variations of blood circulation. By analyzing the "redness" of your finger over the camera lens, KSensor can estimate user heart rate with high precision using an advanced digital signal processing pipeline (Butterworth filters and adaptive peak detection).
-
 ## Lifecycle States Plugin
 
 Tracks the visibility and lifecycle state of the application.
@@ -208,6 +220,8 @@ Required Permissions: None
 Data Models (Wrapped in `KSensorResponse`):
 
 - App Visibility: `AppVisibilityStatus(isAppVisible: Boolean)`
+
+---
 
 ## Basic Usage
 
