@@ -81,7 +81,14 @@ internal class AndroidPermissionHandler : PermissionHandler {
                     emptyList()
                 }
             }
-            Permission.BODY_SENSORS -> listOf(Manifest.permission.BODY_SENSORS)
+            Permission.BODY_SENSORS -> {
+                if (Build.VERSION.SDK_INT >= 36) { // API 36+ (Baklava)
+                    listOf("android.permission.health.READ_HEART_RATE")
+                } else {
+                    listOf(Manifest.permission.BODY_SENSORS)
+                }
+            }
+            Permission.CAMERA -> listOf(Manifest.permission.CAMERA)
         }
     }
 }

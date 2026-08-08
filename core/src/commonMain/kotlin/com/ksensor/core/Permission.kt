@@ -9,7 +9,8 @@ enum class Permission {
     LOCATION,
     BLUETOOTH,
     ACTIVITY_RECOGNITION,
-    BODY_SENSORS
+    BODY_SENSORS,
+    CAMERA
 }
 
 enum class PermissionStatus {

@@ -35,6 +35,7 @@ kotlin {
             implementation(projects.plugins.sensors.positioning)
             implementation(projects.plugins.states.bluetooth)
             implementation(projects.plugins.sensors.motion)
+            implementation(projects.plugins.sensors.health)
             implementation(projects.plugins.states.system)
         }
         androidMain.dependencies {
@@ -49,7 +50,7 @@ extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
     compileSdk = 36
     defaultConfig {
         applicationId = "com.ksensor.sample"
-        minSdk = 24
+        minSdk = 30
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
