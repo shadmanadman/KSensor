@@ -12,4 +12,5 @@ enum class PluginId {
     SYSTEM,
     BLUETOOTH,
     LIFECYCLE,
+    HEALTH,
 }

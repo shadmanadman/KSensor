@@ -21,7 +21,8 @@ enum class SensorType {
     PROXIMITY,
     LIGHT,
     TOUCH_GESTURES,
-    HEADING
+    HEADING,
+    HEART_RATE
 }
 
 sealed class SensorData {
@@ -64,5 +65,18 @@ sealed class SensorData {
         val trueHeading: Double,
         val deviceHeading: Double,
         val courseOverGround: Double
+    ) : SensorData()
+
+    enum class HeartRateSource {
+        HARDWARE_SENSOR,
+        CAMERA_PPG,
+        UNKNOWN
+    }
+    data class HeartRate(
+        val heartRate: Float, 
+        val source: HeartRateSource = HeartRateSource.UNKNOWN,
+        val confidence: Float = 1.0f,
+        val quality: Float = 1.0f,
+        val timestamp: Long = 0L
     ) : SensorData()
 }
