@@ -78,6 +78,9 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
             SidebarSubSection("Interaction") {
                 SidebarItem("Touch Gestures") { onPageSelected(DocPage.Plugin("Sensors", "Touch Gestures", "Monitors touch events on the screen.", "X, Y, Type (Enum)", "KSensor.get<InteractionPlugin>(PluginId.INTERACTION)?.touchGestures()?.collect { response -> \n    val x = response.data.x\n}")) }
             }
+            SidebarSubSection("Health") {
+                SidebarItem("Heart Rate") { onPageSelected(DocPage.Plugin("Sensors", "Heart Rate", "Measures heart rate using either dedicated hardware sensors or Camera PPG (Photoplethysmography).", "BPM (Float), Source (Enum), Confidence (Float)", "KSensor.get<HealthPlugin>(PluginId.HEALTH)?.heartRate()?.collect { response -> \n    val bpm = response.data.heartRate\n    val source = response.data.source\n}")) }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
