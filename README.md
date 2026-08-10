@@ -62,6 +62,14 @@ Required Permissions:
 - Android: `ACTIVITY_RECOGNITION` (Required for Step Counter)
 - iOS: `ACTIVITY_RECOGNITION` (Motion & Fitness)
 
+### Android Configuration
+Add the following to your `AndroidManifest.xml`:
+- `android.permission.ACTIVITY_RECOGNITION`
+
+### iOS Configuration
+Add the following key to your `Info.plist`:
+- `NSMotionUsageDescription`: Required for Step Counter and movement detection.
+
 Data Models (Wrapped in `KSensorResponse`):
 
 - Accelerometer: `Accelerometer(values: Vector3)`
@@ -98,6 +106,11 @@ implementation("io.github.shadadman:ksensor-sensors-positioning:version")
 Required Permissions:
 - Android/iOS: `LOCATION`
 
+### Android Configuration
+Add the following to your `AndroidManifest.xml`:
+- `android.permission.ACCESS_FINE_LOCATION`
+- `android.permission.ACCESS_COARSE_LOCATION`
+
 Data Models (Wrapped in `KSensorResponse`):
 
 - Location: `Location(latitude: Double?, longitude: Double?, altitude: Double?)`
@@ -133,6 +146,12 @@ implementation("io.github.shadadman:ksensor-sensors-health:version")
 Required Permissions:
 - Android/iOS: `BODY_SENSORS`
 - Android/iOS: `CAMERA`
+
+### Android Configuration
+Add the following to your `AndroidManifest.xml`:
+- `android.permission.BODY_SENSORS`
+- `android.permission.CAMERA`
+- `android.permission.health.READ_HEART_RATE` (Optional: for Health Connect / API 36+)
 
 ### iOS Configuration
 Add the following keys to your `Info.plist`:
@@ -207,6 +226,12 @@ implementation("io.github.shadadman:ksensor-states-bluetooth:version")
 
 Required Permissions:
 - Android/iOS: `BLUETOOTH`
+
+### Android Configuration
+Add the following to your `AndroidManifest.xml`:
+- `android.permission.BLUETOOTH_SCAN` (API 31+)
+- `android.permission.BLUETOOTH_CONNECT` (API 31+)
+- `android.permission.ACCESS_FINE_LOCATION` (Required for discovery on older versions)
 
 Data Models (Wrapped in `KSensorResponse`):
 
