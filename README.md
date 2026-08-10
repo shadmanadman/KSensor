@@ -40,6 +40,9 @@ object KSensor {
 }
 ```
 
+> [!IMPORTANT]
+> For **Android**, to use "Start on Boot", you must register your plugins in your `Application` class. This ensures they are available when the system triggers the boot sequence.
+
 You must ensure that the necessary permissions are granted before starting sensor observations. Each plugin section below lists its required permissions.
 
 For Android, you must add the permissions to the `Manifest` file manually.

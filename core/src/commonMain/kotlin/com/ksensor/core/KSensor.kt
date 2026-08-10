@@ -1,11 +1,17 @@
 package com.ksensor.core
 
 import com.ksensor.core.model.PluginId
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 /**
  * Main entry point for KSensor. Handles plugin registration and discovery.
  */
 object KSensor {
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val registry = mutableMapOf<PluginId, KSensorPlugin>()
     private val storage: PlatformStorage by lazy { createPlatformStorage() }
 
@@ -19,14 +25,14 @@ object KSensor {
         get() = storage.getBoolean(KEY_START_ON_BOOT, false)
         set(value) = storage.putBoolean(KEY_START_ON_BOOT, value)
 
-    private val startOnBootPlugins: MutableSet<PluginId> by lazy {
+    private val _startOnBootPlugins: MutableSet<PluginId> by lazy {
         storage.getStringSet(KEY_BOOT_PLUGINS, emptySet())
             .map { PluginId.valueOf(it) }
             .toMutableSet()
     }
 
     private fun persistBootPlugins() {
-        storage.putStringSet(KEY_BOOT_PLUGINS, startOnBootPlugins.map { it.name }.toSet())
+        storage.putStringSet(KEY_BOOT_PLUGINS, _startOnBootPlugins.map { it.name }.toSet())
     }
 
     /**
@@ -43,7 +49,7 @@ object KSensor {
 
         registry[plugin.id] = plugin
         if (startOnBoot) {
-            startOnBootPlugins.add(plugin.id)
+            _startOnBootPlugins.add(plugin.id)
             persistBootPlugins()
         }
     }
@@ -73,17 +79,45 @@ object KSensor {
     /**
      * Returns the list of plugin IDs that are marked to start on boot.
      */
-    fun getStartOnBootPlugins(): Set<PluginId> = startOnBootPlugins.toSet()
+    fun getStartOnBootPlugins(): Set<PluginId> = _startOnBootPlugins.toSet()
 
     /**
      * Marks a plugin to start on boot or removes the mark.
      */
     fun setStartOnBoot(id: PluginId, enable: Boolean) {
         if (enable) {
-            startOnBootPlugins.add(id)
+            _startOnBootPlugins.add(id)
         } else {
-            startOnBootPlugins.remove(id)
+            _startOnBootPlugins.remove(id)
         }
         persistBootPlugins()
+    }
+
+    /**
+     * Triggers the start of plugins marked as startOnBoot.
+     * This is intended to be called during app initialization or from platform boot receivers.
+     */
+    fun start() {
+        if (!startOnBoot) return
+
+        _startOnBootPlugins.forEach { id ->
+            val plugin = registry[id]
+            if (plugin != null) {
+                scope.launch {
+                    when (plugin) {
+                        is SensorPlugin<*> -> {
+                            plugin.observe().collect { }
+                        }
+                        is StatePlugin<*> -> {
+                            plugin.observe().collect { }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    internal fun onBoot() {
+        start()
     }
 }
