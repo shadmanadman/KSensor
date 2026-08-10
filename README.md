@@ -39,14 +39,15 @@ object KSensor {
     fun setStartOnBoot(id: PluginId, enable: Boolean)
 
     /**
-     * Starts all plugins marked for auto-start.
+     * Starts all plugins marked as "start on boot". 
+     * Used in Application class on Android and to achieve "start on boot" behavior on iOS.
      */
     fun start()
 }
 ```
 
 > [!IMPORTANT]
-> **Android**: To use "Start on Boot", you must register your plugins in your `Application` class. The library will automatically wake up and start observations on device reboot.
+> **Android**: To use "Start on Boot", you must register your plugins and call `KSensor.start()` in your `Application` class. While the library handles the system boot broadcast automatically, calling `start()` in your application class ensures that observations are resumed whenever the app process is created.
 >
 > **iOS**: iOS does not allow arbitrary code execution on boot. To achieve "Start on Boot" behavior, you must call `KSensor.start()` in your `AppDelegate`'s `didFinishLaunchingWithOptions`. If you have background modes enabled (like Location or HealthKit), the system will relaunch your app into the background after a reboot, and calling `KSensor.start()` will resume observations.
 

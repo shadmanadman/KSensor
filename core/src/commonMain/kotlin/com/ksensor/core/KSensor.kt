@@ -94,8 +94,10 @@ object KSensor {
     }
 
     /**
-     * Triggers the start of plugins marked as startOnBoot.
-     * This is intended to be called during app initialization or from platform boot receivers.
+     * Starts all plugins marked as "start on boot".
+     *
+     * - **Android**: Call this in your `Application.onCreate` to trigger observations.
+     * - **iOS**: Call this in `AppDelegate` to resume observations after a system-initiated background launch.
      */
     fun start() {
         if (!startOnBoot) return

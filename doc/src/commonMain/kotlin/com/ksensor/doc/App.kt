@@ -191,7 +191,7 @@ fun IntroPage() {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                "// Enable start on boot for the library\nKSensor.startOnBoot = true\n\n// Register a plugin to start on boot\nKSensor.register(plugin, startOnBoot = true)\n\n// Or enable it later\nKSensor.setStartOnBoot(PluginId.MOTION, true)",
+                "// 1. Enable start on boot for the library\nKSensor.startOnBoot = true\n\n// 2. Register a plugin to start on boot\nKSensor.register(plugin, startOnBoot = true)\n\n// 3. Trigger startup (Call this in Android Application or iOS AppDelegate)\nKSensor.start()",
                 color = Color(0xFFA9B7C6),
                 modifier = Modifier.padding(16.dp),
                 fontFamily = FontFamily.Monospace,
