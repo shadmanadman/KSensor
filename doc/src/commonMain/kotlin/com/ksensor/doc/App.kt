@@ -178,6 +178,26 @@ fun IntroPage() {
             fontSize = 18.sp,
             lineHeight = 28.sp
         )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Text("Library Configuration", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Card(
+            elevation = 0.dp,
+            backgroundColor = Color(0xFF2B2B2B),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                "// Enable start on boot for the library\nKSensor.startOnBoot = true\n\n// Register a plugin to start on boot\nKSensor.register(plugin, startOnBoot = true)\n\n// Or enable it later\nKSensor.setStartOnBoot(PluginId.MOTION, true)",
+                color = Color(0xFFA9B7C6),
+                modifier = Modifier.padding(16.dp),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 14.sp
+            )
+        }
     }
 }
 

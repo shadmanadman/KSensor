@@ -19,11 +19,24 @@ All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
 
 Some plugins require system permissions to function. Each plugin exposes a `requiredPermissions` list indicating what it needs. KSensor provides a `PermissionHandler` interface in the Core module to help check and request these permissions across platforms.
 
-### Core Permission API
+### Core Module API
 ```kotlin
-interface PermissionHandler {
-    fun hasPermission(permission: Permission): Boolean
-    suspend fun requestPermission(permission: Permission): Boolean
+object KSensor {
+    /**
+     * Flag to enable/disable "start on boot" for the entire library.
+     */
+    var startOnBoot: Boolean
+
+    /**
+     * Registers a plugin.
+     * @param startOnBoot If true, this plugin will be marked to start automatically on device boot.
+     */
+    fun register(plugin: KSensorPlugin, startOnBoot: Boolean = false)
+
+    /**
+     * Marks a plugin to start on boot or removes the mark.
+     */
+    fun setStartOnBoot(id: PluginId, enable: Boolean)
 }
 ```
 
