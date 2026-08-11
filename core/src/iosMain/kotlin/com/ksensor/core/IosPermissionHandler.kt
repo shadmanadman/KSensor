@@ -11,7 +11,12 @@ import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.CoreLocation.kCLAuthorizationStatusDenied
 import platform.CoreLocation.kCLAuthorizationStatusNotDetermined
 import platform.CoreLocation.kCLAuthorizationStatusRestricted
+import platform.AVFoundation.*
+import platform.HealthKit.*
 import platform.darwin.NSObject
+import platform.Foundation.NSURL
+import platform.UIKit.UIApplication
+import platform.UIKit.UIApplicationOpenSettingsURLString
 import kotlin.coroutines.resume
 
 internal class IosPermissionHandler : PermissionHandler {
@@ -24,6 +29,17 @@ internal class IosPermissionHandler : PermissionHandler {
                 status == kCLAuthorizationStatusAuthorizedAlways || status == kCLAuthorizationStatusAuthorizedWhenInUse
             }
             Permission.BLUETOOTH -> true // Placeholder
+            Permission.CAMERA -> {
+                val status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
+                status == AVAuthorizationStatusAuthorized
+            }
+            Permission.BODY_SENSORS -> {
+                if (HKHealthStore.isHealthDataAvailable()) {
+                    val store = HKHealthStore()
+                    val type = HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate)!!
+                    store.authorizationStatusForType(type) == HKAuthorizationStatusSharingAuthorized
+                } else false
+            }
             else -> true
         }
     }
@@ -52,6 +68,23 @@ internal class IosPermissionHandler : PermissionHandler {
                 locationManager.requestWhenInUseAuthorization()
                 continuation.invokeOnCancellation {
                     locationManager.delegate = null
+                }
+            }
+            Permission.CAMERA -> {
+                AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
+                    continuation.resume(granted)
+                }
+            }
+            Permission.BODY_SENSORS -> {
+                if (HKHealthStore.isHealthDataAvailable()) {
+                    val store = HKHealthStore()
+                    val type = HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate)!!
+                    val types = setOf(type)
+                    store.requestAuthorizationToShareTypes(null, types) { success, _ ->
+                        continuation.resume(success)
+                    }
+                } else {
+                    continuation.resume(false)
                 }
             }
             else -> continuation.resume(true)
@@ -94,6 +127,32 @@ internal class IosPermissionHandler : PermissionHandler {
             }
             Permission.BLUETOOTH -> {
                 onStatus(PermissionStatus.GRANTED)
+            }
+            Permission.CAMERA -> {
+                val status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
+                when (status) {
+                    AVAuthorizationStatusAuthorized -> onStatus(PermissionStatus.GRANTED)
+                    AVAuthorizationStatusNotDetermined -> {
+                        AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
+                            if (granted) onStatus(PermissionStatus.GRANTED) else onStatus(PermissionStatus.DENIED)
+                        }
+                    }
+                    AVAuthorizationStatusDenied,
+                    AVAuthorizationStatusRestricted -> onStatus(PermissionStatus.DENIED)
+                    else -> onStatus(PermissionStatus.UNKNOWN)
+                }
+            }
+            Permission.BODY_SENSORS -> {
+                if (HKHealthStore.isHealthDataAvailable()) {
+                    val store = HKHealthStore()
+                    val type = HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate)!!
+                    val types = setOf(type)
+                    store.requestAuthorizationToShareTypes(null, types) { success, _ ->
+                        if (success) onStatus(PermissionStatus.GRANTED) else onStatus(PermissionStatus.DENIED)
+                    }
+                } else {
+                    onStatus(PermissionStatus.DENIED)
+                }
             }
             else -> onStatus(PermissionStatus.GRANTED)
         }

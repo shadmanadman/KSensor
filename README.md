@@ -43,6 +43,12 @@ Dependency:
 implementation("io.github.shadadman:ksensor-core:version")
 ```
 
+---
+
+# Sensors Plugins
+
+These plugins provide access to hardware sensors for monitoring movement, environment, and health.
+
 ## Motion Sensors Plugin
 
 Provides access to hardware sensors for tracking movement.
@@ -55,6 +61,14 @@ implementation("io.github.shadadman:ksensor-sensors-motion:version")
 Required Permissions:
 - Android: `ACTIVITY_RECOGNITION` (Required for Step Counter)
 - iOS: `ACTIVITY_RECOGNITION` (Motion & Fitness)
+
+### Android Configuration
+Add the following to your `AndroidManifest.xml`:
+- `android.permission.ACTIVITY_RECOGNITION`
+
+### iOS Configuration
+Add the following key to your `Info.plist`:
+- `NSMotionUsageDescription`: Required for Step Counter and movement detection.
 
 Data Models (Wrapped in `KSensorResponse`):
 
@@ -92,6 +106,11 @@ implementation("io.github.shadadman:ksensor-sensors-positioning:version")
 Required Permissions:
 - Android/iOS: `LOCATION`
 
+### Android Configuration
+Add the following to your `AndroidManifest.xml`:
+- `android.permission.ACCESS_FINE_LOCATION`
+- `android.permission.ACCESS_COARSE_LOCATION`
+
 Data Models (Wrapped in `KSensorResponse`):
 
 - Location: `Location(latitude: Double?, longitude: Double?, altitude: Double?)`
@@ -114,6 +133,50 @@ Required Permissions: None
 Data Models (Wrapped in `KSensorResponse`):
 
 - Touch Gestures: `TouchGestures(x: Float, y: Float, type: TouchGestureType)`
+
+## Health Sensors Plugin
+
+Provides access to health related data.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-sensors-health:version")
+```
+
+Required Permissions:
+- Android/iOS: `BODY_SENSORS`
+- Android/iOS: `CAMERA`
+
+### Android Configuration
+Add the following to your `AndroidManifest.xml`:
+- `android.permission.BODY_SENSORS`
+- `android.permission.CAMERA`
+- `android.permission.health.READ_HEART_RATE` (Optional: for Health Connect / API 36+)
+
+### iOS Configuration
+Add the following keys to your `Info.plist`:
+- `NSCameraUsageDescription`: Required for Camera PPG.
+- `NSHealthUpdateUsageDescription` & `NSHealthShareUsageDescription`: Required for HealthKit data.
+
+Data Models (Wrapped in `KSensorResponse`):
+
+- Heart Rate: `HeartRate(heartRate: Float, source: HeartRateSource, confidence: Float, quality: Float)`
+
+### Fallback Strategy & PPG
+The Health plugin implements a robust fallback strategy for heart rate detection on phones:
+1. **Hardware Sensor**: 
+   - Android: Uses the dedicated hardware heart rate sensor if available.
+   - iOS: Uses **HealthKit** to retrieve the latest heart rate data (often from a paired Apple Watch).
+2. **Camera PPG**: If no hardware sensor data is available, it falls back to **Photoplethysmography (PPG)**.
+
+**What is PPG?**
+PPG is a non-invasive method that uses a light source (the phone's flash) and a photodetector (the phone's camera) to measure the volumetric variations of blood circulation. By analyzing the "redness" of your finger over the camera lens, KSensor can estimate user heart rate with high precision using an advanced digital signal processing pipeline (Butterworth filters and adaptive peak detection).
+
+---
+
+# States Plugins
+
+These plugins provide monitoring for various device system and connectivity states.
 
 ## Network States Plugin
 
@@ -164,6 +227,12 @@ implementation("io.github.shadadman:ksensor-states-bluetooth:version")
 Required Permissions:
 - Android/iOS: `BLUETOOTH`
 
+### Android Configuration
+Add the following to your `AndroidManifest.xml`:
+- `android.permission.BLUETOOTH_SCAN` (API 31+)
+- `android.permission.BLUETOOTH_CONNECT` (API 31+)
+- `android.permission.ACCESS_FINE_LOCATION` (Required for discovery on older versions)
+
 Data Models (Wrapped in `KSensorResponse`):
 
 - BLE Connections: `BleConnectionStatus(connectedDevices: List<BleDevice>)`
@@ -184,6 +253,8 @@ Required Permissions: None
 Data Models (Wrapped in `KSensorResponse`):
 
 - App Visibility: `AppVisibilityStatus(isAppVisible: Boolean)`
+
+---
 
 ## Basic Usage
 
@@ -227,7 +298,7 @@ fun OrientationSampleUsingEffect() {
 
 ## License
 
-Copyright (c) 2025 KSensor
+Copyright (c) 2026 KSensor
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted.
