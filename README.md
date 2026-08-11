@@ -320,7 +320,20 @@ fun OrientationSampleUsingEffect() {
 }
 ```
 
+
+---
+
+## LLM Integration (SKILL)
+
+To help AI agents (like Claude, GPT, or IDE assistants) understand and work with KSensor more effectively, we provide a **SKILL** section. You can inject these documents into your LLM's context to get high-quality code generation and architectural advice specific to KSensor.
+
+### How to use:
+1. **Direct Injection**: Copy the contents of [`SKILL.md`](file:///home/shad/KMP/KSensor/SKILL/SKILL.md) and [`CONTRIBUTING_SKILL.md`](file:///home/shad/KMP/KSensor/SKILL/CONTRIBUTING_SKILL.md) into your LLM's system prompt or context window.
+2. **IDE Assistants**: If you are using Cursor, GitHub Copilot, or Gemini in Android Studio, reference the `SKILL/` folder to provide the agent with deep knowledge of KSensor's plugin system and implementation details.
+3. **Plugin Development**: Use [`CONTRIBUTING_SKILL.md`](file:///home/shad/KMP/KSensor/SKILL/CONTRIBUTING_SKILL.md) when you want the LLM to help you write a new custom plugin for a specific sensor or platform state.
+
 ## License
+
 
 Copyright (c) 2026 KSensor
 
