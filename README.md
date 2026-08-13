@@ -19,13 +19,37 @@ All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
 
 Some plugins require system permissions to function. Each plugin exposes a `requiredPermissions` list indicating what it needs. KSensor provides a `PermissionHandler` interface in the Core module to help check and request these permissions across platforms.
 
-### Core Permission API
+### Core Module API
 ```kotlin
-interface PermissionHandler {
-    fun hasPermission(permission: Permission): Boolean
-    suspend fun requestPermission(permission: Permission): Boolean
+object KSensor {
+    /**
+     * Flag to enable/disable "start on boot" for the entire library.
+     */
+    var startOnBoot: Boolean
+
+    /**
+     * Registers a plugin.
+     * @param startOnBoot If true, this plugin will be marked to start automatically on device boot.
+     */
+    fun register(plugin: KSensorPlugin, startOnBoot: Boolean = false)
+
+    /**
+     * Marks a plugin to start on boot or removes the mark.
+     */
+    fun setStartOnBoot(id: PluginId, enable: Boolean)
+
+    /**
+     * Starts all plugins marked as "start on boot". 
+     * Used in Application class on Android and to achieve "start on boot" behavior on iOS.
+     */
+    fun start()
 }
 ```
+
+> [!IMPORTANT]
+> **Android**: To use "Start on Boot", you must register your plugins and call `KSensor.start()` in your `Application` class. While the library handles the system boot broadcast automatically, calling `start()` in your application class ensures that observations are resumed whenever the app process is created.
+>
+> **iOS**: iOS does not allow arbitrary code execution on boot. To achieve "Start on Boot" behavior, you must call `KSensor.start()` in your `AppDelegate`'s `didFinishLaunchingWithOptions`. If you have background modes enabled (like Location or HealthKit), the system will relaunch your app into the background after a reboot, and calling `KSensor.start()` will resume observations.
 
 You must ensure that the necessary permissions are granted before starting sensor observations. Each plugin section below lists its required permissions.
 
