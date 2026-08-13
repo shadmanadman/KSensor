@@ -11,6 +11,7 @@ interface SystemPlugin : KSensorPlugin {
     fun volume(): StatePlugin<StateData.VolumeStatus>
     fun locale(): StatePlugin<StateData.LocaleStatus>
     fun screen(): StatePlugin<StateData.ScreenStatus>
+    fun brightness(): StatePlugin<StateData.BrightnessStatus>
     fun lock(): StatePlugin<StateData.LockStatus>
     fun powerSave(): StatePlugin<StateData.PowerSaveStatus>
     fun storage(interval: Duration = 3.seconds): StatePlugin<StateData.StorageStatus>

@@ -1,7 +1,5 @@
 package com.ksensor.core.model
 
-import com.ksensor.core.PlatformType
-
 enum class StateType {
     SCREEN,
     APP_VISIBILITY,
@@ -15,12 +13,14 @@ enum class StateType {
     POWER_SAVE,
     BLE_CONNECTIONS,
     BLE_DISCOVERS,
-    STORAGE
+    STORAGE,
+    BRIGHTNESS
 }
 
 data class BleDevice(val id: String, val name: String, val isAudio: Boolean = false)
 
 sealed class StateData {
+    data class BrightnessStatus(val screenBrightness: Int) : StateData()
     data class AppVisibilityStatus(
         val isAppVisible: Boolean,
     ) : StateData()
@@ -34,8 +34,8 @@ sealed class StateData {
     ) : StateData()
 
     data class LockStatus(
-        val isDeviceLocked:Boolean
-    ):StateData()
+        val isDeviceLocked: Boolean
+    ) : StateData()
 
     data class PowerSaveStatus(
         val isPowerSaveMode: Boolean,
@@ -49,7 +49,7 @@ sealed class StateData {
         }
     }
 
-    data class VolumeStatus(val volumePercentage: Int): StateData()
+    data class VolumeStatus(val volumePercentage: Int) : StateData()
     data class ConnectivityStatus(
         val isConnected: Boolean,
     ) : StateData()
@@ -67,7 +67,7 @@ sealed class StateData {
         val chargingState: ChargingState,
         val health: BatteryHealth?,
         val temperatureC: Float?
-    ) : StateData(){
+    ) : StateData() {
         enum class ChargingState { UNKNOWN, DISCHARGING, CHARGING, FULL }
         enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
     }
