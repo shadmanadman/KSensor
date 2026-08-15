@@ -108,6 +108,7 @@ Vital signs and biological data.
 - **Volume**: System output volume percentage.
 - **Locale**: Language, country, and RTL detection.
 - **Screen**: Screen on/off state.
+- **Brightness**: Screen brightness percentage.
 - **Lock**: Device lock status.
 - **Power Save**: Battery saver mode status.
 - **Storage**: Total and available disk space.

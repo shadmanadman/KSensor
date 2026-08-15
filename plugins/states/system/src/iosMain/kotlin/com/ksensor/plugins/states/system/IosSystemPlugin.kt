@@ -77,6 +77,20 @@ class IosSystemPlugin : SystemPlugin {
         }
     }
 
+    override fun brightness(): StatePlugin<StateData.BrightnessStatus> = object : StatePlugin<StateData.BrightnessStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        private val receiver = BrightnessReceiver {}
+        override val currentState: KSensorResponse<StateData.BrightnessStatus>
+            get() = KSensorResponse(receiver.getCurrentStatus())
+
+        override fun observe(): Flow<KSensorResponse<StateData.BrightnessStatus>> = callbackFlow {
+            val obs = BrightnessReceiver { trySend(KSensorResponse(it)) }
+            obs.register()
+            awaitClose { obs.unregister() }
+        }
+    }
+
     override fun lock(): StatePlugin<StateData.LockStatus> = object : StatePlugin<StateData.LockStatus> {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()

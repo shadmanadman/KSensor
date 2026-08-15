@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
 import android.os.PowerManager
+import android.provider.Settings
 import com.ksensor.core.Permission
 import com.ksensor.core.model.PluginId
 import com.ksensor.core.StatePlugin
@@ -121,6 +122,29 @@ class AndroidSystemPlugin : SystemPlugin {
 
     override fun screen(): StatePlugin<StateData.ScreenStatus> = screenPlugin
 
+    private val brightnessFlow by lazy {
+        callbackFlow {
+            val observer = BrightnessObserver(context) { trySend(KSensorResponse(it)) }
+            context.contentResolver.registerContentObserver(
+                Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
+                false,
+                observer
+            )
+            trySend(KSensorResponse(BrightnessObserver.getCurrentStatus(context)))
+            awaitClose { context.contentResolver.unregisterContentObserver(observer) }
+        }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+    }
+
+    private val brightnessPlugin = object : StatePlugin<StateData.BrightnessStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.BrightnessStatus>
+            get() = KSensorResponse(BrightnessObserver.getCurrentStatus(context))
+
+        override fun observe(): Flow<KSensorResponse<StateData.BrightnessStatus>> = brightnessFlow
+    }
+
+    override fun brightness(): StatePlugin<StateData.BrightnessStatus> = brightnessPlugin
     private val lockFlow by lazy {
         val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         callbackFlow {

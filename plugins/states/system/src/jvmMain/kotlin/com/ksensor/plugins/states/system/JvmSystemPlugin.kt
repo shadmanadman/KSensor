@@ -21,6 +21,7 @@ class JvmSystemPlugin : SystemPlugin {
     override fun volume(): StatePlugin<StateData.VolumeStatus> = noopState(StateData.VolumeStatus(0))
     override fun locale(): StatePlugin<StateData.LocaleStatus> = noopState(StateData.LocaleStatus("", "", "", "", false))
     override fun screen(): StatePlugin<StateData.ScreenStatus> = noopState(StateData.ScreenStatus(true))
+    override fun brightness(): StatePlugin<StateData.BrightnessStatus> = noopState(StateData.BrightnessStatus(100))
     override fun lock(): StatePlugin<StateData.LockStatus> = noopState(StateData.LockStatus(false))
     override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = noopState(StateData.PowerSaveStatus(false))
     override fun storage(interval: Duration): StatePlugin<StateData.StorageStatus> = noopState(StateData.StorageStatus(0, 0, 0))

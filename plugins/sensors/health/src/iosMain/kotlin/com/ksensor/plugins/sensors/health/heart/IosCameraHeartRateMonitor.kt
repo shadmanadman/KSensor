@@ -15,9 +15,21 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.channels.ProducerScope
 
 @OptIn(ExperimentalForeignApi::class)
-class IosCameraHeartRateMonitor : NSObject(), IosHeartRateMonitor, AVCaptureVideoDataOutputSampleBufferDelegateProtocol {
+class IosCameraHeartRateMonitor : IosHeartRateMonitor {
     private val ppgAlgorithm = PPGAlgorithm(targetSamplingRate = 30.0)
     private var session: AVCaptureSession? = null
+    
+    private val delegate = object : NSObject(), AVCaptureVideoDataOutputSampleBufferDelegateProtocol {
+        @OptIn(UnsafeNumber::class)
+        override fun captureOutput(
+            output: AVCaptureOutput,
+            didOutputSampleBuffer: CMSampleBufferRef?,
+            fromConnection: AVCaptureConnection
+        ) {
+            processFrame(didOutputSampleBuffer)
+        }
+    }
+
     private var callbackScope: ProducerScope<KSensorResponse<SensorData.HeartRate>>? = null
 
     override fun isSupported(): Boolean {
@@ -44,7 +56,7 @@ class IosCameraHeartRateMonitor : NSObject(), IosHeartRateMonitor, AVCaptureVide
 
             val output = AVCaptureVideoDataOutput()
             output.alwaysDiscardsLateVideoFrames = true
-            output.setSampleBufferDelegate(this@IosCameraHeartRateMonitor, dispatch_get_main_queue())
+            output.setSampleBufferDelegate(delegate, dispatch_get_main_queue())
             
             val settings = mapOf(kCVPixelBufferPixelFormatTypeKey as Any? to kCVPixelFormatType_32BGRA.toLong() as Any?)
             output.videoSettings = settings as Map<Any?, *>
@@ -85,11 +97,7 @@ class IosCameraHeartRateMonitor : NSObject(), IosHeartRateMonitor, AVCaptureVide
     }
 
     @OptIn(UnsafeNumber::class)
-    override fun captureOutput(
-        output: AVCaptureOutput,
-        didOutputSampleBuffer: CMSampleBufferRef?,
-        fromConnection: AVCaptureConnection
-    ) {
+    private fun processFrame(didOutputSampleBuffer: CMSampleBufferRef?) {
         val buffer = CMSampleBufferGetImageBuffer(didOutputSampleBuffer) ?: return
         CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly)
         

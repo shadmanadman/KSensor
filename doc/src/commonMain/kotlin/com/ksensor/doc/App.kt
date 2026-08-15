@@ -107,6 +107,7 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
                 SidebarItem("Battery") { onPageSelected(DocPage.Plugin("States", "Battery", "Monitors battery level and state.", "Level, IsCharging", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.battery()?.observe()?.collect { status -> \n    val level = status.level\n}")) }
                 SidebarItem("Volume") { onPageSelected(DocPage.Plugin("States", "Volume", "Monitors system volume changes.", "Volume Level", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.volume()?.observe()?.collect { status -> \n    val volume = status.volume\n}")) }
                 SidebarItem("Screen") { onPageSelected(DocPage.Plugin("States", "Screen", "Monitors screen on/off state.", "IsOn (Boolean)", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.screen()?.observe()?.collect { status -> \n    val isOn = status.isOn\n}")) }
+                SidebarItem("Brightness") { onPageSelected(DocPage.Plugin("States", "Brightness", "Monitors screen brightness level changes.", "Brightness Level (0-100)", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.brightness()?.observe()?.collect { status -> \n    val level = status.screenBrightness\n}")) }
                 SidebarItem("Storage") { onPageSelected(DocPage.Plugin("States", "Storage", "Monitors device storage capacity and usage.", "Total, Used, Free (Long)", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.storage()?.observe()?.collect { response -> \n    val freeSpace = response.data.freeBytes\n}")) }
             }
             SidebarSubSection("Lifecycle") {

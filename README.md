@@ -235,6 +235,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Volume: `VolumeStatus(volumePercentage: Int)`
 - Locale: `LocaleStatus(languageCode: String, countryCode: String, fullLocaleString: String, displayName: String, isRTL: Boolean)`
 - Screen: `ScreenStatus(isScreenOn: Boolean)`
+- Brightness: `BrightnessStatus(screenBrightness: Int)`
 - Lock: `LockStatus(isDeviceLocked: Boolean)`
 - Power Save: `PowerSaveStatus(isPowerSaveMode: Boolean)`
 - Storage: `StorageStatus(totalBytes: Long, usedBytes: Long, freeBytes: Long)`
