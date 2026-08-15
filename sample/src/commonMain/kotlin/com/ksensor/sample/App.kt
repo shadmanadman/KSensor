@@ -69,8 +69,41 @@ fun App() {
 //                LocationSample()
 //                StorageSample()
 //                HeadingSample()
-                HealthSample()
+                BrightnessSample()
+//                HealthSample()
             }
+        }
+    }
+}
+
+@Composable
+fun BrightnessSample() {
+    val plugin = remember {
+        KSensor.get<SystemPlugin>(PluginId.SYSTEM)
+            ?: createSystemPlugin().also { KSensor.register(it) }
+    }
+
+    val brightnessResponse by plugin.brightness().observe().collectAsState(null)
+    val brightness = brightnessResponse?.data
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Brightness Status Sample", style = MaterialTheme.typography.h5)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (brightness != null) {
+            Text("Screen Brightness: ${brightness.screenBrightness}%")
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LinearProgressIndicator(
+                progress = brightness.screenBrightness.toFloat() / 100f,
+                modifier = Modifier.fillMaxWidth().height(8.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Try changing your system brightness to see it update.", style = MaterialTheme.typography.caption)
+        } else {
+            Text("Loading brightness data...")
         }
     }
 }
