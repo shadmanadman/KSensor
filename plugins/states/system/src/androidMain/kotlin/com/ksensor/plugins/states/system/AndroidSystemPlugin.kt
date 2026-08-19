@@ -211,6 +211,33 @@ class AndroidSystemPlugin : SystemPlugin {
                 }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
             }
     }
+
+    private val resourcesFlows = ConcurrentHashMap<Duration, Flow<KSensorResponse<StateData.ResourcesStatus>>>()
+
+    override fun resources(interval: Duration): StatePlugin<StateData.ResourcesStatus> = object : StatePlugin<StateData.ResourcesStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.ResourcesStatus>
+            get() = KSensorResponse(
+                StateData.ResourcesStatus(
+                    cpuUsagePercent = 0.0,
+                    appCpuUsagePercent = 0.0,
+                    systemLoadAverage = emptyList(),
+                    memoryPressure = StateData.ResourcesStatus.MemoryPressureLevel.UNKNOWN,
+                    memoryUsage = StateData.ResourcesStatus.MemoryUsage(0, 0, 0)
+                )
+            )
+
+        override fun observe(): Flow<KSensorResponse<StateData.ResourcesStatus>> =
+            resourcesFlows.getOrPut(interval) {
+                flow {
+                    while (true) {
+                        emit(currentState)
+                        delay(interval)
+                    }
+                }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+    }
 }
 
 actual fun createSystemPlugin(): SystemPlugin = AndroidSystemPlugin()

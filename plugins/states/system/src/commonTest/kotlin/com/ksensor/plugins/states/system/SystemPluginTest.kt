@@ -53,6 +53,14 @@ class FakeSystemPlugin : SystemPlugin {
             MutableSharedFlow<KSensorResponse<StateData.ScreenStatus>>().asTrackedFlow("screen")
     }
 
+    override fun brightness(): StatePlugin<StateData.BrightnessStatus> = object : StatePlugin<StateData.BrightnessStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.BrightnessStatus> get() = KSensorResponse(StateData.BrightnessStatus(100))
+        override fun observe(): Flow<KSensorResponse<StateData.BrightnessStatus>> =
+            MutableSharedFlow<KSensorResponse<StateData.BrightnessStatus>>().asTrackedFlow("brightness")
+    }
+
     override fun lock(): StatePlugin<StateData.LockStatus> = object : StatePlugin<StateData.LockStatus> {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
@@ -75,6 +83,22 @@ class FakeSystemPlugin : SystemPlugin {
         override val currentState: KSensorResponse<StateData.StorageStatus> get() = KSensorResponse(StateData.StorageStatus(0, 0, 0))
         override fun observe(): Flow<KSensorResponse<StateData.StorageStatus>> =
             MutableSharedFlow<KSensorResponse<StateData.StorageStatus>>().asTrackedFlow("storage")
+    }
+
+    override fun resources(interval: Duration): StatePlugin<StateData.ResourcesStatus> = object : StatePlugin<StateData.ResourcesStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.ResourcesStatus> get() = KSensorResponse(
+            StateData.ResourcesStatus(
+                cpuUsagePercent = 0.0,
+                appCpuUsagePercent = 0.0,
+                systemLoadAverage = emptyList(),
+                memoryPressure = StateData.ResourcesStatus.MemoryPressureLevel.UNKNOWN,
+                memoryUsage = StateData.ResourcesStatus.MemoryUsage(0, 0, 0)
+            )
+        )
+        override fun observe(): Flow<KSensorResponse<StateData.ResourcesStatus>> =
+            MutableSharedFlow<KSensorResponse<StateData.ResourcesStatus>>().asTrackedFlow("resources")
     }
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
@@ -153,5 +177,15 @@ class SystemPluginTest {
         assertTrue(fake.activeObservers.contains("storage"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("storage"))
+    }
+
+    @Test
+    fun testResources() = runTest {
+        val fake = FakeSystemPlugin()
+        val job = launch { fake.resources().observe().collect {} }
+        runCurrent()
+        assertTrue(fake.activeObservers.contains("resources"))
+        job.cancelAndJoin()
+        assertFalse(fake.activeObservers.contains("resources"))
     }
 }

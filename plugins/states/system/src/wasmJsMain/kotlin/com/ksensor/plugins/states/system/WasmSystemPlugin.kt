@@ -25,6 +25,15 @@ class WasmSystemPlugin : SystemPlugin {
     override fun lock(): StatePlugin<StateData.LockStatus> = noopState(StateData.LockStatus(false))
     override fun powerSave(): StatePlugin<StateData.PowerSaveStatus> = noopState(StateData.PowerSaveStatus(false))
     override fun storage(interval: Duration): StatePlugin<StateData.StorageStatus> = noopState(StateData.StorageStatus(0, 0, 0))
+    override fun resources(interval: Duration): StatePlugin<StateData.ResourcesStatus> = noopState(
+        StateData.ResourcesStatus(
+            cpuUsagePercent = 0.0,
+            appCpuUsagePercent = 0.0,
+            systemLoadAverage = emptyList(),
+            memoryPressure = StateData.ResourcesStatus.MemoryPressureLevel.UNKNOWN,
+            memoryUsage = StateData.ResourcesStatus.MemoryUsage(0, 0, 0)
+        )
+    )
 }
 
 private fun <T> noopState(value: T): StatePlugin<T> = object : StatePlugin<T> {

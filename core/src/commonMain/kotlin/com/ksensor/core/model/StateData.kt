@@ -14,7 +14,8 @@ enum class StateType {
     BLE_CONNECTIONS,
     BLE_DISCOVERS,
     STORAGE,
-    BRIGHTNESS
+    BRIGHTNESS,
+    RESOURCES
 }
 
 data class BleDevice(val id: String, val name: String, val isAudio: Boolean = false)
@@ -81,4 +82,19 @@ sealed class StateData {
         val usedBytes: Long,
         val freeBytes: Long
     ) : StateData()
+
+    data class ResourcesStatus(
+        val cpuUsagePercent: Double,
+        val appCpuUsagePercent: Double,
+        val systemLoadAverage: List<Double>,
+        val memoryPressure: MemoryPressureLevel,
+        val memoryUsage: MemoryUsage
+    ) : StateData() {
+        enum class MemoryPressureLevel { UNKNOWN, NORMAL, MODERATE, CRITICAL }
+        data class MemoryUsage(
+            val totalBytes: Long,
+            val usedBytes: Long,
+            val freeBytes: Long
+        )
+    }
 }

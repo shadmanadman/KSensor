@@ -15,6 +15,7 @@ interface SystemPlugin : KSensorPlugin {
     fun lock(): StatePlugin<StateData.LockStatus>
     fun powerSave(): StatePlugin<StateData.PowerSaveStatus>
     fun storage(interval: Duration = 3.seconds): StatePlugin<StateData.StorageStatus>
+    fun resources(interval: Duration = 3.seconds): StatePlugin<StateData.ResourcesStatus>
 }
 
 expect fun createSystemPlugin(): SystemPlugin
