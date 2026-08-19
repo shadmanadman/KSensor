@@ -45,7 +45,7 @@ object KSensor {
 
     /**
      * Starts all plugins marked as "start on boot". 
-     * Used in Application class on Android and to achieve "start on boot" behavior on iOS.
+     * Used only in Application class on Android and to achieve "start on boot" behavior on iOS.
      */
     fun start()
 }

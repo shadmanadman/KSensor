@@ -218,21 +218,13 @@ class AndroidSystemPlugin : SystemPlugin {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
         override val currentState: KSensorResponse<StateData.ResourcesStatus>
-            get() = KSensorResponse(
-                StateData.ResourcesStatus(
-                    cpuUsagePercent = 0.0,
-                    appCpuUsagePercent = 0.0,
-                    systemLoadAverage = emptyList(),
-                    memoryPressure = StateData.ResourcesStatus.MemoryPressureLevel.UNKNOWN,
-                    memoryUsage = StateData.ResourcesStatus.MemoryUsage(0, 0, 0)
-                )
-            )
+            get() = KSensorResponse(ResourcesProvider.getCurrentStatus(context))
 
         override fun observe(): Flow<KSensorResponse<StateData.ResourcesStatus>> =
             resourcesFlows.getOrPut(interval) {
                 flow {
                     while (true) {
-                        emit(currentState)
+                        emit(KSensorResponse(ResourcesProvider.getCurrentStatus(context)))
                         delay(interval)
                     }
                 }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
