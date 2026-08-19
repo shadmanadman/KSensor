@@ -34,6 +34,11 @@ object KSensor {
     fun register(plugin: KSensorPlugin, startOnBoot: Boolean = false)
 
     /**
+     * Unregisters a plugin.
+     */
+    fun unregister(id: PluginId)
+
+    /**
      * Marks a plugin to start on boot or removes the mark.
      */
     fun setStartOnBoot(id: PluginId, enable: Boolean)
@@ -319,6 +324,11 @@ fun OrientationSampleUsingEffect() {
         }
     }
 }
+```
+
+Example to unregister a plugin:
+```kotlin
+KSensor.unregister(PluginId.POSITIONING)
 ```
 
 
