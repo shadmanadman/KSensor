@@ -149,19 +149,11 @@ class IosSystemPlugin : SystemPlugin {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
         override val currentState: KSensorResponse<StateData.ResourcesStatus>
-            get() = KSensorResponse(
-                StateData.ResourcesStatus(
-                    cpuUsagePercent = 0.0,
-                    appCpuUsagePercent = 0.0,
-                    systemLoadAverage = emptyList(),
-                    memoryPressure = StateData.ResourcesStatus.MemoryPressureLevel.UNKNOWN,
-                    memoryUsage = StateData.ResourcesStatus.MemoryUsage(0, 0, 0)
-                )
-            )
+            get() = KSensorResponse(ResourcesProvider.getCurrentStatus())
 
         override fun observe(): Flow<KSensorResponse<StateData.ResourcesStatus>> = flow {
             while (true) {
-                emit(currentState)
+                emit(KSensorResponse(ResourcesProvider.getCurrentStatus()))
                 delay(interval)
             }
         }
