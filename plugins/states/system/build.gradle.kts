@@ -36,6 +36,7 @@ kotlin {
         iosTarget.compilations.getByName("main") {
             cinterops {
                 create("nskeyvalueobserving")
+                create("mach_info")
             }
         }
     }

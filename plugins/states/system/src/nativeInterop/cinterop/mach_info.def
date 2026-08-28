@@ -1,0 +1,10 @@
+package = com.ksensor.plugins.states.system.mach
+headerFilter = mach/*.h
+---
+#include <mach/mach.h>
+#include <mach/thread_info.h>
+#include <mach/task_info.h>
+
+static inline mach_port_t ksensor_mach_task_self() {
+    return mach_task_self();
+}

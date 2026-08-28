@@ -5,6 +5,7 @@ import kotlinx.cinterop.*
 import platform.Foundation.*
 import platform.posix.*
 import platform.darwin.*
+import com.ksensor.plugins.states.system.mach.*
 
 @OptIn(ExperimentalForeignApi::class)
 object ResourcesProvider {
@@ -69,7 +70,7 @@ object ResourcesProvider {
         val threadList = alloc<thread_array_tVar>()
         val threadCount = alloc<mach_msg_type_number_tVar>()
 
-        val kr = task_threads(mach_task_self(), threadList.ptr, threadCount.ptr)
+        val kr = task_threads(ksensor_mach_task_self(), threadList.ptr, threadCount.ptr)
         if (kr != KERN_SUCCESS) return 0.0
 
         val threads = threadList.value!!
@@ -94,7 +95,7 @@ object ResourcesProvider {
             }
         }
 
-        vm_deallocate(mach_task_self(), threads.toLong().convert(), (count * sizeOf<thread_t>()).convert())
+        vm_deallocate(ksensor_mach_task_self(), threads.toLong().convert(), (count.toLong() * sizeOf<UIntVar>()).convert())
         
         totalUsage
     }
@@ -105,7 +106,7 @@ object ResourcesProvider {
         count.value = (sizeOf<task_vm_info_data_t>() / sizeOf<integer_tVar>()).convert()
 
         val kr = task_info(
-            mach_task_self(),
+            ksensor_mach_task_self(),
             TASK_VM_INFO.convert(),
             info.ptr.reinterpret(),
             count.ptr
