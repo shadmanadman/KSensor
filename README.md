@@ -244,6 +244,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Lock: `LockStatus(isDeviceLocked: Boolean)`
 - Power Save: `PowerSaveStatus(isPowerSaveMode: Boolean)`
 - Storage: `StorageStatus(totalBytes: Long, usedBytes: Long, freeBytes: Long)`
+- Resources: `ResourcesStatus(cpuUsagePercent: Double, appCpuUsagePercent: Double, systemLoadAverage: List<Double>, memoryPressure: MemoryPressureLevel, memoryUsage: MemoryUsage)`
 
 ## Bluetooth States Plugin
 
