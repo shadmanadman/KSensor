@@ -34,13 +34,18 @@ object KSensor {
     fun register(plugin: KSensorPlugin, startOnBoot: Boolean = false)
 
     /**
+     * Unregisters a plugin.
+     */
+    fun unregister(id: PluginId)
+
+    /**
      * Marks a plugin to start on boot or removes the mark.
      */
     fun setStartOnBoot(id: PluginId, enable: Boolean)
 
     /**
      * Starts all plugins marked as "start on boot". 
-     * Used in Application class on Android and to achieve "start on boot" behavior on iOS.
+     * Used only in Application class on Android and to achieve "start on boot" behavior on iOS.
      */
     fun start()
 }
@@ -239,6 +244,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Lock: `LockStatus(isDeviceLocked: Boolean)`
 - Power Save: `PowerSaveStatus(isPowerSaveMode: Boolean)`
 - Storage: `StorageStatus(totalBytes: Long, usedBytes: Long, freeBytes: Long)`
+- Resources: `ResourcesStatus(cpuUsagePercent: Double, appCpuUsagePercent: Double, systemLoadAverage: List<Double>, memoryPressure: MemoryPressureLevel, memoryUsage: MemoryUsage)`
 
 ## Bluetooth States Plugin
 
@@ -319,6 +325,11 @@ fun OrientationSampleUsingEffect() {
         }
     }
 }
+```
+
+Example to unregister a plugin:
+```kotlin
+KSensor.unregister(PluginId.POSITIONING)
 ```
 
 

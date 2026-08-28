@@ -144,6 +144,20 @@ class IosSystemPlugin : SystemPlugin {
             }
         }
     }
+
+    override fun resources(interval: Duration): StatePlugin<StateData.ResourcesStatus> = object : StatePlugin<StateData.ResourcesStatus> {
+        override val id: PluginId = PluginId.SYSTEM
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.ResourcesStatus>
+            get() = KSensorResponse(ResourcesProvider.getCurrentStatus())
+
+        override fun observe(): Flow<KSensorResponse<StateData.ResourcesStatus>> = flow {
+            while (true) {
+                emit(KSensorResponse(ResourcesProvider.getCurrentStatus()))
+                delay(interval)
+            }
+        }
+    }
 }
 
 actual fun createSystemPlugin(): SystemPlugin = IosSystemPlugin()

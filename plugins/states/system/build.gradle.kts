@@ -49,12 +49,12 @@ kotlin {
     sourceSets {
         commonTest {
             dependencies {
+                implementation(libs.kotlin.test)
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
         commonMain {
             dependencies {
-                implementation(libs.kotlin.test)
                 implementation(projects.core)
                 implementation(libs.kotlinx.coroutines.core)
             }

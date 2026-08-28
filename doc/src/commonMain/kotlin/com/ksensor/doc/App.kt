@@ -109,6 +109,7 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
                 SidebarItem("Screen") { onPageSelected(DocPage.Plugin("States", "Screen", "Monitors screen on/off state.", "IsOn (Boolean)", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.screen()?.observe()?.collect { status -> \n    val isOn = status.isOn\n}")) }
                 SidebarItem("Brightness") { onPageSelected(DocPage.Plugin("States", "Brightness", "Monitors screen brightness level changes.", "Brightness Level (0-100)", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.brightness()?.observe()?.collect { status -> \n    val level = status.screenBrightness\n}")) }
                 SidebarItem("Storage") { onPageSelected(DocPage.Plugin("States", "Storage", "Monitors device storage capacity and usage.", "Total, Used, Free (Long)", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.storage()?.observe()?.collect { response -> \n    val freeSpace = response.data.freeBytes\n}")) }
+                SidebarItem("Resources") { onPageSelected(DocPage.Plugin("States", "Resources", "Monitors device resource metrics including CPU usage, system load, and memory status.", "CPU (%), Load Average (List), Memory (Used, Free, Total)", "KSensor.get<SystemPlugin>(PluginId.SYSTEM)?.resources()?.observe()?.collect { response -> \n    val cpu = response.data.appCpuUsagePercent\n}")) }
             }
             SidebarSubSection("Lifecycle") {
                 SidebarItem("App Visibility") { onPageSelected(DocPage.Plugin("States", "App Visibility", "Monitors whether the app is in the foreground or background.", "Status (Enum)", "KSensor.get<LifecyclePlugin>(PluginId.LIFECYCLE)?.appVisibility()?.observe()?.collect { status -> \n    // handle visibility\n}")) }
@@ -192,7 +193,7 @@ fun IntroPage() {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                "// 1. Enable start on boot for the library\nKSensor.startOnBoot = true\n\n// 2. Register a plugin to start on boot\nKSensor.register(plugin, startOnBoot = true)\n\n// 3. Trigger startup (Call this in Android Application or iOS AppDelegate)\nKSensor.start()",
+                "// 1. Enable start on boot for the library\nKSensor.startOnBoot = true\n\n// 2. Register a plugin to start on boot\nKSensor.register(plugin, startOnBoot = true)\n\n// 3. Unregister a plugin\nKSensor.unregister(PluginId.SYSTEM)\n\n// 4. Trigger startup (Call this in Android Application or iOS AppDelegate)\nKSensor.start()",
                 color = Color(0xFFA9B7C6),
                 modifier = Modifier.padding(16.dp),
                 fontFamily = FontFamily.Monospace,

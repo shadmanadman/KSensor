@@ -112,6 +112,7 @@ Vital signs and biological data.
 - **Lock**: Device lock status.
 - **Power Save**: Battery saver mode status.
 - **Storage**: Total and available disk space.
+- **Resources**: CPU usage (System & App), system load average, and memory metrics.
 
 ### Bluetooth (`BLUETOOTH`)
 - **Connections**: List of connected BLE devices.

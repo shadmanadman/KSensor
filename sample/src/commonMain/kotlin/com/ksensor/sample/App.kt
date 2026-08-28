@@ -68,8 +68,9 @@ fun App() {
 //                MotionSampleUsingState()
 //                LocationSample()
 //                StorageSample()
+                ResourcesSample()
 //                HeadingSample()
-                BrightnessSample()
+//                BrightnessSample()
 //                HealthSample()
             }
         }
@@ -287,6 +288,59 @@ fun StorageSample() {
             )
         } else {
             Text("Loading storage data...")
+        }
+    }
+}
+
+@Composable
+fun ResourcesSample() {
+    val plugin = remember {
+        KSensor.get<SystemPlugin>(PluginId.SYSTEM)
+            ?: createSystemPlugin().also { KSensor.register(it) }
+    }
+
+    val resourcesResponse by plugin.resources(interval = 1.seconds).observe().collectAsState(null)
+    val resources = resourcesResponse?.data
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Device Resources Sample", style = MaterialTheme.typography.h5)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (resources != null) {
+            Text("CPU Usage (Total): ${resources.cpuUsagePercent.toTwoDecimalString()}%")
+            Text("App CPU Usage: ${resources.appCpuUsagePercent.toTwoDecimalString()}%")
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text("System Load Average:", style = MaterialTheme.typography.h6)
+            resources.systemLoadAverage.forEachIndexed { index, load ->
+                val time = when(index) {
+                    0 -> "1 min"
+                    1 -> "5 min"
+                    else -> "15 min"
+                }
+                Text("  • $time: ${load.toTwoDecimalString()}")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Memory Status:", style = MaterialTheme.typography.h6)
+            val totalMB = resources.memoryUsage.totalBytes / (1024.0 * 1024.0)
+            val usedMB = resources.memoryUsage.usedBytes / (1024.0 * 1024.0)
+            val freeMB = resources.memoryUsage.freeBytes / (1024.0 * 1024.0)
+
+            Text("  • Total: ${totalMB.toTwoDecimalString()} MB")
+            Text("  • Used: ${usedMB.toTwoDecimalString()} MB")
+            Text("  • Free: ${freeMB.toTwoDecimalString()} MB")
+            Text("  • Pressure: ${resources.memoryPressure.name}")
+
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = if (resources.memoryUsage.totalBytes > 0) usedMB.toFloat() / totalMB.toFloat() else 0f,
+                modifier = Modifier.fillMaxWidth().height(8.dp)
+            )
+        } else {
+            Text("Loading resources data...")
         }
     }
 }
